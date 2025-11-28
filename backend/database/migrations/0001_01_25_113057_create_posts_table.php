@@ -14,6 +14,7 @@ return new class extends Migration
             $table->char('post_user_fk', 50);
             $table->foreign('post_user_fk')->references('user_pk')->on('users')->onDelete('cascade');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

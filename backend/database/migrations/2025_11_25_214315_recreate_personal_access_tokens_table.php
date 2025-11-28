@@ -6,8 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
+        // Only recreate when the table is missing (avoids nuking existing data for teammates).
         if (Schema::hasTable('personal_access_tokens')) {
             return;
         }
@@ -17,8 +18,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('token', 64)->unique();
             $table->text('abilities')->nullable();
-            $table->timestamp('last_used_at')->nullable();
             $table->timestamp('expires_at')->nullable();
+            $table->timestamp('last_used_at')->nullable();
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
             $table->string('tokenable_id', 50);
@@ -28,7 +29,7 @@ return new class extends Migration
         });
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('personal_access_tokens');
     }
