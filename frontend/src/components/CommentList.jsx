@@ -109,11 +109,6 @@ const CommentList = ({
             ) : (
               <div className="post__comment-text">
                 {comment.comment_message}
-                {comment.updated_at &&
-                  comment.created_at &&
-                  String(comment.updated_at) !== String(comment.created_at) && (
-                    <span className="edited-tag"> · Edited</span>
-                  )}
               </div>
             )}
           </div>
