@@ -58,13 +58,7 @@
 .x-dialog__form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-}
-
-.x-dialog__form input {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  gap: 6px;
 }
 
 .x-dialog__btn {

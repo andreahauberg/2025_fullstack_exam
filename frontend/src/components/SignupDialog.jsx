@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { api } from "../api";
 import Dialog from "./Dialog";
+import {
+  extractFieldErrors,
+  parseApiErrorMessage,
+  validateSignup,
+} from "../utils/validation";
+import FieldError from "./FieldError";
 
 const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
   const [formData, setFormData] = useState({
@@ -9,7 +15,6 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
     user_email: "",
     user_password: "",
   });
-  const [message, setMessage] = useState("");
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -22,26 +27,36 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const clientErrors = validateSignup(formData);
+    if (Object.keys(clientErrors).length > 0) {
+      setErrors(clientErrors);
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const response = await api.post("/signup", formData);
-      setMessage(response.data.message);
+      await api.post("/signup", formData);
       setErrors({});
       setTimeout(() => {
         onSuccess();
         onClose();
       }, 2000);
     } catch (error) {
-      if (error.response) {
-        if (error.response.data.errors) {
-          setErrors(error.response.data.errors);
-        } else if (error.response.data.message) {
-          setMessage(error.response.data.message);
-        } else {
-          setMessage("An unexpected error occurred.");
-        }
+      const fieldErrors = extractFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        setErrors(fieldErrors);
       } else {
-        setMessage("Network error. Please check your connection.");
+        const fallback = parseApiErrorMessage(
+          error,
+          "Network error. Please check your connection."
+        );
+        setErrors({
+          user_full_name: fallback,
+          user_username: fallback,
+          user_email: fallback,
+          user_password: fallback,
+        });
       }
     } finally {
       setIsLoading(false);
@@ -54,28 +69,19 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
       onClose={onClose}
       title="Create your account"
       logo={true}>
-      {message && (
-        <div
-          className={`alert ${
-            message.includes("success") ? "alert-success" : "alert-error"
-          }`}>
-          {message}
-        </div>
-      )}
-      <form className="x-dialog__form" onSubmit={handleSubmit}>
+      <form className="x-dialog__form" onSubmit={handleSubmit} noValidate>
         <input
           name="user_full_name"
           type="text"
           placeholder="Name"
           value={formData.user_full_name}
           onChange={handleChange}
-          required
           disabled={isLoading}
           autoFocus
+          className={errors.user_full_name ? "form-control input-error" : "form-control"}
         />
-        {errors.user_full_name && (
-          <span className="error">{errors.user_full_name[0]}</span>
-        )}
+        <span className="field-hint">Max 20 characters</span>
+        <FieldError error={errors.user_full_name} />
 
         <input
           name="user_username"
@@ -83,12 +89,11 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
           placeholder="Username"
           value={formData.user_username}
           onChange={handleChange}
-          required
           disabled={isLoading}
+          className={errors.user_username ? "form-control input-error" : "form-control"}
         />
-        {errors.user_username && (
-          <span className="error">{errors.user_username[0]}</span>
-        )}
+        <span className="field-hint">3-20 chars · letters, numbers, underscores, dots</span>
+        <FieldError error={errors.user_username} />
 
         <input
           name="user_email"
@@ -96,12 +101,11 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
           placeholder="Email"
           value={formData.user_email}
           onChange={handleChange}
-          required
           disabled={isLoading}
+          className={errors.user_email ? "form-control input-error" : "form-control"}
         />
-        {errors.user_email && (
-          <span className="error">{errors.user_email[0]}</span>
-        )}
+        <span className="field-hint">Valid email · Max 100 characters</span>
+        <FieldError error={errors.user_email} />
 
         <input
           name="user_password"
@@ -109,12 +113,11 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
           placeholder="Password"
           value={formData.user_password}
           onChange={handleChange}
-          required
           disabled={isLoading}
+          className={errors.user_password ? "form-control input-error" : "form-control"}
         />
-        {errors.user_password && (
-          <span className="error">{errors.user_password[0]}</span>
-        )}
+        <span className="field-hint">Min. 8 characters</span>
+        <FieldError error={errors.user_password} />
 
         <button type="submit" className="x-dialog__btn" disabled={isLoading}>
           {isLoading ? "Signing up..." : "Sign up"}

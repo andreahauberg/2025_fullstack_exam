@@ -1,13 +1,34 @@
+import { api } from "../api";
+
+const getApiOrigin = () => {
+  const baseFromApi = api?.defaults?.baseURL;
+  const envBase =
+    process.env.REACT_APP_API_BASE_URL || process.env.REACT_APP_API_BASE;
+  const fallbackBase = "http://localhost/api";
+  const candidate = baseFromApi || envBase || fallbackBase;
+
+  try {
+    return new URL(candidate).origin;
+  } catch (e) {
+    return "http://localhost";
+  }
+};
+
+const STORAGE_BASE = `${getApiOrigin()}/storage`;
+const FRONTEND_ORIGIN =
+  typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+
 export const getProfilePictureUrl = (profilePicture) => {
   if (!profilePicture) {
-    return "http://localhost:3000/avatar.jpg";
+    return `${FRONTEND_ORIGIN}/avatar.jpg`;
   }
 
   if (profilePicture.startsWith("http")) {
     return profilePicture;
   }
 
-  return `http://localhost/storage/${profilePicture}`;
+  const cleaned = profilePicture.replace(/^\/?storage\//, "");
+  return `${STORAGE_BASE}/${cleaned}`;
 };
 
 export const getPostImageUrl = (postImage) => {
@@ -19,5 +40,19 @@ export const getPostImageUrl = (postImage) => {
     return postImage;
   }
 
-  return `http://localhost/storage/${postImage}`;
+  const cleaned = postImage.replace(/^\/?storage\//, "");
+  return `${STORAGE_BASE}/${cleaned}`;
+};
+
+export const getCoverImageUrl = (coverImage) => {
+  if (!coverImage) {
+    return null;
+  }
+
+  if (coverImage.startsWith("http")) {
+    return coverImage;
+  }
+
+  const cleaned = coverImage.replace(/^\/?storage\//, "");
+  return `${STORAGE_BASE}/${cleaned}`;
 };

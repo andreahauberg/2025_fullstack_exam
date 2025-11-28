@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { getProfilePictureUrl } from "../utils/imageUtils";
+import { buildProfilePath } from "../utils/urlHelpers";
 
 const UserList = ({ title, users, emptyMessage, maxVisible = 3 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const currentUserPk = localStorage.getItem("user_pk");
 
   // Vis kun de første `maxVisible` brugere, hvis listen ikke er udvidet
   const visibleUsers = isExpanded ? users : users.slice(0, maxVisible);
@@ -24,31 +24,22 @@ const UserList = ({ title, users, emptyMessage, maxVisible = 3 }) => {
       </div>
       {users.length > 0 ? (
         <ul className={`user-list-items ${isExpanded ? "expanded" : ""}`}>
-          {visibleUsers.map((user) => {
-            const isCurrentUser = currentUserPk === user.user_pk;
-            return (
-              <li key={user.user_pk} className="user-list-item">
-                <Link
-                  to={
-                    isCurrentUser
-                      ? `/profile/${user.user_pk}`
-                      : `/user/${user.user_pk}`
-                  }
-                  className="user-list-link">
-                  <img
-                    src={getProfilePictureUrl(user.user_profile_picture)}
-                    alt={user.user_full_name}
-                    className="user-list-avatar"
-                  />
+          {visibleUsers.map((user) => (
+            <li key={user.user_pk} className="user-list-item">
+              <Link to={buildProfilePath(user)} className="user-list-link">
+                <img
+                  src={getProfilePictureUrl(user.user_profile_picture)}
+                  alt={user.user_full_name}
+                  className="user-list-avatar"
+                />
 
-                  <div className="user-list-info">
-                    <p className="user-list-name">{user.user_full_name}</p>
-                    <p className="user-list-handle">@{user.user_username}</p>
-                  </div>
-                </Link>
-              </li>
-            );
-          })}
+                <div className="user-list-info">
+                  <p className="user-list-name">{user.user_full_name}</p>
+                  <p className="user-list-handle">@{user.user_username}</p>
+                </div>
+              </Link>
+            </li>
+          ))}
         </ul>
       ) : (
         <p className="empty-message">{emptyMessage}</p>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import NavBar from "../components/NavBar";
@@ -10,22 +10,49 @@ import UserList from "../components/UserList";
 import UserPosts from "../components/UserPosts";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import PostDialog from "../components/PostDialog";
+import Post from "../components/Post";
 import "../css/UserPage.css";
+import {
+  extractFieldErrors,
+  parseApiErrorMessage,
+  validateProfileUpdate,
+} from "../utils/validation";
+import LoadingOverlay from "../components/LoadingOverlay";
 
 const ProfilePage = () => {
-  const { userPk } = useParams();
+  const { username } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
+  const [repostPosts, setRepostPosts] = useState([]);
   const [usersToFollow, setUsersToFollow] = useState([]);
   const [trending, setTrending] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState({});
+  const [formErrors, setFormErrors] = useState({});
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
+  const [isRepostsLoading, setIsRepostsLoading] = useState(false);
+  const [hasMoreReposts, setHasMoreReposts] = useState(true);
+  const repostPageRef = useRef(1);
+  const repostLoadingRef = useRef(false);
+  const repostHasMoreRef = useRef(true);
+  const [activeTab, setActiveTab] = useState("posts"); // posts | reposts | followers | following
+  const [isFollowing, setIsFollowing] = useState(false);
+
+  useEffect(() => {
+    repostLoadingRef.current = isRepostsLoading;
+  }, [isRepostsLoading]);
+
+  useEffect(() => {
+    repostHasMoreRef.current = hasMoreReposts;
+  }, [hasMoreReposts]);
+
+  const currentUserPk = localStorage.getItem("user_pk");
+  const isCurrentUser = user?.user_pk === currentUserPk;
 
   const fetchData = async () => {
     try {
@@ -36,7 +63,7 @@ const ProfilePage = () => {
       }
       const [userResponse, trendingResponse, usersToFollowResponse] =
         await Promise.all([
-          api.get(`/users/${userPk}`, {
+          api.get(`/users/${username}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
           api.get("/trending", {
@@ -50,6 +77,10 @@ const ProfilePage = () => {
       setEditedUser(userResponse.data.user);
       setFollowers(userResponse.data.followers);
       setFollowing(userResponse.data.following);
+      setIsFollowing(
+        userResponse.data.followers?.some((f) => f.user_pk === currentUserPk) ||
+          false
+      );
       setTrending(trendingResponse.data);
       setUsersToFollow(usersToFollowResponse.data);
     } catch (error) {
@@ -63,77 +94,153 @@ const ProfilePage = () => {
     }
   };
 
+  const fetchRepostPosts = async () => {
+    if (repostLoadingRef.current || !repostHasMoreRef.current) return;
+    setIsRepostsLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await api.get(
+        `/users/${username}/reposts?page=${repostPageRef.current}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const data = response.data.data ?? response.data ?? [];
+      setRepostPosts((prev) => {
+        const filtered = data.filter(
+          (p) => !prev.some((prevPost) => prevPost.post_pk === p.post_pk)
+        );
+        return [...prev, ...filtered];
+      });
+      const more = response.data.current_page < response.data.last_page;
+      setHasMoreReposts(more);
+      if (more) repostPageRef.current += 1;
+    } catch (err) {
+      console.error("Error fetching reposts:", err.response?.data || err.message);
+      setRepostPosts([]);
+      setHasMoreReposts(false);
+    } finally {
+      setIsRepostsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
-  }, [userPk]);
+  }, [username]);
 
-  const handleEdit = () => setIsEditing(true);
-const handleSaveEdit = async () => {
-  try {
-    const token = localStorage.getItem("token");
+  useEffect(() => {
+    // reset repost pagination when user changes
+    setRepostPosts([]);
+    setHasMoreReposts(true);
+    repostPageRef.current = 1;
+    repostHasMoreRef.current = true;
+    repostLoadingRef.current = false;
+    fetchRepostPosts();
+  }, [username]);
 
-    // Valider input før API-kald
-    const newErrors = {};
-    if (!editedUser.user_full_name.trim())
-      newErrors.user_full_name = "Full name is required";
-    if (!editedUser.user_username.trim())
-      newErrors.user_username = "Username is required";
-    else if (editedUser.user_username.length < 3)
-      newErrors.user_username = "Username must be at least 3 characters";
-    else if (!/^[a-zA-Z0-9_]+$/.test(editedUser.user_username))
-      newErrors.user_username =
-        "Username can only contain letters, numbers, and underscores";
-    if (!editedUser.user_email.trim())
-      newErrors.user_email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editedUser.user_email))
-      newErrors.user_email = "Please enter a valid email";
+  useEffect(() => {
+    const handleRepostsUpdate = (event) => {
+      const updatedPost = event.detail?.post;
+      if (!updatedPost?.post_pk) return;
+      setRepostPosts((prev) => {
+        const filtered = (prev || []).filter((p) => p.post_pk !== updatedPost.post_pk);
+        return updatedPost.is_reposted_by_user ? [updatedPost, ...filtered] : filtered;
+      });
+    };
+    window.addEventListener("reposts-updated", handleRepostsUpdate);
+    return () => window.removeEventListener("reposts-updated", handleRepostsUpdate);
+  }, []);
 
-    if (Object.keys(newErrors).length > 0) {
-      // Hvis der er valideringsfejl, opdater errors i UserHeader
-      // Dette kræver at du sender setErrors ned som prop eller bruger en global state
-      console.error("Validation errors:", newErrors);
+  useEffect(() => {
+    const handleScroll = () => {
+      if (activeTab !== "reposts") return;
+      const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+      const scrollHeight =
+        document.documentElement.scrollHeight || document.body.scrollHeight;
+      const clientHeight =
+        document.documentElement.clientHeight || window.innerHeight;
+
+      if (
+        scrollTop + clientHeight >= scrollHeight - 300 &&
+        !repostLoadingRef.current &&
+        repostHasMoreRef.current
+      ) {
+        fetchRepostPosts();
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [activeTab]);
+
+  const handleEdit = () => {
+    setFormErrors({});
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async () => {
+    const clientErrors = validateProfileUpdate(editedUser);
+    if (Object.keys(clientErrors).length > 0) {
+      setFormErrors(clientErrors);
       return;
     }
 
-    const response = await api.put(`/users/${userPk}`, editedUser, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    try {
+      const token = localStorage.getItem("token");
+      const response = await api.put(`/users/${user?.user_pk}`, editedUser, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    setUser(response.data);
-    setIsEditing(false);
-  } catch (error) {
-    console.error(
-      "Error updating user:",
-      error.response?.data || error.message
-    );
-
-    // Håndter backend-fejl (f.eks. eksisterende email/brugernavn)
-    if (error.response?.data?.errors) {
-      const backendErrors = error.response.data.errors;
-      const errorMessages = {};
-
-      // Map backend-fejl til felter
-      if (backendErrors.user_username)
-        errorMessages.user_username = backendErrors.user_username[0];
-      if (backendErrors.user_email)
-        errorMessages.user_email = backendErrors.user_email[0];
-
-      // Opdater errors i UserHeader (kræver at du sender setErrors ned som prop)
-      console.error("Backend validation errors:", errorMessages);
-    } else {
-      setError("Failed to update user data.");
+      setUser(response.data);
+      setIsEditing(false);
+      setFormErrors({});
+    } catch (error) {
+      const backendErrors = extractFieldErrors(error);
+      if (Object.keys(backendErrors).length > 0) {
+        setFormErrors(backendErrors);
+      } else {
+        setError(parseApiErrorMessage(error, "Failed to update user data."));
+      }
     }
-  }
-};
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setEditedUser((prev) => ({ ...prev, [name]: value }));
   };
+
+  const handleFollowToggle = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
+      if (isFollowing) {
+        await api.delete(`/follows/${user?.user_pk}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        await api.post(
+          "/follows",
+          { followed_user_fk: user?.user_pk },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+
+      setIsFollowing((prev) => !prev);
+      await fetchData();
+    } catch (err) {
+      console.error("Error updating follow status:", err.response?.data || err.message);
+      setError("Failed to update follow status.");
+    }
+  };
+
   const handleDeleteProfile = async () => {
     try {
       const token = localStorage.getItem("token");
-      await api.delete(`/users/${userPk}`, {
+      await api.delete(`/users/${user?.user_pk}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       localStorage.removeItem("token");
@@ -145,9 +252,17 @@ const handleSaveEdit = async () => {
     }
   };
 
-  if (isLoading) return <p className="loading">Loading...</p>;
+  if (isLoading) return <LoadingOverlay message="Loading profile..." />;
   if (error) return <p className="error">{error}</p>;
   if (!user) return <p className="error">User not found.</p>;
+
+  const handleUpdateRepostPost = (updatedPost) => {
+    setRepostPosts((prev) =>
+      (prev || []).map((p) =>
+        p.post_pk === updatedPost.post_pk ? { ...p, ...updatedPost } : p
+      )
+    );
+  };
 
   return (
     <div id="container">
@@ -158,10 +273,13 @@ const handleSaveEdit = async () => {
           setUser={setUser}
           isEditing={isEditing}
           editedUser={editedUser}
+          formErrors={formErrors}
           handleChange={handleChange}
           handleEdit={handleEdit}
           handleSaveEdit={handleSaveEdit}
-          isCurrentUser={true}
+          isCurrentUser={isCurrentUser}
+          onFollowToggle={handleFollowToggle}
+          isFollowing={isFollowing}
           onDeleteProfile={() => setIsDeleteDialogOpen(true)}
         />
         <UserStats
@@ -169,17 +287,73 @@ const handleSaveEdit = async () => {
           followersCount={followers.length}
           followingCount={following.length}
         />
-        <UserList
-          title="Followers"
-          users={followers}
-          emptyMessage="No followers yet."
-        />
-        <UserList
-          title="Following"
-          users={following}
-          emptyMessage="Not following anyone yet."
-        />
-        <UserPosts userPk={userPk} isCurrentUser={true} />
+        <div className="user-tabs" role="tablist" aria-label="Profile content">
+          <button
+            className={`user-tab ${activeTab === "posts" ? "active" : ""}`}
+            onClick={() => setActiveTab("posts")}
+            role="tab"
+            aria-selected={activeTab === "posts"}>
+            Posts
+          </button>
+          <button
+            className={`user-tab ${activeTab === "reposts" ? "active" : ""}`}
+            onClick={() => setActiveTab("reposts")}
+            role="tab"
+            aria-selected={activeTab === "reposts"}>
+            Reposts
+          </button>
+          <button
+            className={`user-tab ${activeTab === "followers" ? "active" : ""}`}
+            onClick={() => setActiveTab("followers")}
+            role="tab"
+            aria-selected={activeTab === "followers"}>
+            Followers ({followers.length})
+          </button>
+          <button
+            className={`user-tab ${activeTab === "following" ? "active" : ""}`}
+            onClick={() => setActiveTab("following")}
+            role="tab"
+            aria-selected={activeTab === "following"}>
+            Following ({following.length})
+          </button>
+        </div>
+        <div className="user-tab-panels">
+          {activeTab === "posts" && (
+            <UserPosts userPk={user?.user_pk} isCurrentUser={isCurrentUser} />
+          )}
+          {activeTab === "reposts" && (
+            <>
+              {isRepostsLoading && <p className="loading-message">Loading reposts...</p>}
+              {!isRepostsLoading && repostPosts && repostPosts.length > 0 ? (
+                repostPosts.map((post) => (
+                  <Post
+                    key={post.post_pk}
+                    post={post}
+                    onUpdatePost={handleUpdateRepostPost}
+                    onDeletePost={null}
+                    hideHeader={false}
+                  />
+                ))
+              ) : (
+                !isRepostsLoading && <p className="empty-message">No reposts yet.</p>
+              )}
+            </>
+          )}
+          {activeTab === "followers" && (
+            <UserList
+              title="Followers"
+              users={followers}
+              emptyMessage="No followers yet."
+            />
+          )}
+          {activeTab === "following" && (
+            <UserList
+              title="Following"
+              users={following}
+              emptyMessage="Not following anyone yet."
+            />
+          )}
+        </div>
       </main>
       <aside className="user-aside">
         <Trending trending={trending} />

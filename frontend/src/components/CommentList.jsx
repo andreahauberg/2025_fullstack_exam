@@ -93,7 +93,12 @@ const CommentList = ({
           <div className="post__comment-content">
             <div className="post__comment-user">
               {comment.user?.user_full_name || "Unknown User"} ·{" "}
-              {formatTime(comment.created_at)}
+              {formatTime(comment.created_at)}{" "}
+              {comment.updated_at &&
+                comment.created_at &&
+                String(comment.updated_at) !== String(comment.created_at) && (
+                  <span className="edited-tag-inline">· Edited</span>
+                )}
             </div>
             {editingCommentId === comment.comment_pk ? (
               <textarea
@@ -104,9 +109,11 @@ const CommentList = ({
             ) : (
               <div className="post__comment-text">
                 {comment.comment_message}
-                {comment.updated_at && (
-                  <span className="edited-tag">Edited</span>
-                )}
+                {comment.updated_at &&
+                  comment.created_at &&
+                  String(comment.updated_at) !== String(comment.created_at) && (
+                    <span className="edited-tag"> · Edited</span>
+                  )}
               </div>
             )}
           </div>

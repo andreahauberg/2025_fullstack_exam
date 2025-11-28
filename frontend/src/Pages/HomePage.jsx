@@ -48,6 +48,7 @@ const HomePage = () => {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       const newPosts = response.data.data ?? [];
+      setFeedError("");
       setPosts((prev) => {
         const filtered = newPosts.filter(
           (p) => !prev.some((prevP) => prevP.post_pk === p.post_pk)
@@ -149,7 +150,11 @@ const HomePage = () => {
   const handlePostCreated = (newPost) => setPosts((prev) => [newPost, ...prev]);
   const handleUpdatePost = (updatedPost) =>
     setPosts((prev) =>
-      prev.map((p) => (p.post_pk === updatedPost.post_pk ? updatedPost : p))
+      prev.map((p) =>
+        p.post_pk === updatedPost.post_pk
+          ? { ...p, ...updatedPost, user: updatedPost.user ?? p.user }
+          : p
+      )
     );
   const handleDeletePost = (postPk) =>
     setPosts((prev) => prev.filter((p) => p.post_pk !== postPk));
@@ -171,7 +176,6 @@ const HomePage = () => {
             onDeletePost={handleDeletePost}
           />
         ))}
-        {loadingState && <p>Loading more posts...</p>}
         {!hasMoreState && <p>No more posts to load.</p>}
       </main>
 

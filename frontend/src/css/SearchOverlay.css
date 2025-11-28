@@ -59,16 +59,13 @@
   .search-overlay-input {
     flex: 1;
     font-size: 16px;
-    padding: 12px 16px;
-    border-radius: 999px;
-    border: 1px solid black;
     background: #f7f9f9;
+    border-color: #cfd9de;
   }
   
   .search-overlay-input:focus {
-    border-color: black;
+    border-color: #1d9bf0;
     background: #fff;
-    outline: none;
   }
   
   .search-overlay-btn {

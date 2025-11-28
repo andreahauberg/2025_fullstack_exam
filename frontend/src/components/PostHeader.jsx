@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import moment from "moment";
 import { getProfilePictureUrl } from "../utils/imageUtils";
+import { buildProfilePath } from "../utils/urlHelpers";
+import { api } from "../api";
 
-const PostHeader = ({ user, created_at }) => {
+const PostHeader = ({ user, created_at, edited }) => {
   const formatTime = (date) => {
     const now = moment();
     const postDate = moment(date);
@@ -21,16 +23,48 @@ const PostHeader = ({ user, created_at }) => {
     }
   };
 
+  const profileHref = buildProfilePath(user);
+  const userPk = user?.user_pk;
   const currentUserPk = localStorage.getItem("user_pk");
-  const isCurrentUser = user?.user_pk === currentUserPk;
+  const isCurrentUser =
+    userPk && currentUserPk && String(userPk) === String(currentUserPk);
+  const [isFollowing, setIsFollowing] = useState(!!user?.is_following);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
+
+  useEffect(() => {
+    setIsFollowing(!!user?.is_following);
+  }, [user]);
+
+  const handleFollow = async () => {
+    if (!userPk || isCurrentUser || isFollowLoading) return;
+    const token = localStorage.getItem("token");
+    const prev = isFollowing;
+    setIsFollowLoading(true);
+    try {
+      if (isFollowing) {
+        setIsFollowing(false); // optimistic
+        await api.delete(`/follows/${userPk}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        setIsFollowing(true); // optimistic
+        await api.post(
+          "/follows",
+          { followed_user_fk: userPk },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+    } catch (err) {
+      setIsFollowing(prev); // rollback
+      console.error("Follow toggle failed:", err.response?.data || err.message);
+    } finally {
+      setIsFollowLoading(false);
+    }
+  };
 
   return (
     <div className="post__header">
-      <Link
-        to={
-          isCurrentUser ? `/profile/${user.user_pk}` : `/user/${user.user_pk}`
-        }
-        className="post__user-link">
+      <Link to={profileHref} className="post__user-link">
         <img
           src={getProfilePictureUrl(user?.user_profile_picture)}
           alt="Profile"
@@ -43,10 +77,18 @@ const PostHeader = ({ user, created_at }) => {
           </div>
           <div className="post__user-handle">
             @{user?.user_username || "unknown"} ·{" "}
-            {created_at && formatTime(created_at)}
+            {created_at && formatTime(created_at)} {edited ? "· Edited" : ""}
           </div>
         </div>
       </Link>
+      {!isCurrentUser && userPk && (
+        <button
+          className={`follow-chip ${isFollowing ? "following" : "follow"}`}
+          onClick={handleFollow}
+          disabled={isFollowLoading}>
+          {isFollowing ? "Following" : "Follow"}
+        </button>
+      )}
     </div>
   );
 };

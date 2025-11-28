@@ -1,13 +1,18 @@
 import React, { useState } from "react";
 import { api } from "../api"; // Importer den centrale api-instans
 import { useNavigate } from "react-router-dom";
+import {
+  extractFieldErrors,
+  parseApiErrorMessage,
+  validateLogin,
+} from "../utils/validation";
+import FieldError from "./FieldError";
 
 function Login() {
   const [formData, setFormData] = useState({
     user_email: "",
     user_password: "",
   });
-  const [message, setMessage] = useState("");
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false); // Tilføj loading-state
   const navigate = useNavigate();
@@ -19,44 +24,56 @@ function Login() {
     });
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setIsLoading(true);
-  try {
-    const response = await api.post("/login", formData);
-    if (response.data.success) {
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("user_pk", response.data.user.user_pk);
-      setMessage(response.data.message);
-      setTimeout(() => {
-        navigate("/home");
-      }, 1000);
-    } else {
-      setMessage(response.data.message || "Login failed.");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const clientErrors = validateLogin(formData);
+    if (Object.keys(clientErrors).length > 0) {
+      setErrors(clientErrors);
+      return;
     }
-  } catch (error) {
-    if (error.response) {
-      if (error.response.data.errors) {
-        setErrors(error.response.data.errors);
-      } else if (error.response.data.message) {
-        setMessage(error.response.data.message);
+
+    setIsLoading(true);
+    try {
+      const response = await api.post("/login", formData);
+      if (response.data.success) {
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user_pk", response.data.user.user_pk);
+        localStorage.setItem("user_username", response.data.user.user_username);
+        setErrors({});
+        setTimeout(() => {
+          navigate("/home");
+        }, 1000);
       } else {
-        setMessage("Invalid credentials.");
+        setErrors({
+          user_email: response.data.message || "Login failed.",
+          user_password: response.data.message || "Login failed.",
+        });
       }
-    } else {
-      setMessage("Network error. Please check your connection.");
+    } catch (error) {
+      const fieldErrors = extractFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        setErrors(fieldErrors);
+      } else {
+        const fallback = parseApiErrorMessage(
+          error,
+          "Invalid credentials or network error."
+        );
+        setErrors({
+          user_email: fallback,
+          user_password: fallback,
+        });
+      }
+    } finally {
+      setIsLoading(false);
     }
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
 
   return (
     <div className="login-container">
       <h2>Log in</h2>
-      {message && <div className="alert">{message}</div>}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} noValidate>
         <div className="form-group">
           <label>Email:</label>
           <input
@@ -64,12 +81,10 @@ const handleSubmit = async (e) => {
             name="user_email"
             value={formData.user_email}
             onChange={handleChange}
-            required
             disabled={isLoading} // Deaktiver input under loading
+            className={errors.user_email ? "form-control input-error" : "form-control"}
           />
-          {errors.user_email && (
-            <span className="error">{errors.user_email[0]}</span>
-          )}
+          <FieldError error={errors.user_email} />
         </div>
         <div className="form-group">
           <label>Password:</label>
@@ -78,12 +93,10 @@ const handleSubmit = async (e) => {
             name="user_password"
             value={formData.user_password}
             onChange={handleChange}
-            required
             disabled={isLoading}
+            className={errors.user_password ? "form-control input-error" : "form-control"}
           />
-          {errors.user_password && (
-            <span className="error">{errors.user_password[0]}</span>
-          )}
+          <FieldError error={errors.user_password} />
         </div>
         <button type="submit" className="btn" disabled={isLoading}>
           {isLoading ? "Logging in..." : "Log in"}

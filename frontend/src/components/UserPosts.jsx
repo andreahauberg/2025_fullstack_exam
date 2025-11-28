@@ -124,19 +124,16 @@ const handleUpdatePost = (updatedPost) => {
       {posts.length > 0 ? (
         <>
           {posts.map((post) => (
-            <Post
-              key={post.post_pk}
-              post={post}
-              onUpdatePost={handleUpdatePost}
-              onDeletePost={isCurrentUser ? handleDeletePost : null}
-              hideHeader={!isCurrentUser}
-            />
-          ))}
-          {loadingState && (
-            <p className="loading-message">Loading more posts...</p>
-          )}
-        </>
-      ) : (
+              <Post
+                key={post.post_pk}
+                post={post}
+                onUpdatePost={handleUpdatePost}
+                onDeletePost={isCurrentUser ? handleDeletePost : null}
+                hideHeader={false}
+              />
+            ))}
+          </>
+        ) : (
         <p className="empty-message">No posts yet.</p>
       )}
     </div>

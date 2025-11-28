@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../api";
 import moment from "moment";
 import PostHeader from "./PostHeader";
@@ -12,6 +12,8 @@ import "../css/Post-Comment.css";
 const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
   const [liked, setLiked] = useState(post.is_liked_by_user);
   const [likeCount, setLikeCount] = useState(post.likes_count || 0);
+  const [reposted, setReposted] = useState(post.is_reposted_by_user || false);
+  const [repostCount, setRepostCount] = useState(post.reposts_count || 0);
   const [comments, setComments] = useState(post.comments || []);
   const [showComments, setShowComments] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -20,6 +22,10 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
 
   const currentUserPk = localStorage.getItem("user_pk");
   
+  useEffect(() => {
+    setReposted(post.is_reposted_by_user || false);
+    setRepostCount(post.reposts_count || 0);
+  }, [post]);
 
   const handleLike = async () => {
     try {
@@ -30,12 +36,13 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
             Authorization: `Bearer ${token}`,
           },
         });
+        const nextCount = Math.max(0, (likeCount || 0) - 1);
         setLiked(false);
-        setLikeCount(likeCount - 1);
+        setLikeCount(nextCount);
         onUpdatePost({
           ...post,
           is_liked_by_user: false,
-          likes_count: likeCount - 1,
+          likes_count: nextCount,
         });
       } else {
         await api.post(
@@ -47,16 +54,64 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
             },
           }
         );
+        const nextCount = (likeCount || 0) + 1;
         setLiked(true);
-        setLikeCount(likeCount + 1);
+        setLikeCount(nextCount);
         onUpdatePost({
           ...post,
           is_liked_by_user: true,
-          likes_count: likeCount + 1,
+          likes_count: nextCount,
         });
       }
     } catch (error) {
       console.error("Error handling like:", error);
+    }
+  };
+
+  const handleRepost = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (reposted) {
+        await api.delete(`/reposts/${post.post_pk}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const nextCount = Math.max(0, (repostCount || 0) - 1);
+        setReposted(false);
+        setRepostCount(nextCount);
+        const nextPost = {
+          ...post,
+          is_reposted_by_user: false,
+          reposts_count: nextCount,
+        };
+        onUpdatePost(nextPost);
+        window.dispatchEvent(
+          new CustomEvent("reposts-updated", {
+            detail: { post: nextPost, isReposted: false },
+          })
+        );
+      } else {
+        await api.post(
+          "/reposts",
+          { post_pk: post.post_pk },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const nextCount = (repostCount || 0) + 1;
+        setReposted(true);
+        setRepostCount(nextCount);
+        const nextPost = {
+          ...post,
+          is_reposted_by_user: true,
+          reposts_count: nextCount,
+        };
+        onUpdatePost(nextPost);
+        window.dispatchEvent(
+          new CustomEvent("reposts-updated", {
+            detail: { post: nextPost, isReposted: true },
+          })
+        );
+      }
+    } catch (error) {
+        console.error("Error handling repost:", error);
     }
   };
 
@@ -86,7 +141,11 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
           },
         }
       );
-      onUpdatePost(response.data);
+      onUpdatePost({
+        ...post,
+        ...response.data,
+        user: response.data.user ?? post.user, // keep existing user if API omits it
+      });
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating post:", error);
@@ -136,7 +195,17 @@ const confirmDelete = async () => {
 
   return (
     <div className="post">
-     {!hideHeader && <PostHeader user={post.user} created_at={post.created_at} />}
+     {!hideHeader && (
+        <PostHeader
+          user={post.user}
+          created_at={post.created_at}
+          edited={
+            post.updated_at &&
+            post.created_at &&
+            String(post.updated_at) !== String(post.created_at)
+          }
+        />
+      )}
       <PostContent
         content={
           isEditing ? (
@@ -151,6 +220,7 @@ const confirmDelete = async () => {
         }
         imagePath={post.post_image_path}
         editedAt={post.updated_at}
+        createdAt={post.created_at}
       />
       {isEditing ? (
         <div className="edit-post-actions">
@@ -168,12 +238,13 @@ const confirmDelete = async () => {
           <PostActions
             liked={liked}
             likeCount={likeCount}
-            commentCount={
-              comments.length > 0 ? comments.length : post.comments_count
-            }
+            reposted={reposted}
+            repostCount={repostCount}
+            commentCount={comments.length > 0 ? comments.length : post.comments_count}
             showComments={showComments}
             setShowComments={setShowComments}
             handleLike={handleLike}
+            handleRepost={handleRepost}
           />
           {currentUserPk === post.post_user_fk && (
             <div className="post-edit-delete-actions">
@@ -193,11 +264,16 @@ const confirmDelete = async () => {
             comments={comments}
             postUserPk={post.post_user_fk}
             onUpdateComment={(updatedComment) => {
-              const updatedComments = comments.map((comment) =>
-                comment.comment_pk === updatedComment.comment_pk
-                  ? updatedComment
-                  : comment
-              );
+              const updatedComments = comments.map((comment) => {
+                if (comment.comment_pk !== updatedComment.comment_pk) {
+                  return comment;
+                }
+                return {
+                  ...comment,
+                  ...updatedComment,
+                  user: updatedComment.user ?? comment.user, // preserve existing user info if API omits it
+                };
+              });
               setComments(updatedComments);
             }}
             onDeleteComment={(deletedCommentPk) => {

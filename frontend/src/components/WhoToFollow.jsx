@@ -3,6 +3,7 @@ import { api } from "../api";
 import { Link } from "react-router-dom";
 import "../css/WhoToFollow.css";
 import { getProfilePictureUrl } from "../utils/imageUtils";
+import { buildProfilePath } from "../utils/urlHelpers";
 
 const WhoToFollow = ({ users: initialUsers }) => {
   const [visibleUsers, setVisibleUsers] = useState(3);
@@ -66,16 +67,10 @@ const WhoToFollow = ({ users: initialUsers }) => {
       {users.length > 0 ? (
         <div className="follow-suggestion">
           {users.slice(0, visibleUsers).map((user, index) => {
-            const currentUserPk = localStorage.getItem("user_pk");
-            const isCurrentUser = user.user_pk === currentUserPk;
             return (
               <div key={user.user_pk} className="follow-suggestion-item">
                 <Link
-                  to={
-                    isCurrentUser
-                      ? `/profile/${user.user_pk}`
-                      : `/user/${user.user_pk}`
-                  }
+                  to={buildProfilePath(user)}
                   className="follow-suggestion-link">
                   <img
                     src={getProfilePictureUrl(user.user_profile_picture)}

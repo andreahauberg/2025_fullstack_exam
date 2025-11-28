@@ -17,12 +17,7 @@
   justify-content: space-between;
   padding: 12px 0;
   border-bottom: 1px solid #eff3f4;
-}
-
-.follow-suggestion-content {
-  display: flex;
-  align-items: center;
-  width: 100%;
+  gap: 12px;
 }
 
 .follow-suggestion-avatar {
@@ -34,6 +29,7 @@
 
 .follow-suggestion-details {
   flex: 1;
+  min-width: 0;
   text-align: left;
 }
 
@@ -41,25 +37,48 @@
   font-size: 15px;
   font-weight: bold;
   color: #0f1419;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .follow-suggestion-handle {
   font-size: 15px;
   color: #536471;
   margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .follow-btn {
-  background: none;
+  background: #0f1419;
+  color: #fff;
   border: none;
+  border-radius: 9999px;
+  padding: 6px 10px;
+  width: 80px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  font-size: 20px;
-  color: #1d9bf0;
-  margin-left: 8px;
+  font-size: 12px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.follow-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.12);
 }
 
 .follow-btn.unfollow {
-  color: #17bf63;
+  background: #fff;
+  color: #0f1419;
+  border: 1px solid #cfd9de;
 }
 
 .show-more-btn {

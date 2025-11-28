@@ -3,6 +3,7 @@ import { api } from "../api";
 import "../css/SearchOverlay.css";
 import { useNavigate } from "react-router-dom";
 import { getPostImageUrl } from "../utils/imageUtils";
+import { buildProfilePath } from "../utils/urlHelpers";
 
 
 const SearchOverlay = ({ isOpen, onClose, initialQuery = "" }) => {
@@ -60,23 +61,20 @@ const SearchOverlay = ({ isOpen, onClose, initialQuery = "" }) => {
   };
 
 
-const currentUserPk = localStorage.getItem("user_pk");
-
-const goToUser = (userPk) => {
-  if (userPk === currentUserPk) {
-    navigate(`/profile/${userPk}`);
-  } else {
-    navigate(`/user/${userPk}`);
-  }
+const goToUser = (user) => {
+  const path = buildProfilePath(user);
+  if (path === "#") return;
+  navigate(path);
   onClose();
 };
 
-const goToPostUser = (userPk) => {
-  if (userPk === currentUserPk) {
-    navigate(`/profile/${userPk}`);
-  } else {
-    navigate(`/user/${userPk}`);
-  }
+const goToPostUser = (post) => {
+  const path = buildProfilePath({
+    user_username: post?.user_username,
+    user_pk: post?.user_pk,
+  });
+  if (path === "#") return;
+  navigate(path);
   onClose();
 };
 
@@ -103,7 +101,7 @@ const goToPostUser = (userPk) => {
             value={query}
             onChange={handleInputChange}
             placeholder="Search users and posts"
-            className="search-overlay-input"
+            className="form-control form-control--pill search-overlay-input"
             autoFocus
           />
           <button type="submit" className="search-overlay-btn">
@@ -122,7 +120,7 @@ const goToPostUser = (userPk) => {
                   <li
                     key={user.user_pk}
                     className="search-results-user"
-                    onClick={() => goToUser(user.user_pk)}>
+                    onClick={() => goToUser(user)}>
                     <span
                       className="search-results-user-name"
                       dangerouslySetInnerHTML={{
@@ -149,7 +147,7 @@ const goToPostUser = (userPk) => {
                   <div
                     key={post.post_pk}
                     className="search-results-post-card"
-                    onClick={() => goToPostUser(post.user_pk)}
+                    onClick={() => goToPostUser(post)}
                     style={{ cursor: "pointer" }}>
                     {post.post_image_path && (
                       <div className="search-results-post-image-wrapper">

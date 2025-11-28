@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import NavItem from "./NavItem";
 import NavPostButton from "./NavPostButton";
 import SearchOverlay from "../components/SearchOverlay";
+import { api } from "../api";
 
 const NavMenu = ({
   isOpen,
@@ -13,6 +14,7 @@ const NavMenu = ({
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user_pk");
+    localStorage.removeItem("user_username");
     window.location.href = "/";
   };
 
@@ -22,6 +24,27 @@ const NavMenu = ({
 
   const userPk = localStorage.getItem("user_pk");
   const token = localStorage.getItem("token");
+  const cachedUsername = localStorage.getItem("user_username");
+  const [resolvedUsername, setResolvedUsername] = useState(cachedUsername || "");
+
+  useEffect(() => {
+    const syncUsername = async () => {
+      if (!token || !userPk || resolvedUsername) return;
+      try {
+        const resp = await api.get(`/users/${userPk}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const uname = resp.data?.user?.user_username;
+        if (uname) {
+          localStorage.setItem("user_username", uname);
+          setResolvedUsername(uname);
+        }
+      } catch (err) {
+        console.error("Failed to resolve username:", err.response?.data || err.message);
+      }
+    };
+    syncUsername();
+  }, [token, userPk, resolvedUsername]);
 
   const navItems = [
     { icon: "fa-solid fa-house", text: "Home", href: "/home" },
@@ -35,7 +58,10 @@ const NavMenu = ({
     {
       icon: "fa-regular fa-user",
       text: "Profile",
-      href: userPk && token ? `/profile/${userPk}` : "/home",
+      href:
+        token && (resolvedUsername || userPk)
+          ? `/profile/${resolvedUsername || userPk}`
+          : "/home",
     },
     { icon: "fa-solid fa-ellipsis", text: "More", href: "#" },
   ];

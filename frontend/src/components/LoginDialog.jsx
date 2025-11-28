@@ -1,13 +1,18 @@
 import { useState } from "react";
 import { api } from "../api";
 import Dialog from "./Dialog";
+import {
+  extractFieldErrors,
+  parseApiErrorMessage,
+  validateLogin,
+} from "../utils/validation";
+import FieldError from "./FieldError";
 
 const LoginDialog = ({ isOpen, onClose, onSuccess, onOpenSignup }) => {
   const [formData, setFormData] = useState({
     user_email: "",
     user_password: "",
   });
-  const [message, setMessage] = useState("");
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -20,28 +25,37 @@ const LoginDialog = ({ isOpen, onClose, onSuccess, onOpenSignup }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const clientErrors = validateLogin(formData);
+    if (Object.keys(clientErrors).length > 0) {
+      setErrors(clientErrors);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const response = await api.post("/login", formData);
-      setMessage(response.data.message);
       setErrors({});
       localStorage.setItem("token", response.data.token); // Gem token
       localStorage.setItem("user_pk", response.data.user.user_pk); // Gem bruger PK
+      localStorage.setItem("user_username", response.data.user.user_username);
       setTimeout(() => {
         onSuccess();
         onClose();
       }, 2000);
     } catch (error) {
-      if (error.response) {
-        if (error.response.data.errors) {
-          setErrors(error.response.data.errors);
-        } else if (error.response.data.message) {
-          setMessage(error.response.data.message);
-        } else {
-          setMessage("An unexpected error occurred.");
-        }
+      const fieldErrors = extractFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        setErrors(fieldErrors);
       } else {
-        setMessage("Network error. Please check your connection.");
+        const fallback = parseApiErrorMessage(
+          error,
+          "Network error. Please check your connection."
+        );
+        setErrors({
+          user_email: fallback,
+          user_password: fallback,
+        });
       }
     } finally {
       setIsLoading(false);
@@ -50,28 +64,18 @@ const LoginDialog = ({ isOpen, onClose, onSuccess, onOpenSignup }) => {
 
   return (
     <Dialog isOpen={isOpen} onClose={onClose} title="Log in" logo={true}>
-      {message && (
-        <div
-          className={`alert ${
-            message.includes("success") ? "alert-success" : "alert-error"
-          }`}>
-          {message}
-        </div>
-      )}
-      <form className="x-dialog__form" onSubmit={handleSubmit}>
+      <form className="x-dialog__form" onSubmit={handleSubmit} noValidate>
         <input
           name="user_email"
           type="email"
           placeholder="Email"
           value={formData.user_email}
           onChange={handleChange}
-          required
           disabled={isLoading}
           autoFocus
+          className={errors.user_email ? "form-control input-error" : "form-control"}
         />
-        {errors.user_email && (
-          <span className="error">{errors.user_email[0]}</span>
-        )}
+        <FieldError error={errors.user_email} />
 
         <input
           name="user_password"
@@ -79,12 +83,10 @@ const LoginDialog = ({ isOpen, onClose, onSuccess, onOpenSignup }) => {
           placeholder="Password"
           value={formData.user_password}
           onChange={handleChange}
-          required
           disabled={isLoading}
+          className={errors.user_password ? "form-control input-error" : "form-control"}
         />
-        {errors.user_password && (
-          <span className="error">{errors.user_password[0]}</span>
-        )}
+        <FieldError error={errors.user_password} />
 
         <button type="submit" className="x-dialog__btn" disabled={isLoading}>
           {isLoading ? "Logging in..." : "Log in"}
