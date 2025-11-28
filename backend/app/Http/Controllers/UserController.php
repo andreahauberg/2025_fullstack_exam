@@ -35,12 +35,14 @@ class UserController extends Controller
 }
 
 
-public function show($userPk)
+public function show($userIdentifier)
 {
     try {
         $user = User::with(['posts.user', 'followers', 'following'])
             ->withCount(['posts', 'followers', 'following'])
-            ->findOrFail($userPk);
+            ->where('user_pk', $userIdentifier)
+            ->orWhere('user_username', $userIdentifier)
+            ->firstOrFail();
 
         return response()->json([
             'user' => $user,
@@ -63,8 +65,8 @@ public function show($userPk)
     {
         $request->validate([
             'user_full_name' => 'required|string|max:255',
-            'user_username' => 'required|string|max:255',
-            'user_email' => 'required|email|max:255',
+            'user_username' => 'required|string|max:255|unique:users,user_username,' . $userPk . ',user_pk',
+            'user_email' => 'required|email|max:255|unique:users,user_email,' . $userPk . ',user_pk',
         ]);
 
         try {
@@ -131,6 +133,35 @@ public function uploadProfilePicture(Request $request, $userPk)
     }
 }
 
+public function uploadCoverPicture(Request $request, $userPk)
+{
+    $request->validate([
+        'cover_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:4096',
+    ]);
 
+    try {
+        $user = User::findOrFail($userPk);
+
+        if ($request->hasFile('cover_picture')) {
+            $file = $request->file('cover_picture');
+            $filename = 'cover_pictures/' . $userPk . '.' . $file->getClientOriginalExtension();
+            Storage::disk('public')->put($filename, file_get_contents($file));
+            $user->user_cover_picture = $filename;
+            $user->save();
+        }
+
+        return response()->json([
+            'message' => 'Cover picture uploaded successfully.',
+            'user_cover_picture' => $user->user_cover_picture,
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Error uploading cover picture: ' . $e->getMessage());
+        return response()->json([
+            'error' => 'An error occurred while uploading cover picture.',
+            'message' => $e->getMessage(),
+        ], 500);
+    }
 }
 
+
+}

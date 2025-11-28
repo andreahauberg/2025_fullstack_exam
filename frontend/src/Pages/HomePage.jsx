@@ -6,12 +6,17 @@ import Trending from "../components/Trending";
 import WhoToFollow from "../components/WhoToFollow";
 import PostDialog from "../components/PostDialog";
 import { api } from "../api";
+import { parseApiErrorMessage } from "../utils/validation";
+import LoadingOverlay from "../components/LoadingOverlay";
 
 const HomePage = () => {
   const [posts, setPosts] = useState([]);
   const [trending, setTrending] = useState([]);
   const [usersToFollow, setUsersToFollow] = useState([]);
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
+  const [feedError, setFeedError] = useState("");
+  const [trendingError, setTrendingError] = useState("");
+  const [usersError, setUsersError] = useState("");
 
   const [page, setPage] = useState(1);
   const loadingRef = useRef(false);
@@ -52,6 +57,9 @@ const HomePage = () => {
       const more = response.data.current_page < response.data.last_page;
       setHasMoreState(more);
     } catch (err) {
+      setFeedError(
+        parseApiErrorMessage(err, "Failed to load feed. Please try again.")
+      );
       if (err.response?.status === 401) navigate("/");
     } finally {
       setLoadingState(false);
@@ -65,7 +73,15 @@ const HomePage = () => {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       setTrending(response.data);
-    } catch (err) {}
+      setTrendingError("");
+    } catch (err) {
+      setTrendingError(
+        parseApiErrorMessage(
+          err,
+          "Unable to load trending topics right now."
+        )
+      );
+    }
   };
 
   const fetchUsersToFollow = async () => {
@@ -75,7 +91,15 @@ const HomePage = () => {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       setUsersToFollow(response.data);
-    } catch (err) {}
+      setUsersError("");
+    } catch (err) {
+      setUsersError(
+        parseApiErrorMessage(
+          err,
+          "Unable to load recommendations right now."
+        )
+      );
+    }
   };
 
   useEffect(() => {
@@ -135,6 +159,10 @@ const HomePage = () => {
       <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
 
       <main>
+        {loadingState && posts.length === 0 && (
+          <LoadingOverlay message="Loading feed..." />
+        )}
+        {feedError && <p className="error">{feedError}</p>}
         {posts.map((post) => (
           <Post
             key={post.post_pk}
@@ -149,7 +177,9 @@ const HomePage = () => {
 
       <aside>
         <Trending trending={trending} />
+        {trendingError && <p className="error">{trendingError}</p>}
         <WhoToFollow users={usersToFollow} />
+        {usersError && <p className="error">{usersError}</p>}
       </aside>
 
       <PostDialog

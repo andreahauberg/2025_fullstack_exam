@@ -31,6 +31,12 @@
   line-height: 1.5;
 }
 
+.post__content-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .post__image {
   width: 100%;
   border-radius: 12px;
@@ -61,6 +67,8 @@
   gap: 0.5rem;
   padding-top: 0.75rem;
   border-top: 1px solid #eff3f4;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .post__comment-form input {
@@ -68,6 +76,8 @@
   padding: 0.75rem;
   border: 1px solid #eff3f4;
   border-radius: 9999px;
+  font-size: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .post__comment-form button {
@@ -79,6 +89,58 @@
   cursor: pointer;
 }
 
+.input.error {
+  border-color: #e0245e;
+  background: #fff5f7;
+}
+
+.post__dialog-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  display: block;
+  padding: 0.9rem 1rem;
+  border: 1px solid #eff3f4;
+  border-radius: 12px;
+  font-size: 15px;
+  resize: vertical;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.post__dialog-textarea:focus {
+  border-color: #1d9bf0;
+  box-shadow: 0 0 0 1px rgba(29, 155, 240, 0.2);
+}
+
+.comment-meta {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.post-meta {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.char-count {
+  font-size: 12px;
+  color: #536471;
+}
+
+.char-count.warn {
+  color: #e0245e;
+}
+
+.field-error {
+  color: #e0245e;
+  font-size: 12px;
+}
+
 .post__comments {
   margin-top: 1rem;
 }
@@ -87,6 +149,7 @@
   display: flex;
   padding: 0.75rem 0;
   border-top: 1px solid #eff3f4;
+  align-items: flex-start;
 }
 
 .post__comment-avatar {
@@ -101,8 +164,17 @@
   font-size: 0.875rem;
 }
 
+.post__comment-content {
+  flex: 1;
+  min-width: 0; /* so text wraps instead of pushing layout */
+}
+
 .post__comment-text {
   font-size: 0.875rem;
+  word-break: break-word;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .edit-post-textarea {
@@ -203,4 +275,3 @@
   text-decoration: none;
   color: inherit;
 }
-

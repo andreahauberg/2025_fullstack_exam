@@ -4,8 +4,9 @@
 .user-header {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 12px 0 24px;
   border-bottom: 1px solid #e1e8ed;
 }
 
@@ -13,13 +14,94 @@
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  margin-right: 20px;
   object-fit: cover;
   border: 3px solid #1d9bf0;
 }
 
+.profile-picture-container {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100px;
+  height: 100px;
+}
+
+.avatar-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0,0,0,0.35);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border-radius: 50%;
+}
+
+.avatar-wrapper:hover .avatar-overlay {
+  opacity: 1;
+}
+
+.avatar-btn {
+  border: none;
+  border-radius: 9999px;
+  background: rgba(0,0,0,0.65);
+  color: #fff;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.avatar-btn.save {
+  background: #1d9bf0;
+}
+
+.upload-error {
+  display: block;
+  min-height: 16px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #e0245e;
+}
+
 .user-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.user-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-name {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.user-handle-email {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #536471;
+  font-size: 14px;
+}
+
+.divider {
+  color: #cfd9de;
 }
 
 .user-input {
@@ -29,6 +111,13 @@
   border: 1px solid #e1e8ed;
   border-radius: 6px;
   font-size: 16px;
+}
+
+.field-error {
+  color: #e0245e;
+  font-size: 12px;
+  margin-top: -6px;
+  margin-bottom: 6px;
 }
 
 .user-handle {
@@ -44,7 +133,7 @@
 .user-actions {
   display: flex;
   gap: 10px;
-  margin-top: 15px;
+  margin-top: 0;
 }
 
 /* Buttons */
@@ -80,6 +169,32 @@
 
 .delete-btn:hover {
   background-color: #e01f27;
+}
+
+.ghost-btn {
+  background: transparent;
+  color: #0f1419;
+  border: 1px solid #cfd9de;
+  border-radius: 9999px;
+  padding: 8px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.ghost-btn:hover {
+  background: #f7f9fa;
+  border-color: #a8b2b9;
+}
+
+.ghost-btn.danger {
+  color: #e0245e;
+  border-color: rgba(224, 36, 94, 0.35);
+}
+
+.ghost-btn.danger:hover {
+  background: #fff5f7;
+  border-color: #e0245e;
 }
 
 

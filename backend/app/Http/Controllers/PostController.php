@@ -2,9 +2,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\Repost;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class PostController extends Controller
 {
@@ -12,15 +15,23 @@ public function index(Request $request)
 {
     try {
         $page = $request->query('page', 1);
+        $currentUserPk = $request->user() ? $request->user()->user_pk : null;
         $posts = Post::with(['user', 'comments.user'])
-            ->withCount('likes')
-            ->withCount('comments')
+            ->withCount(['likes', 'comments', 'reposts'])
             ->orderBy('created_at', 'desc')
             ->paginate(10, ['*'], 'page', $page);
 
-        $currentUserPk = $request->user() ? $request->user()->user_pk : null;
         $posts->getCollection()->transform(function ($post) use ($currentUserPk) {
             $post->is_liked_by_user = $currentUserPk ? $post->likes()->where('like_user_fk', $currentUserPk)->exists() : false;
+            $post->is_reposted_by_user = $currentUserPk ? $post->reposts()->where('repost_user_fk', $currentUserPk)->exists() : false;
+            if ($post->relationLoaded('user') && $post->user) {
+                $post->user->is_following = $currentUserPk
+                    ? DB::table('follows')
+                        ->where('followed_user_fk', $post->post_user_fk)
+                        ->where('follower_user_fk', $currentUserPk)
+                        ->exists()
+                    : false;
+            }
             return $post;
         });
 
@@ -83,18 +94,76 @@ public function destroy($post_pk)
     return response()->json(['message' => 'Post deleted successfully.']);
 }
 
-public function userPosts($userPk, Request $request)
-{
-    $posts = Post::with(['user', 'likes', 'comments'])
-        ->where('post_user_fk', $userPk)
-        ->orderBy('created_at', 'desc')
-        ->paginate(10);
+    public function userPosts($userIdentifier, Request $request)
+    {
+        $currentUserPk = $request->user() ? $request->user()->user_pk : null;
 
+        $resolvedUserPk = User::where('user_pk', $userIdentifier)
+            ->orWhere('user_username', $userIdentifier)
+            ->value('user_pk');
 
-    return response()->json($posts);
+        if (!$resolvedUserPk) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $posts = Post::with(['user', 'likes', 'reposts', 'comments.user'])
+            ->where('post_user_fk', $resolvedUserPk)
+            ->orderBy('created_at', 'desc')
+            ->withCount(['likes', 'comments', 'reposts'])
+            ->paginate(10);
+
+        $posts->getCollection()->transform(function ($post) use ($currentUserPk) {
+            $post->is_liked_by_user = $currentUserPk ? $post->likes()->where('like_user_fk', $currentUserPk)->exists() : false;
+            $post->is_reposted_by_user = $currentUserPk ? $post->reposts()->where('repost_user_fk', $currentUserPk)->exists() : false;
+            if ($post->relationLoaded('user') && $post->user) {
+                $post->user->is_following = $currentUserPk
+                    ? DB::table('follows')
+                        ->where('followed_user_fk', $post->post_user_fk)
+                        ->where('follower_user_fk', $currentUserPk)
+                        ->exists()
+                    : false;
+            }
+            return $post;
+        });
+
+        return response()->json($posts);
+    }
+
+    public function userReposts($userIdentifier, Request $request)
+    {
+        $currentUserPk = $request->user() ? $request->user()->user_pk : null;
+
+        $userPk = \App\Models\User::where('user_pk', $userIdentifier)
+            ->orWhere('user_username', $userIdentifier)
+            ->value('user_pk');
+
+        if (!$userPk) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $posts = Post::with(['user', 'comments.user'])
+            ->whereHas('reposts', function ($query) use ($userPk) {
+                $query->where('repost_user_fk', $userPk);
+            })
+            ->orderBy('created_at', 'desc')
+            ->withCount(['likes', 'comments', 'reposts'])
+            ->paginate(10);
+
+        $posts->getCollection()->transform(function ($post) use ($currentUserPk) {
+            $post->is_liked_by_user = $currentUserPk ? $post->likes()->where('like_user_fk', $currentUserPk)->exists() : false;
+            $post->is_reposted_by_user = $currentUserPk ? $post->reposts()->where('repost_user_fk', $currentUserPk)->exists() : false;
+            if ($post->relationLoaded('user') && $post->user) {
+                $post->user->is_following = $currentUserPk
+                    ? DB::table('follows')
+                        ->where('followed_user_fk', $post->post_user_fk)
+                        ->where('follower_user_fk', $currentUserPk)
+                        ->exists()
+                    : false;
+            }
+            return $post;
+        });
+
+        return response()->json($posts);
+    }
+
 }
-
-}
-
-
-

@@ -37,6 +37,11 @@ public function user()
         return $this->hasMany(Like::class, 'like_post_fk', 'post_pk');
     }
 
+    public function reposts()
+    {
+        return $this->hasMany(Repost::class, 'repost_post_fk', 'post_pk');
+    }
+
     public function comments()
     {
         return $this->hasMany(Comment::class, 'comment_post_fk', 'post_pk');
