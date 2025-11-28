@@ -1,0 +1,41 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Faker\Factory as Faker;
+
+class UsersTableSeeder extends Seeder
+{
+    public function run()
+    {
+        $faker = Faker::create();
+
+        // Deaktiver fremmednøglekontrol
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
+        // Slet eksisterende data
+        DB::table('users')->truncate();
+
+        // Aktiver fremmednøglekontrol igen
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        // Generer 20 dummy-brugere
+        for ($i = 0; $i < 20; $i++) {
+            $userPk = Str::uuid();
+            $profilePictureUrl = "https://picsum.photos/seed/{$userPk}/200/200";
+
+            DB::table('users')->insert([
+                'user_pk' => $userPk,
+                'user_username' => $faker->unique()->userName,
+                'user_email' => $faker->unique()->safeEmail,
+                'user_password' => bcrypt('password'),
+                'user_full_name' => $faker->name,
+                'created_at' => now(),
+                'user_profile_picture' => $profilePictureUrl,
+            ]);
+        }
+    }
+}

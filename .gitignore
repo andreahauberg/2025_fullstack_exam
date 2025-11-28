@@ -1,0 +1,56 @@
+# Ignorer composer- og npm-afhængigheder
+vendor/
+node_modules/
+
+# Ignorer miljøkonfiguration
+.env
+.env.local
+.env.example
+.env*.local
+
+# Ignorer IDE- og editor-filer
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Ignorer build- og logfiler
+/.buildpath
+/.settings/
+/nbproject/
+/dist/
+/build/
+/output/
+/coverage/
+
+# Ignorer systemfiler
+.DS_Store
+Thumbs.db
+
+# Ignorer databasefiler og logs
+
+*.sqlite
+*.db
+/dumps/
+/logs/
+/storage/logs/
+
+# Ignorer brugeroprettede filer
+*.log
+*.cache
+*.diff
+*.patch
+*.bak
+*.orig
+
+# Ignorer OS-genererede filer
+__debug__
+/tmp/
+/temp/
+
+# Ignorer Docker-filer (hvis du bruger Docker)
+docker-compose.override.yml
+
+# Ignorer personlige konfigurationer
+/.php-cs-fixer.cache
+/phpunit.result.cache
