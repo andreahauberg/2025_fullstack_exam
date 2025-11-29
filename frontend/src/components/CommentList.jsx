@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../api";
 import moment from "moment";
 import ConfirmationDialog from "./ConfirmationDialog";
 import "../css/Post-Comment.css";
 import { getProfilePictureUrl } from "../utils/imageUtils";
+import { buildProfilePath } from "../utils/urlHelpers";
 
 const CommentList = ({
   comments,
@@ -84,21 +86,30 @@ const CommentList = ({
     <div className="post__comments">
       {comments.map((comment) => (
         <div key={comment.comment_pk} className="post__comment">
-          <img
-            src={getProfilePictureUrl(comment.user?.user_profile_picture)}
-            alt="Profile"
-            className="post__comment-avatar"
-          />
-
+          <Link
+            to={buildProfilePath(comment.user)}
+            className="post__comment-user-link">
+            <img
+              src={getProfilePictureUrl(comment.user?.user_profile_picture)}
+              alt="Profile"
+              className="post__comment-avatar"
+            />
+          </Link>
           <div className="post__comment-content">
-            <div className="post__comment-user">
-              {comment.user?.user_full_name || "Unknown User"} ·{" "}
-              {formatTime(comment.created_at)}{" "}
-              {comment.updated_at &&
-                comment.created_at &&
-                String(comment.updated_at) !== String(comment.created_at) && (
-                  <span className="edited-tag-inline">· Edited</span>
-                )}
+            <div className="post__comment-header">
+              <Link
+                to={buildProfilePath(comment.user)}
+                className="post__comment-user-name">
+                {comment.user?.user_full_name || "Unknown User"}
+              </Link>
+              <span className="post__comment-time">
+                · {formatTime(comment.created_at)}{" "}
+                {comment.updated_at &&
+                  comment.created_at &&
+                  String(comment.updated_at) !== String(comment.created_at) && (
+                    <span className="edited-tag-inline">· Edited</span>
+                  )}
+              </span>
             </div>
             {editingCommentId === comment.comment_pk ? (
               <textarea
@@ -112,7 +123,6 @@ const CommentList = ({
               </div>
             )}
           </div>
-
           {currentUserPk === comment.comment_user_fk && (
             <div className="comment-actions">
               {editingCommentId === comment.comment_pk ? (
