@@ -39,6 +39,8 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
       const response = await api.post("/signup", formData);
       if (response.data?.token) {
         localStorage.setItem("token", response.data.token);
+      } else {
+        localStorage.setItem("token", "cookie-auth");
       }
       if (response.data?.user?.user_pk) {
         localStorage.setItem("user_pk", response.data.user.user_pk);

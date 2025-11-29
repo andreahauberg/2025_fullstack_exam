@@ -37,7 +37,11 @@ function Login() {
     try {
       const response = await api.post("/login", formData);
       if (response.data.success) {
-        localStorage.setItem("token", response.data.token);
+        if (response.data?.token) {
+          localStorage.setItem("token", response.data.token);
+        } else {
+          localStorage.setItem("token", "cookie-auth");
+        }
         localStorage.setItem("user_pk", response.data.user.user_pk);
         localStorage.setItem("user_username", response.data.user.user_username);
         setErrors({});

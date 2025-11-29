@@ -3,10 +3,11 @@ import axios from "axios";
 const baseURL =
   process.env.REACT_APP_API_BASE_URL ||
   process.env.REACT_APP_API_BASE ||
-  "http://127.0.0.1:8000/api";
+  "http://localhost:8000/api";
 
 export const api = axios.create({
   baseURL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -15,9 +16,13 @@ export const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // If we have a real bearer token, send it; otherwise rely on cookies
+    const stored = localStorage.getItem("token");
+    if (stored && stored !== "cookie-auth") {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${stored}`;
+    } else if (config.headers?.Authorization) {
+      delete config.headers.Authorization;
     }
     return config;
   },

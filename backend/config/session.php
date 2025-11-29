@@ -203,6 +203,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Auth Token Cookie
+    |--------------------------------------------------------------------------
+    |
+    | Name and duration for the auth token cookie used to authenticate API
+    | requests (converted to Authorization bearer by middleware).
+    |
+    */
+
+    'auth_cookie' => env('AUTH_COOKIE_NAME', 'auth_token'),
+    'auth_cookie_minutes' => env('AUTH_COOKIE_MINUTES', 60 * 24 * 7),
+
+    /*
+    |--------------------------------------------------------------------------
     | Partitioned Cookies
     |--------------------------------------------------------------------------
     |

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cookie;
 
 class AuthController extends Controller
 {
@@ -37,7 +38,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
+        return $this->withAuthCookie($token, [
             'success' => true,
             'message' => 'Account created successfully!',
             'token' => $token,
@@ -70,7 +71,7 @@ public function login(Request $request)
 
     $token = $user->createToken('auth_token')->plainTextToken;
 
-    return response()->json([
+    return $this->withAuthCookie($token, [
         'success' => true,
         'message' => 'Logged in successfully!',
         'token' => $token,
@@ -79,4 +80,17 @@ public function login(Request $request)
 }
 
 
+    private function withAuthCookie(string $token, array $payload, int $status = 200)
+    {
+        $cookieName = config('session.auth_cookie', 'auth_token');
+        $minutes = (int) config('session.auth_cookie_minutes', 60 * 24 * 7); // 7 dage
+        $domain = config('session.domain');
+        $secure = (bool) config('session.secure', false);
+        $httpOnly = true;
+        $sameSite = config('session.same_site', 'lax');
+
+        $cookie = Cookie::make($cookieName, $token, $minutes, '/', $domain, $secure, $httpOnly, false, $sameSite);
+
+        return response()->json($payload, $status)->withCookie($cookie);
+    }
 }
