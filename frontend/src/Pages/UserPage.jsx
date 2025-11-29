@@ -76,6 +76,18 @@ const UserPage = () => {
       setError(null);
     } catch (err) {
       console.error(err.response?.data || err.message);
+      if (err.response?.status === 404) {
+        setIsLoading(false);
+        navigate("/404", { replace: true, state: { missingUsername: username } });
+        return;
+      }
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user_pk");
+        localStorage.removeItem("user_username");
+        navigate("/");
+        return;
+      }
       setError("Failed to load data.");
     } finally {
       setIsLoading(false);
@@ -163,7 +175,7 @@ const UserPage = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        navigate("/login");
+        navigate("/");
         return;
       }
 
