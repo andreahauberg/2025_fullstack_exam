@@ -36,7 +36,16 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
 
     setIsLoading(true);
     try {
-      await api.post("/signup", formData);
+      const response = await api.post("/signup", formData);
+      if (response.data?.token) {
+        localStorage.setItem("token", response.data.token);
+      }
+      if (response.data?.user?.user_pk) {
+        localStorage.setItem("user_pk", response.data.user.user_pk);
+      }
+      if (response.data?.user?.user_username) {
+        localStorage.setItem("user_username", response.data.user.user_username);
+      }
       setErrors({});
       setTimeout(() => {
         onSuccess();
