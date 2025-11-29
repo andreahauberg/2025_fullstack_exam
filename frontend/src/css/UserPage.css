@@ -219,7 +219,7 @@
   padding-right: 8px;
   padding-left: 1rem;
   margin-top: 0.5rem;
-  /* flex-wrap: wrap; */
+  flex-wrap: wrap;
 }
 
 .user-name {
@@ -566,6 +566,7 @@ display: flex;
 
   .user-info-header {
     flex-direction: column;
+
     align-items: center;
     width: 100%;
     padding-left: 0;
@@ -577,9 +578,9 @@ align-items: center;
   }
 
   .user-actions {
-    width: 100%;
+    width: 96%;
     justify-content: center;
-    /* flex-wrap: wrap; */
+    flex-wrap: wrap;
   }
 
   .user-actions .follow-btn {
@@ -588,9 +589,6 @@ align-items: center;
     text-align: center;
   }
 
-  .user-actions.inline-actions {
-    display: none;
-  }
 
   .user-actions-menu {
     display: block;
