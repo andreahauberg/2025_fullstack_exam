@@ -70,6 +70,7 @@ make seed
 ## API / Frontend
 - Backend serves on :8000 (host-mode) or :80 mapped to localhost:80 (docker web).
 - Frontend runs on :3000 (`npm start`). Ensure CORS/Sanctum domains match your chosen mode.
+- OpenAPI docs: `backend/public/openapi.yaml` (import into Swagger UI/Insomnia/Postman or open in https://editor.swagger.io and set server to your backend URL).
 
 ## Troubleshooting
 - 500 with `posts.deleted_at` missing: run `php artisan migrate:fresh --seed` to apply latest migrations (posts uses soft deletes).
