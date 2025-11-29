@@ -27,7 +27,12 @@ jobs:
         run: composer install --no-interaction --no-progress --prefer-dist
 
       - name: Copy env
-        run: cp .env.example .env
+        run: |
+          if [ -f .env.example ]; then
+            cp .env.example .env
+          else
+            echo "APP_KEY=" > .env
+          fi
 
       - name: Generate app key
         run: php artisan key:generate
