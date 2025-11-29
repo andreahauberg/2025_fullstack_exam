@@ -35,6 +35,14 @@ class AuthEndpointsTest extends TestCase
         $this->assertTrue(Hash::check('password123', $storedUser->user_password));
     }
 
+    public function test_signup_validates_required_fields(): void
+    {
+        $response = $this->postJson('/api/signup', []);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['user_full_name', 'user_username', 'user_email', 'user_password']);
+    }
+
     public function test_login_succeeds_with_valid_credentials(): void
     {
         $user = User::create([

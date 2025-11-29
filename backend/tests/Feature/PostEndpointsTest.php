@@ -53,4 +53,19 @@ class PostEndpointsTest extends TestCase
         $this->getJson('/api/posts')->assertStatus(401);
         $this->postJson('/api/posts', ['post_content' => 'Blocked'])->assertStatus(401);
     }
+
+    public function test_post_creation_validates_required_content(): void
+    {
+        $user = User::create([
+            'user_pk' => (string) Str::uuid(),
+            'user_full_name' => 'Poster Person',
+            'user_username' => 'poster',
+            'user_email' => 'poster@example.com',
+            'user_password' => Hash::make('password123'),
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $this->postJson('/api/posts', [])->assertStatus(422);
+    }
 }
