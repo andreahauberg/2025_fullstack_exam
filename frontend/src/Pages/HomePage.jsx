@@ -61,7 +61,12 @@ const HomePage = () => {
       setFeedError(
         parseApiErrorMessage(err, "Failed to load feed. Please try again.")
       );
-      if (err.response?.status === 401) navigate("/");
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user_pk");
+        localStorage.removeItem("user_username");
+        navigate("/");
+      }
     } finally {
       setLoadingState(false);
     }
