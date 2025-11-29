@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class CommentController extends Controller
 {
@@ -15,12 +16,14 @@ public function store(Request $request)
         'comment_message' => 'required|string|max:280',
     ]);
 
-    $comment = Comment::create([
-        'comment_pk' => Str::random(50),
-        'comment_message' => $request->comment_message,
-        'comment_post_fk' => $request->post_pk,
-        'comment_user_fk' => auth()->user()->user_pk,
-    ]);
+    $comment = DB::transaction(function () use ($request) {
+        return Comment::create([
+            'comment_pk' => Str::random(50),
+            'comment_message' => $request->comment_message,
+            'comment_post_fk' => $request->post_pk,
+            'comment_user_fk' => auth()->user()->user_pk,
+        ]);
+    });
 
     $comment->load('user');
 
@@ -32,10 +35,13 @@ public function update(Request $request, $comment_pk)
         'comment_message' => 'required|string|max:280',
     ]);
 
-    $comment = Comment::findOrFail($comment_pk);
-    $comment->comment_message = $request->comment_message;
-    $comment->updated_at = NULL;
-    $comment->save();
+    $comment = DB::transaction(function () use ($request, $comment_pk) {
+        $comment = Comment::lockForUpdate()->findOrFail($comment_pk);
+        $comment->comment_message = $request->comment_message;
+        $comment->updated_at = NULL;
+        $comment->save();
+        return $comment;
+    });
 
     $comment->load('user');
 
@@ -44,8 +50,10 @@ public function update(Request $request, $comment_pk)
 
 public function destroy($comment_pk)
 {
-    $comment = Comment::findOrFail($comment_pk);
-    $comment->delete();
+    DB::transaction(function () use ($comment_pk) {
+        $comment = Comment::lockForUpdate()->findOrFail($comment_pk);
+        $comment->delete();
+    });
 
     return response()->json(['message' => 'Comment deleted successfully.']);
 }

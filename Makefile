@@ -1,4 +1,4 @@
-.PHONY: up down new new-local all all-local backend frontend seed test
+.PHONY: up down new new-local all all-local backend frontend seed test test-sentry
 
 
 # .env fil til host (new-local)
@@ -67,3 +67,7 @@ all-local:
 test:
 	cd backend && php artisan test
 
+# test-sentry: run backend tests + Sentry smoke test (requires SENTRY_LARAVEL_DSN)
+test-sentry:
+	cd backend && php artisan test
+	cd backend && php artisan sentry:test

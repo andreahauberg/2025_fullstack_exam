@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Like;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class LikeController extends Controller
 {
@@ -15,11 +16,13 @@ class LikeController extends Controller
             'post_pk' => 'required|string',
         ]);
 
-        $like = Like::create([
-            'like_pk' => Str::random(50),
-            'like_post_fk' => $request->post_pk,
-            'like_user_fk' => auth()->user()->user_pk,
-        ]);
+        $like = DB::transaction(function () use ($request) {
+            return Like::create([
+                'like_pk' => Str::random(50),
+                'like_post_fk' => $request->post_pk,
+                'like_user_fk' => auth()->user()->user_pk,
+            ]);
+        });
 
         return response()->json($like, 201);
     }
@@ -27,11 +30,14 @@ class LikeController extends Controller
     // Fjern et like
     function destroy($post_pk)
     {
-        $like = Like::where('like_post_fk', $post_pk)
-            ->where('like_user_fk', auth()->user()->user_pk)
-            ->firstOrFail();
+        DB::transaction(function () use ($post_pk) {
+            $like = Like::where('like_post_fk', $post_pk)
+                ->where('like_user_fk', auth()->user()->user_pk)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $like->delete();
+            $like->delete();
+        });
 
         return response()->json(['message' => 'Like removed']);
     }

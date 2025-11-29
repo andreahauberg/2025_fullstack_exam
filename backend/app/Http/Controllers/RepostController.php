@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Repost;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class RepostController extends Controller
 {
@@ -23,22 +24,27 @@ class RepostController extends Controller
             return response()->json($existing, 200);
         }
 
-        $repost = Repost::create([
-            'repost_pk' => Str::random(50),
-            'repost_post_fk' => $request->post_pk,
-            'repost_user_fk' => auth()->user()->user_pk,
-        ]);
+        $repost = DB::transaction(function () use ($request) {
+            return Repost::create([
+                'repost_pk' => Str::random(50),
+                'repost_post_fk' => $request->post_pk,
+                'repost_user_fk' => auth()->user()->user_pk,
+            ]);
+        });
 
         return response()->json($repost, 201);
     }
 
     public function destroy($post_pk)
     {
-        $repost = Repost::where('repost_post_fk', $post_pk)
-            ->where('repost_user_fk', auth()->user()->user_pk)
-            ->firstOrFail();
+        DB::transaction(function () use ($post_pk) {
+            $repost = Repost::where('repost_post_fk', $post_pk)
+                ->where('repost_user_fk', auth()->user()->user_pk)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $repost->delete();
+            $repost->delete();
+        });
 
         return response()->json(['message' => 'Repost removed']);
     }

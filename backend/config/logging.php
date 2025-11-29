@@ -54,7 +54,10 @@ return [
 
         'stack' => [
             'driver' => 'stack',
-            'channels' => explode(',', (string) env('LOG_STACK', 'single')),
+            'channels' => array_filter(array_merge(
+                explode(',', (string) env('LOG_STACK', 'single')),
+                env('SENTRY_LARAVEL_DSN') ? ['sentry'] : []
+            )),
             'ignore_exceptions' => false,
         ],
 
@@ -125,6 +128,12 @@ return [
 
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
+        ],
+
+        'sentry' => [
+            'driver' => 'sentry',
+            'level' => env('SENTRY_LOG_LEVEL', 'error'),
+            'bubble' => true,
         ],
 
     ],
