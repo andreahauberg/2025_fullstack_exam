@@ -62,6 +62,10 @@ const UserPage = () => {
           : Promise.resolve({ data: [] }),
       ]);
 
+      if (!userResp.data?.user) {
+        navigate("/404", { replace: true, state: { missingUsername: username } });
+        return;
+      }
       setUser(userResp.data.user);
       setFollowers(userResp.data.followers);
       setFollowing(userResp.data.following);
@@ -76,12 +80,20 @@ const UserPage = () => {
       setError(null);
     } catch (err) {
       console.error(err.response?.data || err.message);
-      if (err.response?.status === 404) {
+      const status = err.response?.status;
+      const backendError = err.response?.data?.error || "";
+      const backendMessage = err.response?.data?.message || "";
+      const isMissingUser =
+        status === 404 ||
+        backendError === "User not found." ||
+        backendMessage.includes("No query results") ||
+        backendMessage.includes("User not found");
+      if (isMissingUser) {
         setIsLoading(false);
         navigate("/404", { replace: true, state: { missingUsername: username } });
         return;
       }
-      if (err.response?.status === 401) {
+      if (status === 401) {
         localStorage.removeItem("token");
         localStorage.removeItem("user_pk");
         localStorage.removeItem("user_username");

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import NavItem from "./NavItem";
 import NavPostButton from "./NavPostButton";
 import SearchOverlay from "../components/SearchOverlay";
+import ProfileTag from "../components/ProfileTag";
 import { api } from "../api";
 
 const NavMenu = ({
@@ -26,26 +27,44 @@ const NavMenu = ({
   const token = localStorage.getItem("token");
   const isAuthenticated = Boolean(token);
   const cachedUsername = localStorage.getItem("user_username");
-  const [resolvedUsername, setResolvedUsername] = useState(cachedUsername || "");
+  const [resolvedUsername, setResolvedUsername] = useState(
+    cachedUsername || ""
+  );
+  const [userFullName, setUserFullName] = useState("");
+  const [userProfilePicture, setUserProfilePicture] = useState("");
 
   useEffect(() => {
-    const syncUsername = async () => {
-      if (!token || !userPk || resolvedUsername) return;
+    const syncUserData = async () => {
+      if (!token || !userPk) return;
       try {
         const resp = await api.get(`/users/${userPk}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const uname = resp.data?.user?.user_username;
-        if (uname) {
-          localStorage.setItem("user_username", uname);
-          setResolvedUsername(uname);
+        const userData = resp.data?.user;
+        if (userData) {
+          const uname = userData.user_username;
+          const fullName = userData.user_full_name;
+          const profilePicture = userData.user_profile_picture;
+          if (uname) {
+            localStorage.setItem("user_username", uname);
+            setResolvedUsername(uname);
+          }
+          if (fullName) {
+            setUserFullName(fullName);
+          }
+          if (profilePicture) {
+            setUserProfilePicture(profilePicture);
+          }
         }
       } catch (err) {
-        console.error("Failed to resolve username:", err.response?.data || err.message);
+        console.error(
+          "Failed to resolve user data:",
+          err.response?.data || err.message
+        );
       }
     };
-    syncUsername();
-  }, [token, userPk, resolvedUsername]);
+    syncUserData();
+  }, [token, userPk]);
 
   const navItems = isAuthenticated
     ? [
@@ -86,7 +105,6 @@ const NavMenu = ({
               onClick={item.onClick}
             />
           ))}
-
           {isAuthenticated ? (
             <NavItem
               icon="fa-solid fa-right-from-bracket"
@@ -94,17 +112,8 @@ const NavMenu = ({
               onClick={handleLogout}
             />
           ) : null}
-          <NavItem
-            icon="fa-solid fa-right-from-bracket"
-            text="Logout"
-            onClick={handleLogout}
-          />
         </ul>
-
-        {isAuthenticated ? (
-          <NavPostButton setIsPostDialogOpen={setIsPostDialogOpen} />
-        ) : null}
-        {token && userPk && (
+        {isAuthenticated && userPk && (
           <ProfileTag
             userPk={userPk}
             userUsername={resolvedUsername}
@@ -112,7 +121,9 @@ const NavMenu = ({
             userProfilePicture={userProfilePicture}
           />
         )}
-        <NavPostButton setIsPostDialogOpen={setIsPostDialogOpen} />
+        {isAuthenticated ? (
+          <NavPostButton setIsPostDialogOpen={setIsPostDialogOpen} />
+        ) : null}
       </div>
       <SearchOverlay
         isOpen={isSearchOpen}

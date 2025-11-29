@@ -74,6 +74,10 @@ const ProfilePage = () => {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
+      if (!userResponse.data?.user) {
+        navigate("/404", { replace: true, state: { missingUsername: username } });
+        return;
+      }
       setUser(userResponse.data.user);
       setEditedUser(userResponse.data.user);
       setFollowers(userResponse.data.followers);
@@ -89,12 +93,20 @@ const ProfilePage = () => {
         "Error fetching data:",
         error.response?.data || error.message
       );
-      if (error.response?.status === 404) {
+      const status = error.response?.status;
+      const backendError = error.response?.data?.error || "";
+      const backendMessage = error.response?.data?.message || "";
+      const isMissingUser =
+        status === 404 ||
+        backendError === "User not found." ||
+        backendMessage.includes("No query results") ||
+        backendMessage.includes("User not found");
+      if (isMissingUser) {
         setIsLoading(false);
         navigate("/404", { replace: true, state: { missingUsername: username } });
         return;
       }
-      if (error.response?.status === 401) {
+      if (status === 401) {
         localStorage.removeItem("token");
         localStorage.removeItem("user_pk");
         localStorage.removeItem("user_username");
