@@ -3,38 +3,43 @@
 /* User header */
 .user-header-wrapper {
   border-bottom: 1px solid #e1e8ed;
-  margin-bottom: 24px;
   border-radius: 16px;
   overflow: hidden;
-  background: linear-gradient(180deg, #f6f9fb 0%, #ffffff 35%);
+  background: linear-gradient(180deg, #fafdff 0%, #ffffff 60%);
 }
 
 .user-tabs {
   display: flex;
-  gap: 12px;
-  margin: 16px 0 8px;
+  justify-content: space-between;
+  padding: 14px 10px;
   border-bottom: 1px solid #eff3f4;
+  gap: 0;
 }
 
 .user-tab {
   position: relative;
   background: none;
   border: none;
-  padding: 12px 8px;
+  padding: 12px 10px;
   font-size: 15px;
   color: #536471;
   cursor: pointer;
   transition: color 0.15s ease;
-}
-
-.user-tab:hover {
-  color: #0f1419;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .user-tab.active {
   color: #0f1419;
   font-weight: 700;
 }
+
+.user-tab.active::after {
+  bottom: -3px;
+  height: 3px;
+}
+
 
 .user-tab.active::after {
   content: "";
@@ -47,11 +52,24 @@
   border-radius: 999px 999px 0 0;
 }
 
+.user-tab i {
+  font-size: 18px;
+}
+
+@media (max-width: 600px) {
+  .user-tabs {
+    justify-content: space-around;
+    gap: 0;
+  }
+}
+
+
 .user-tab-panels {
   margin-top: 8px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: 400px;
 }
 
 .user-cover {
@@ -199,7 +217,7 @@
   align-items: center;
   gap: 8px;
   padding-right: 8px;
-  flex-wrap: wrap;
+  /* flex-wrap: wrap; */
 }
 
 .user-name {
@@ -209,11 +227,13 @@
 }
 
 .user-handle-email {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+display: flex;
+  flex-direction: column; 
   color: #536471;
   font-size: 14px;
+}
+.user-handle-email .divider {
+  display: none;
 }
 
 .divider {
@@ -223,6 +243,7 @@
 .user-handle {
   color: #536471;
   margin: 5px 0;
+  font-weight: bold;
 }
 
 .user-email {
@@ -336,16 +357,17 @@
 .user-stats {
   display: flex;
   gap: 30px;
-  margin-bottom: 20px;
+  /* margin-bottom: 20px; */
   padding: 15px 0;
   border-bottom: 1px solid #e1e8ed;
-  justify-content:center;
+  justify-content: center;
 }
 
 .stat-item {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 4px;
 }
 
 .stat-item strong {
@@ -356,6 +378,11 @@
 .stat-item span {
   color: #536471;
   font-size: 14px;
+}
+
+/* Ikoner samme size som tabs */
+.stat-item i {
+  font-size: 18px;
 }
 
 /* User lists */
@@ -542,15 +569,13 @@
   }
 
   .user-handle-email {
-    flex-wrap: wrap;
-    justify-content: center;
-    row-gap: 4px;
+align-items: center;
   }
 
   .user-actions {
     width: 100%;
     justify-content: center;
-    flex-wrap: wrap;
+    /* flex-wrap: wrap; */
   }
 
   .user-actions .follow-btn {
@@ -577,13 +602,11 @@
   }
 
   .user-stats {
-    justify-content: center;
-    text-align: center;
     gap: 16px;
-    flex-wrap: wrap;
+    /* flex-wrap: wrap; */
   }
 
   .stat-item {
-    min-width: 90px;
+    min-width: 70px;
   }
 }

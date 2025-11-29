@@ -8,6 +8,7 @@ import UserHeader from "../components/UserHeader";
 import UserStats from "../components/UserStats";
 import UserList from "../components/UserList";
 import UserPosts from "../components/UserPosts";
+import UserTabs from "../components/UserTabs";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import PostDialog from "../components/PostDialog";
 import Post from "../components/Post";
@@ -287,56 +288,35 @@ const ProfilePage = () => {
           followersCount={followers.length}
           followingCount={following.length}
         />
-        <div className="user-tabs" role="tablist" aria-label="Profile content">
-          <button
-            className={`user-tab ${activeTab === "posts" ? "active" : ""}`}
-            onClick={() => setActiveTab("posts")}
-            role="tab"
-            aria-selected={activeTab === "posts"}>
-            Posts
-          </button>
-          <button
-            className={`user-tab ${activeTab === "reposts" ? "active" : ""}`}
-            onClick={() => setActiveTab("reposts")}
-            role="tab"
-            aria-selected={activeTab === "reposts"}>
-            Reposts
-          </button>
-          <button
-            className={`user-tab ${activeTab === "followers" ? "active" : ""}`}
-            onClick={() => setActiveTab("followers")}
-            role="tab"
-            aria-selected={activeTab === "followers"}>
-            Followers ({followers.length})
-          </button>
-          <button
-            className={`user-tab ${activeTab === "following" ? "active" : ""}`}
-            onClick={() => setActiveTab("following")}
-            role="tab"
-            aria-selected={activeTab === "following"}>
-            Following ({following.length})
-          </button>
-        </div>
+        <UserTabs
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          followersCount={followers.length}
+          followingCount={following.length}
+        />
+
         <div className="user-tab-panels">
           {activeTab === "posts" && (
             <UserPosts userPk={user?.user_pk} isCurrentUser={isCurrentUser} />
           )}
           {activeTab === "reposts" && (
             <>
-              {isRepostsLoading && <p className="loading-message">Loading reposts...</p>}
-              {!isRepostsLoading && repostPosts && repostPosts.length > 0 ? (
-                repostPosts.map((post) => (
-                  <Post
-                    key={post.post_pk}
-                    post={post}
-                    onUpdatePost={handleUpdateRepostPost}
-                    onDeletePost={null}
-                    hideHeader={false}
-                  />
-                ))
-              ) : (
-                !isRepostsLoading && <p className="empty-message">No reposts yet.</p>
+              {isRepostsLoading && (
+                <p className="loading-message">Loading reposts...</p>
               )}
+              {!isRepostsLoading && repostPosts && repostPosts.length > 0
+                ? repostPosts.map((post) => (
+                    <Post
+                      key={post.post_pk}
+                      post={post}
+                      onUpdatePost={handleUpdateRepostPost}
+                      onDeletePost={null}
+                      hideHeader={false}
+                    />
+                  ))
+                : !isRepostsLoading && (
+                    <p className="empty-message">No reposts yet.</p>
+                  )}
             </>
           )}
           {activeTab === "followers" && (
