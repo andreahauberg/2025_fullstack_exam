@@ -94,13 +94,26 @@ const NavMenu = ({
               onClick={handleLogout}
             />
           ) : null}
+          <NavItem
+            icon="fa-solid fa-right-from-bracket"
+            text="Logout"
+            onClick={handleLogout}
+          />
         </ul>
 
         {isAuthenticated ? (
           <NavPostButton setIsPostDialogOpen={setIsPostDialogOpen} />
         ) : null}
+        {token && userPk && (
+          <ProfileTag
+            userPk={userPk}
+            userUsername={resolvedUsername}
+            userFullName={userFullName}
+            userProfilePicture={userProfilePicture}
+          />
+        )}
+        <NavPostButton setIsPostDialogOpen={setIsPostDialogOpen} />
       </div>
-
       <SearchOverlay
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}

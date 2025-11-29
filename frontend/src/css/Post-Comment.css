@@ -3,56 +3,50 @@
   border-bottom: 1px solid #eff3f4;
   padding: 1rem;
 }
-
 .post__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.75rem;
 }
-
 .post__avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   margin-right: 0.75rem;
 }
-
 .post__user-name {
   font-weight: 700;
+  font-size: 0.875rem;
 }
-
 .post__user-handle {
   color: #8b98a5;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
-
 .post__content {
   margin-bottom: 0.75rem;
   line-height: 1.5;
+  word-break: break-word;
+  font-size: 0.8rem;
 }
-
 .post__content-row {
   display: flex;
   align-items: center;
   gap: 6px;
 }
-
 .post__image {
   width: 100%;
   border-radius: 12px;
   margin-bottom: 0.75rem;
 }
-
- .post__actions {
-   display: flex;
-   gap: 2rem;
-   margin-bottom: 0.75rem;
- }
-
+.post__actions {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 0.75rem;
+}
 .post__action-btn {
   display: flex;
   align-items: center;
@@ -61,19 +55,15 @@
   cursor: pointer;
   color: #536471;
 }
-
 .post__action-btn i {
   margin-right: 0.5rem;
 }
-
 .post__action-btn.reposted {
   color: #1d9bf0;
 }
-
 .post__action-btn.reposted:hover {
   color: #1d9bda;
 }
-
 .follow-chip {
   border-radius: 9999px;
   padding: 4px 12px;
@@ -83,24 +73,20 @@
   cursor: pointer;
   transition: background-color 0.2s, border-color 0.2s, color 0.2s;
 }
-
 .follow-chip.follow {
   color: #1d9bf0;
   border-color: rgba(29, 155, 240, 0.6);
 }
-
 .follow-chip.follow:hover {
   background: rgba(29, 155, 240, 0.08);
   border-color: #1d9bf0;
 }
-
 .follow-chip.following {
   color: #8b98a5;
   border: none;
   background: transparent;
   cursor: pointer;
 }
-
 .post__comment-form {
   display: flex;
   gap: 0.5rem;
@@ -109,11 +95,10 @@
   align-items: center;
   flex-wrap: wrap;
 }
-
 .post__comment-form .form-control {
   flex: 1;
+  font-size: 0.875rem;
 }
-
 .post__comment-form button {
   background-color: #1d9bf0;
   color: white;
@@ -121,14 +106,13 @@
   border-radius: 9999px;
   padding: 0.75rem 1rem;
   cursor: pointer;
+  margin-top: 0.6rem;
 }
-
 .post__dialog-textarea {
   width: 100%;
   box-sizing: border-box;
   display: block;
 }
-
 .comment-meta {
   width: 100%;
   display: flex;
@@ -136,7 +120,6 @@
   align-items: center;
   margin-top: 6px;
 }
-
 .post-meta {
   width: 100%;
   display: flex;
@@ -144,16 +127,13 @@
   align-items: center;
   margin-top: 6px;
 }
-
 .char-count {
   font-size: 12px;
   color: #536471;
 }
-
 .char-count.warn {
   color: #e0245e;
 }
-
 .post-image-preview {
   margin-top: 12px;
   border: 1px solid #e1e8ed;
@@ -161,13 +141,11 @@
   overflow: hidden;
   background: #fff;
 }
-
 .post-image-preview img {
   display: block;
   width: 100%;
   height: auto;
 }
-
 .post-image-actions {
   display: flex;
   align-items: center;
@@ -175,12 +153,10 @@
   gap: 12px;
   margin: 12px 0;
 }
-
 .post-media-hint {
   font-size: 13px;
   color: #536471;
 }
-
 .upload-image-btn {
   display: inline-flex;
   align-items: center;
@@ -193,16 +169,13 @@
   cursor: pointer;
   font-weight: 600;
 }
-
 .upload-image-btn:hover {
   background: #1a8cd8;
 }
-
 .upload-image-btn i {
   font-size: 16px;
   color: inherit;
 }
-
 .remove-image-btn {
   display: inline-flex;
   align-items: center;
@@ -216,49 +189,65 @@
   cursor: pointer;
   transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
-
 .remove-image-btn:hover {
   border-color: #d11149;
   color: #d11149;
   box-shadow: 0 2px 8px rgba(209, 17, 73, 0.1);
 }
-
 .post__comments {
   margin-top: 1rem;
 }
-
 .post__comment {
   display: flex;
   padding: 0.75rem 0;
   border-top: 1px solid #eff3f4;
   align-items: flex-start;
 }
-
+.post__comment-user-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
 .post__comment-avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
   margin-right: 0.75rem;
+  object-fit: cover;
+  flex-shrink: 0;
 }
-
 .post__comment-user {
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
 }
-
 .post__comment-content {
   flex: 1;
-  min-width: 0; /* so text wraps instead of pushing layout */
+  min-width: 0;
+}
+.post__comment-header {
+  display: flex;
+  align-items: center;
+}
+.post__comment-user-name {
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-decoration: none;
+  color: inherit;
+  margin-right: 0.25rem;
 }
 
+.post__comment-time {
+  font-size: 0.7rem;
+  color: #8b98a5;
+}
 .post__comment-text {
-  font-size: 0.875rem;
+  font-size: 0.7rem;
   word-break: break-word;
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
-
 .edit-post-textarea {
   width: 100%;
   min-height: 100px;
@@ -268,52 +257,43 @@
   resize: vertical;
   font-size: 15px;
 }
-
 .edit-post-actions {
   display: flex;
   gap: 10px;
   margin-top: 10px;
 }
-
 .save-edit-btn, .cancel-edit-btn {
   padding: 8px 16px;
   border-radius: 9999px;
   border: none;
   cursor: pointer;
 }
-
 .save-edit-btn {
   background-color: #1d9bf0;
   color: white;
 }
-
 .cancel-edit-btn {
   background-color: #eff3f4;
   color: #0f1419;
 }
-
 .post-actions-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
 .post-edit-delete-actions {
   display: flex;
   gap: 10px;
 }
-
 .edit-post-btn, .delete-post-btn {
   background: none;
   border: none;
   cursor: pointer;
   font-size: 16px;
 }
-
 .edit-post-btn i, .delete-post-btn i {
   pointer-events: none;
 }
-
 .edit-comment-textarea {
   width: 100%;
   min-height: 60px;
@@ -323,39 +303,31 @@
   resize: vertical;
   font-size: 14px;
 }
-
 .comment-actions {
   display: flex;
-
   gap: 16px;
-  margin-left: 2rem;
+  margin-left: auto;
   margin-top: 1rem;
 }
-
-
 .save-comment-btn, .cancel-comment-btn, .edit-comment-btn, .delete-comment-btn {
   background: none;
   border: none;
   cursor: pointer;
   font-size: 14px;
 }
-
-.save-comment-btn i, .cancel-comment-btn i, .edit-comment-btn i, .delete-comment-btn i {
-  pointer-events: none;
+.save-comment-btn:hover, .cancel-comment-btn:hover, .edit-comment-btn:hover, .delete-comment-btn:hover {
+  color: #1d9bf0;
 }
-
 .edited-tag {
   font-size: 12px;
   color: #536471;
   margin-left: 5px;
   font-style: italic;
 }
-
 .edited-tag-inline {
   font-size: 12px;
   color: #8b98a5;
 }
-
 .post__user-link {
   display: flex;
   align-items: center;

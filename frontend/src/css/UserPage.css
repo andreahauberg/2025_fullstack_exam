@@ -217,7 +217,9 @@
   align-items: center;
   gap: 8px;
   padding-right: 8px;
-  /* flex-wrap: wrap; */
+  padding-left: 1rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .user-name {
@@ -538,7 +540,7 @@ display: flex;
 
 .profile-picture-container {
   position: relative;
-  margin-bottom: 15px;
+  /* margin-bottom: 15px; */
 }
 
 .user-avatar {
@@ -564,8 +566,11 @@ display: flex;
 
   .user-info-header {
     flex-direction: column;
+
     align-items: center;
     width: 100%;
+    padding-left: 0;
+    margin-top: 0;
   }
 
   .user-handle-email {
@@ -573,9 +578,9 @@ align-items: center;
   }
 
   .user-actions {
-    width: 100%;
+    width: 96%;
     justify-content: center;
-    /* flex-wrap: wrap; */
+    flex-wrap: wrap;
   }
 
   .user-actions .follow-btn {
@@ -584,9 +589,6 @@ align-items: center;
     text-align: center;
   }
 
-  .user-actions.inline-actions {
-    display: none;
-  }
 
   .user-actions-menu {
     display: block;
