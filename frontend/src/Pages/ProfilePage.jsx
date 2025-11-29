@@ -59,7 +59,7 @@ const ProfilePage = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        navigate("/login");
+        navigate("/");
         return;
       }
       const [userResponse, trendingResponse, usersToFollowResponse] =
@@ -89,6 +89,18 @@ const ProfilePage = () => {
         "Error fetching data:",
         error.response?.data || error.message
       );
+      if (error.response?.status === 404) {
+        setIsLoading(false);
+        navigate("/404", { replace: true, state: { missingUsername: username } });
+        return;
+      }
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user_pk");
+        localStorage.removeItem("user_username");
+        navigate("/");
+        return;
+      }
       setError("Failed to load data.");
     } finally {
       setIsLoading(false);
@@ -214,7 +226,7 @@ const ProfilePage = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        navigate("/login");
+        navigate("/");
         return;
       }
 
@@ -246,7 +258,8 @@ const ProfilePage = () => {
       });
       localStorage.removeItem("token");
       localStorage.removeItem("user_pk");
-      navigate("/login");
+      localStorage.removeItem("user_username");
+      navigate("/");
     } catch (error) {
       console.error("Error deleting profile:", error);
       setError("Failed to delete profile.");
