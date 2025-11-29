@@ -161,7 +161,10 @@ aside {
   top: 0;
   height: 100vh;
   overflow-y: auto;
+  min-width: 400px;
+  scrollbar-width: none;
 }
+amain::-webkit-scrollbar { display: none; }
 
 .alert {
   padding: 12px 14px;
