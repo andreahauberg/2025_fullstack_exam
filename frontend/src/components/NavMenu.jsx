@@ -24,6 +24,7 @@ const NavMenu = ({
 
   const userPk = localStorage.getItem("user_pk");
   const token = localStorage.getItem("token");
+  const isAuthenticated = Boolean(token);
   const cachedUsername = localStorage.getItem("user_username");
   const [resolvedUsername, setResolvedUsername] = useState(cachedUsername || "");
 
@@ -46,25 +47,30 @@ const NavMenu = ({
     syncUsername();
   }, [token, userPk, resolvedUsername]);
 
-  const navItems = [
-    { icon: "fa-solid fa-house", text: "Home", href: "/home" },
-    {
-      icon: "fa-solid fa-magnifying-glass",
-      text: "Explore",
-      className: "open-search",
-      onClick: openSearch,
-    },
-    { icon: "fa-regular fa-bell", text: "Notifications", href: "#" },
-    {
-      icon: "fa-regular fa-user",
-      text: "Profile",
-      href:
-        token && (resolvedUsername || userPk)
-          ? `/profile/${resolvedUsername || userPk}`
-          : "/home",
-    },
-    { icon: "fa-solid fa-ellipsis", text: "More", href: "#" },
-  ];
+  const navItems = isAuthenticated
+    ? [
+        { icon: "fa-solid fa-house", text: "Home", href: "/home" },
+        {
+          icon: "fa-solid fa-magnifying-glass",
+          text: "Explore",
+          className: "open-search",
+          onClick: openSearch,
+        },
+        { icon: "fa-regular fa-bell", text: "Notifications", href: "#" },
+        {
+          icon: "fa-regular fa-user",
+          text: "Profile",
+          href:
+            resolvedUsername || userPk
+              ? `/profile/${resolvedUsername || userPk}`
+              : "/home",
+        },
+        { icon: "fa-solid fa-ellipsis", text: "More", href: "#" },
+      ]
+    : [
+        { icon: "fa-solid fa-house", text: "Home", href: "/" },
+        { icon: "fa-regular fa-user", text: "Log in", href: "/" },
+      ];
 
   return (
     <>
@@ -81,17 +87,20 @@ const NavMenu = ({
             />
           ))}
 
-          <NavItem
-            icon="fa-solid fa-right-from-bracket"
-            text="Logout"
-            onClick={handleLogout}
-          />
+          {isAuthenticated ? (
+            <NavItem
+              icon="fa-solid fa-right-from-bracket"
+              text="Logout"
+              onClick={handleLogout}
+            />
+          ) : null}
         </ul>
 
-        <NavPostButton setIsPostDialogOpen={setIsPostDialogOpen} />
+        {isAuthenticated ? (
+          <NavPostButton setIsPostDialogOpen={setIsPostDialogOpen} />
+        ) : null}
       </div>
 
-      {/* 🔵 Search overlay */}
       <SearchOverlay
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
