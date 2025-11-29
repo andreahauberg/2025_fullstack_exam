@@ -105,6 +105,7 @@ const NavMenu = ({
               onClick={item.onClick}
             />
           ))}
+
           {isAuthenticated ? (
             <NavItem
               icon="fa-solid fa-right-from-bracket"
