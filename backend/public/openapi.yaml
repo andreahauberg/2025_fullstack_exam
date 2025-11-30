@@ -1,0 +1,550 @@
+openapi: 3.0.3
+info:
+  title: Twitter Fullstack Exam API
+  version: "1.0.0"
+  description: |
+    REST API used by the frontend. Sanctum bearer tokens required for all protected endpoints.
+servers:
+  - url: http://127.0.0.1:8000/api
+    description: Local dev
+security:
+  - BearerAuth: []
+paths:
+  /signup:
+    post:
+      summary: Create account
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        "422":
+          description: Validation errors
+  /login:
+    post:
+      summary: Login and get bearer token
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        "401":
+          description: Invalid credentials
+  /posts:
+    get:
+      summary: List paginated posts
+      tags: [Posts]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Paginated posts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPosts'
+    post:
+      summary: Create post
+      tags: [Posts]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                post_content:
+                  type: string
+                  maxLength: 280
+                post_image:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Created post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+  /posts/{post_pk}:
+    put:
+      summary: Update post content
+      tags: [Posts]
+      parameters:
+        - $ref: '#/components/parameters/PostPk'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                post_content:
+                  type: string
+                  maxLength: 280
+      responses:
+        "200":
+          description: Updated post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+    delete:
+      summary: Delete post
+      tags: [Posts]
+      parameters:
+        - $ref: '#/components/parameters/PostPk'
+      responses:
+        "200":
+          description: Deleted
+  /users/{userPk}/posts:
+    get:
+      summary: List posts for user
+      tags: [Posts]
+      parameters:
+        - $ref: '#/components/parameters/UserPk'
+      responses:
+        "200":
+          description: Paginated posts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPosts'
+  /users/{userPk}/reposts:
+    get:
+      summary: List reposted posts for user
+      tags: [Posts]
+      parameters:
+        - $ref: '#/components/parameters/UserPk'
+      responses:
+        "200":
+          description: Paginated posts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPosts'
+  /likes:
+    post:
+      summary: Like a post
+      tags: [Reactions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                post_pk:
+                  type: string
+      responses:
+        "201":
+          description: Created
+  /likes/{post_pk}:
+    delete:
+      summary: Unlike a post
+      tags: [Reactions]
+      parameters:
+        - $ref: '#/components/parameters/PostPk'
+      responses:
+        "200":
+          description: Deleted
+  /reposts:
+    post:
+      summary: Repost a post
+      tags: [Reactions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                post_pk:
+                  type: string
+      responses:
+        "201":
+          description: Created
+  /reposts/{post_pk}:
+    delete:
+      summary: Remove repost
+      tags: [Reactions]
+      parameters:
+        - $ref: '#/components/parameters/PostPk'
+      responses:
+        "200":
+          description: Deleted
+  /comments:
+    post:
+      summary: Create comment
+      tags: [Comments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreateRequest'
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+  /comments/{comment_pk}:
+    put:
+      summary: Update comment
+      tags: [Comments]
+      parameters:
+        - $ref: '#/components/parameters/CommentPk'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment_message:
+                  type: string
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+    delete:
+      summary: Delete comment
+      tags: [Comments]
+      parameters:
+        - $ref: '#/components/parameters/CommentPk'
+      responses:
+        "200":
+          description: Deleted
+  /trending:
+    get:
+      summary: Trending hashtags
+      tags: [Discovery]
+      responses:
+        "200":
+          description: Trending list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    hashtag:
+                      type: string
+                    posts:
+                      type: integer
+  /users-to-follow:
+    get:
+      summary: Suggestions to follow
+      tags: [Discovery]
+      responses:
+        "200":
+          description: Users to follow
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+  /follows:
+    post:
+      summary: Follow user
+      tags: [Follows]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                followed_user_fk:
+                  type: string
+      responses:
+        "201":
+          description: Created
+  /follows/{followed_user_fk}:
+    delete:
+      summary: Unfollow user
+      tags: [Follows]
+      parameters:
+        - name: followed_user_fk
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+  /users/{userPk}:
+    get:
+      summary: Get user profile + counts
+      tags: [Users]
+      parameters:
+        - $ref: '#/components/parameters/UserPk'
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  posts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+    put:
+      summary: Update user profile
+      tags: [Users]
+      parameters:
+        - $ref: '#/components/parameters/UserPk'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    delete:
+      summary: Delete user
+      tags: [Users]
+      parameters:
+        - $ref: '#/components/parameters/UserPk'
+      responses:
+        "200":
+          description: Deleted
+  /users/{userPk}/profile-picture:
+    post:
+      summary: Upload profile picture
+      tags: [Users]
+      parameters:
+        - $ref: '#/components/parameters/UserPk'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                profile_picture:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Uploaded
+  /users/{userPk}/cover-picture:
+    post:
+      summary: Upload cover picture
+      tags: [Users]
+      parameters:
+        - $ref: '#/components/parameters/UserPk'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                cover_picture:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Uploaded
+  /search:
+    post:
+      summary: Search users and posts
+      tags: [Discovery]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+      responses:
+        "200":
+          description: Search results
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum token
+  parameters:
+    PostPk:
+      name: post_pk
+      in: path
+      required: true
+      schema:
+        type: string
+    CommentPk:
+      name: comment_pk
+      in: path
+      required: true
+      schema:
+        type: string
+    UserPk:
+      name: userPk
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    SignupRequest:
+      type: object
+      required: [user_full_name, user_username, user_email, user_password]
+      properties:
+        user_full_name:
+          type: string
+        user_username:
+          type: string
+        user_email:
+          type: string
+          format: email
+        user_password:
+          type: string
+          format: password
+    LoginRequest:
+      type: object
+      required: [user_email, user_password]
+      properties:
+        user_email:
+          type: string
+          format: email
+        user_password:
+          type: string
+          format: password
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+    User:
+      type: object
+      properties:
+        user_pk:
+          type: string
+        user_full_name:
+          type: string
+        user_username:
+          type: string
+        user_email:
+          type: string
+        user_profile_picture:
+          type: string
+        user_cover_picture:
+          type: string
+        followers_count:
+          type: integer
+        following_count:
+          type: integer
+        posts_count:
+          type: integer
+    UserUpdateRequest:
+      type: object
+      properties:
+        user_full_name:
+          type: string
+        user_username:
+          type: string
+        user_email:
+          type: string
+          format: email
+    Post:
+      type: object
+      properties:
+        post_pk:
+          type: string
+        post_content:
+          type: string
+        post_image_path:
+          type: string
+        post_user_fk:
+          type: string
+        likes_count:
+          type: integer
+        comments_count:
+          type: integer
+        reposts_count:
+          type: integer
+        is_liked_by_user:
+          type: boolean
+        is_reposted_by_user:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+    PaginatedPosts:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Post'
+    Comment:
+      type: object
+      properties:
+        comment_pk:
+          type: string
+        comment_message:
+          type: string
+        comment_post_fk:
+          type: string
+        comment_user_fk:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    CommentCreateRequest:
+      type: object
+      required: [comment_post_fk, comment_message]
+      properties:
+        comment_post_fk:
+          type: string
+        comment_message:
+          type: string

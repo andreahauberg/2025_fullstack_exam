@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 use App\Models\Follow;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 class FollowController extends Controller
 {
    public function store(Request $request)
@@ -21,10 +22,12 @@ class FollowController extends Controller
     ]);
 
     try {
-        $follow = Follow::create([
-            'follower_user_fk' => $request->user()->user_pk,
-            'followed_user_fk' => $request->followed_user_fk,
-        ]);
+        DB::transaction(function () use ($request) {
+            Follow::create([
+                'follower_user_fk' => $request->user()->user_pk,
+                'followed_user_fk' => $request->followed_user_fk,
+            ]);
+        });
         return response()->json(['message' => 'Followed successfully!'], 201);
     } catch (\Exception $e) {
         \Log::error('Error following user: ' . $e->getMessage());
@@ -39,9 +42,12 @@ class FollowController extends Controller
     public function destroy($followedUserPk)
     {
         try {
-            Follow::where('follower_user_fk', auth()->user()->user_pk)
-                  ->where('followed_user_fk', $followedUserPk)
-                  ->delete();
+            DB::transaction(function () use ($followedUserPk) {
+                Follow::where('follower_user_fk', auth()->user()->user_pk)
+                    ->where('followed_user_fk', $followedUserPk)
+                    ->lockForUpdate()
+                    ->delete();
+            });
 
             return response()->json(['message' => 'Unfollowed successfully!']);
         } catch (\Exception $e) {

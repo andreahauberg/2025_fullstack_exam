@@ -1,4 +1,4 @@
-.PHONY: up down new new-local all all-local backend frontend seed
+.PHONY: up down new new-local all all-local backend frontend seed test test-sentry
 
 
 # .env fil til host (new-local)
@@ -63,4 +63,11 @@ all-local:
 	@echo "Backend started on http://127.0.0.1:8000 (logs: /tmp/backend.log)"
 	cd frontend && npm start
 
+# test: run backend unit/integration tests (in-memory sqlite)
+test:
+	cd backend && php artisan test
 
+# test-sentry: run backend tests + Sentry smoke test (requires SENTRY_LARAVEL_DSN)
+test-sentry:
+	cd backend && php artisan test
+	cd backend && php artisan sentry:test
