@@ -2,6 +2,16 @@
 
 use Illuminate\Support\Str;
 
+$databaseHost = env('DB_HOST', '127.0.0.1');
+
+if ($databaseHost === 'mariadb') {
+    $resolvedHost = gethostbyname($databaseHost);
+
+    if ($resolvedHost === $databaseHost) {
+        $databaseHost = '127.0.0.1'; // Fallback when running outside Docker
+    }
+}
+
 return [
 
     /*
@@ -46,7 +56,7 @@ return [
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
+            'host' => $databaseHost,
             'port' => env('DB_PORT', '3306'),
             'database' => env('DB_DATABASE', 'laravel'),
             'username' => env('DB_USERNAME', 'root'),
@@ -66,7 +76,7 @@ return [
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
+            'host' => $databaseHost,
             'port' => env('DB_PORT', '3306'),
             'database' => env('DB_DATABASE', 'laravel'),
             'username' => env('DB_USERNAME', 'root'),
