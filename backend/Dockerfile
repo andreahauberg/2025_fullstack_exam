@@ -28,3 +28,9 @@ RUN a2enmod rewrite
 
 # Kopier Apache-konfiguration
 COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
+
+# Arbejdsmappe og kode
+WORKDIR /var/www/html
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --prefer-dist --optimize-autoloader
+COPY . .
