@@ -55,4 +55,4 @@ docker-compose.override.yml
 /.php-cs-fixer.cache
 /phpunit.result.cache
 
-private/
+/private
