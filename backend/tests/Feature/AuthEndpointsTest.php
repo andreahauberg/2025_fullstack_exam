@@ -24,8 +24,7 @@ class AuthEndpointsTest extends TestCase
         $response = $this->postJson('/api/signup', $payload);
 
         $response->assertCreated()
-            ->assertJsonStructure(['success', 'message', 'token', 'user' => ['user_pk', 'user_email']])
-            ->assertCookie(config('session.auth_cookie', 'auth_token'));
+            ->assertJsonStructure(['success', 'message', 'token', 'user' => ['user_pk', 'user_email']]);
 
         $this->assertDatabaseHas('users', [
             'user_email' => 'test@example.com',
@@ -60,8 +59,7 @@ class AuthEndpointsTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonStructure(['success', 'message', 'token', 'user' => ['user_pk']])
-            ->assertCookie(config('session.auth_cookie', 'auth_token'));
+            ->assertJsonStructure(['success', 'message', 'token', 'user' => ['user_pk']]);
     }
 
     public function test_login_fails_with_wrong_password(): void

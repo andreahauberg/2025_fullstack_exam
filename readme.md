@@ -72,7 +72,6 @@ make seed
 - Frontend runs on :3000 (`npm start`). Ensure CORS/Sanctum domains match your chosen mode.
 - OpenAPI docs: `backend/public/openapi.yaml` (import into Swagger UI/Insomnia/Postman or open in https://editor.swagger.io and set server to your backend URL).
 - Sentry logging (optional): set `SENTRY_LARAVEL_DSN` in `backend/.env` to enable forwarding errors to Sentry. Uses `stack` channel with `sentry` + default log targets.
-- HTTPS/cookies: set `FORCE_HTTPS=true` (prod) and `SESSION_SECURE_COOKIE=true`. Auth tokens are issued as HttpOnly cookies (`AUTH_COOKIE_NAME`, default `auth_token`) and middleware reads them into the Authorization header for API calls.
 
 ## Troubleshooting
 - 500 with `posts.deleted_at` missing: run `php artisan migrate:fresh --seed` to apply latest migrations (posts uses soft deletes).
