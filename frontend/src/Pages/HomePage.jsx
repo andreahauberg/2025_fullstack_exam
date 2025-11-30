@@ -7,6 +7,7 @@ import WhoToFollow from "../components/WhoToFollow";
 import PostDialog from "../components/PostDialog";
 import { api } from "../api";
 import { parseApiErrorMessage } from "../utils/validation";
+import { useDocumentTitle } from "../utils/useDocumentTitle";
 import LoadingOverlay from "../components/LoadingOverlay";
 
 const HomePage = () => {
@@ -26,6 +27,9 @@ const HomePage = () => {
   const [loadingState, setLoadingState] = useState(false);
   const [hasMoreState, setHasMoreState] = useState(true);
 
+  const username = localStorage.getItem("user_username");
+  const homeTitle = username ? `Home / Welcome ${username}` : "Home / Welcome";
+  useDocumentTitle(homeTitle);
 
   const navigate = useNavigate();
 

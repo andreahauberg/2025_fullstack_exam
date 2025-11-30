@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SignupDialog from "../components/SignupDialog"
 import LoginDialog from "../components/LoginDialog";
+import { DEFAULT_TITLE, useDocumentTitle } from "../utils/useDocumentTitle";
 import "../css/LandingPage.css";
 
 function LandingPage() {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const navigate = useNavigate();
+  useDocumentTitle(DEFAULT_TITLE);
 
   const handleSignupSuccess = () => {
     navigate("/home");

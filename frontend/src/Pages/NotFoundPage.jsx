@@ -1,17 +1,11 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import NavBar from "../components/NavBar";
+import { useDocumentTitle } from "../utils/useDocumentTitle";
 import "../css/App.css";
 import "../css/404.css";
 
 const NotFoundPage = () => {
-  useEffect(() => {
-    const previousTitle = document.title;
-    document.title = "Page not found / X";
-    return () => {
-      document.title = previousTitle;
-    };
-  }, []);
+  useDocumentTitle("Page not found / X");
 
   return (
     <div id="container">

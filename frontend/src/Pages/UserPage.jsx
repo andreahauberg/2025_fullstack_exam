@@ -12,6 +12,7 @@ import UserTabs from "../components/UserTabs";
 import Post from "../components/Post";
 import LoadingOverlay from "../components/LoadingOverlay";
 import "../css/UserPage.css";
+import { useDocumentTitle } from "../utils/useDocumentTitle";
 
 const UserPage = () => {
   const { username } = useParams();
@@ -31,6 +32,10 @@ const UserPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("posts"); // posts | reposts | followers | following
+  const profileTitle = user?.user_username
+    ? `${user.user_full_name || user.user_username} (@${user.user_username}) / X`
+    : "Profile";
+  useDocumentTitle(profileTitle);
 
   useEffect(() => {
     repostLoadingRef.current = isRepostsLoading;

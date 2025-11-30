@@ -19,6 +19,7 @@ import {
   validateProfileUpdate,
 } from "../utils/validation";
 import LoadingOverlay from "../components/LoadingOverlay";
+import { useDocumentTitle } from "../utils/useDocumentTitle";
 
 const ProfilePage = () => {
   const { username } = useParams();
@@ -43,6 +44,10 @@ const ProfilePage = () => {
   const repostHasMoreRef = useRef(true);
   const [activeTab, setActiveTab] = useState("posts"); // posts | reposts | followers | following
   const [isFollowing, setIsFollowing] = useState(false);
+  const profileTitle = user?.user_username
+    ? `${user.user_full_name || user.user_username} (@${user.user_username}) / X`
+    : "Profile";
+  useDocumentTitle(profileTitle);
 
   useEffect(() => {
     repostLoadingRef.current = isRepostsLoading;
