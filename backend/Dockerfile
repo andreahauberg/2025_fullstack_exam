@@ -33,3 +33,9 @@ COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
 WORKDIR /var/www/html
 COPY . .
 RUN composer install --no-dev --prefer-dist --optimize-autoloader
+
+# Entrypoint to run migrations then start Apache
+COPY docker/entrypoint.sh /usr/local/bin/app-entrypoint
+RUN chmod +x /usr/local/bin/app-entrypoint
+ENTRYPOINT ["/usr/local/bin/app-entrypoint"]
+CMD ["apache2-foreground"]
