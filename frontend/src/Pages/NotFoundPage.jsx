@@ -23,8 +23,6 @@ const NotFoundPage = () => {
           </Link>
         </div>
       </main>
-
-      <aside />
     </div>
   );
 };
