@@ -60,7 +60,7 @@ main::-webkit-scrollbar {
 }
 
 .nav-logo {
-  padding: 12px;
+  padding-top: 12px;
   list-style: none;
 }
 
@@ -70,6 +70,9 @@ main::-webkit-scrollbar {
   font-size: 24px;
   cursor: pointer;
 }
+  .nav-logo-image{
+    max-width: 48px;
+  }
 
 .nav-menu-container {
   display: flex;
@@ -124,12 +127,13 @@ main::-webkit-scrollbar {
   display: flex;
   align-items: center;
   width: calc(100% - 24px);
-  padding: 12px;
+  padding: 6px 12px;
   border-radius: 9999px;
   transition: background-color 0.2s;
   cursor: pointer;
   margin: 8px 12px;
   box-sizing: border-box;
+  border: 1px solid #eff3f4;
 }
 .profile-tag:hover {
   background-color: rgba(29, 161, 242, 0.1);
@@ -423,6 +427,7 @@ aside::-webkit-scrollbar {
     padding: 12px;
     margin: 8px 12px;
     width: calc(100% - 24px);
+    border: none;
   }
 
   .profile-tag-avatar {
