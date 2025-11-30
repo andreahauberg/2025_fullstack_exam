@@ -189,7 +189,7 @@
   flex-direction: column;
   gap: 6px;
   min-width: 0;
-  width: 100%; /* Sikrer at indholdet ikke løber ud over container */
+  width: 100%; 
 }
 
 .user-info-header {
@@ -198,9 +198,9 @@
   align-items: flex-start;
   gap: 8px;
   padding-right: 8px;
-  margin-top: 0; /* Fjernet negativ margin for bedre responsivitet */
+  margin-top: 0;
   flex-wrap: wrap;
-  width: 100%; /* Sikrer at headeren fylder hele bredden */
+  width: 100%; 
 }
 
 .user-name {
@@ -282,16 +282,149 @@
   font-size: 14px;
 }
 
-/* Ikoner samme size som tabs */
+
 .stat-item i {
   font-size: 18px;
+}
+
+/* User lists */
+.user-list {
+  margin-bottom: 20px;
+  background-color: #f7f9fa;
+  border-radius: 12px;
+  padding: 15px;
+}
+
+.user-list h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #14171a;
+  font-size: 18px;
+}
+
+.user-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.user-list-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #e1e8ed;
+}
+
+.user-list-item:last-child {
+  border-bottom: none;
+}
+
+.user-list-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+.user-list-avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  margin-right: 12px;
+  object-fit: cover;
+}
+
+.user-list-name {
+  margin: 0;
+  font-weight: bold;
+  color: #14171a;
+}
+
+.user-list-handle {
+  margin: 2px 0 0;
+  color: #536471;
+  font-size: 14px;
+}
+
+.user-list {
+  background-color: #f7f9fa;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.user-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #e1e8ed;
+}
+
+.user-list-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #0f1419;
+}
+
+.user-list-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #536471;
+}
+
+.user-list-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.user-list-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e1e8ed;
+}
+
+.user-list-item:last-child {
+  border-bottom: none;
+}
+
+.user-list-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+.user-list-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.user-list-name {
+  margin: 0;
+  font-weight: 600;
+  color: #0f1419;
+}
+
+.user-list-handle {
+  margin: 2px 0 0;
+  color: #536471;
+  font-size: 14px;
+}
+
+.empty-message {
+  color: #536471;
+  text-align: center;
+  padding: 15px;
 }
 
 .action-menu-dropdown {
   position: absolute;
   right: 0;
   top: 100%;
-  margin-top: 8px; /* Ekstra margin for at undgå overlap */
+  margin-top: 8px; 
   background: #fff;
   border: 1px solid #e1e8ed;
   border-radius: 12px;
@@ -300,8 +433,8 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  z-index: 1000; /* Højere z-index for at sikre dropdown vises over alt */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Skygge for bedre synlighed */
+  z-index: 1000; 
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); 
 }
 
 .action-menu-dropdown button {
@@ -409,7 +542,7 @@
   }
 
   .action-menu-dropdown {
-    right: -10px; /* Justeret for at undgå overlap med kant */
+    right: -10px;
   }
 }
 
@@ -424,11 +557,11 @@
   }
 
   .profile-picture-container {
-    margin-top: -30px; /* Justeret for meget små skærme */
+    margin-top: -30px; 
   }
     .user-stats {
     gap: 16px;
-    /* flex-wrap: wrap; */
+  
   }
     .stat-item {
     min-width: 70px;
