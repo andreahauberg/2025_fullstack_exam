@@ -240,6 +240,23 @@ const ProfilePage = () => {
   };
 
   const handleFollowToggle = async () => {
+    const currentUserPk = localStorage.getItem("user_pk");
+    const currentUsername = localStorage.getItem("user_username");
+    const wasFollowing = isFollowing;
+    setIsFollowing(!wasFollowing);
+    setFollowers((prev) =>
+      wasFollowing
+        ? prev.filter((f) => String(f.user_pk) !== String(currentUserPk))
+        : [
+            ...prev,
+            {
+              user_pk: currentUserPk,
+              user_username: currentUsername,
+              user_full_name: currentUsername,
+            },
+          ]
+    );
+
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -247,7 +264,7 @@ const ProfilePage = () => {
         return;
       }
 
-      if (isFollowing) {
+      if (wasFollowing) {
         await api.delete(`/follows/${user?.user_pk}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -258,13 +275,46 @@ const ProfilePage = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
       }
-
-      setIsFollowing((prev) => !prev);
-      await fetchData();
     } catch (err) {
+      setIsFollowing(wasFollowing);
+      setFollowers((prev) =>
+        wasFollowing
+          ? [
+              ...prev,
+              {
+                user_pk: currentUserPk,
+                user_username: currentUsername,
+                user_full_name: currentUsername,
+              },
+            ]
+          : prev.filter((f) => String(f.user_pk) !== String(currentUserPk))
+      );
       console.error("Error updating follow status:", err.response?.data || err.message);
       setError("Failed to update follow status.");
     }
+  };
+
+  const handleSidebarFollowChange = (isNowFollowing, targetUser) => {
+    if (!targetUser?.user_pk) return;
+    setFollowing((prev) => {
+      if (isNowFollowing) {
+        const exists = prev.some(
+          (u) => String(u.user_pk) === String(targetUser.user_pk)
+        );
+        if (exists) return prev;
+        return [
+          ...prev,
+          {
+            user_pk: targetUser.user_pk,
+            user_username: targetUser.user_username,
+            user_full_name: targetUser.user_full_name,
+          },
+        ];
+      }
+      return prev.filter(
+        (u) => String(u.user_pk) !== String(targetUser.user_pk)
+      );
+    });
   };
 
   const handleDeleteProfile = async () => {
@@ -367,7 +417,10 @@ const ProfilePage = () => {
       </main>
       <aside className="user-aside">
         <Trending trending={trending} />
-        <WhoToFollow users={usersToFollow} />
+        <WhoToFollow
+          users={usersToFollow}
+          onFollowChange={handleSidebarFollowChange}
+        />
       </aside>
       <PostDialog
         isOpen={isPostDialogOpen}

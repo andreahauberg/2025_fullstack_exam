@@ -189,6 +189,23 @@ const UserPage = () => {
   }, [activeTab]);
 
   const handleFollowToggle = async () => {
+    const currentUserPk = localStorage.getItem("user_pk");
+    const currentUsername = localStorage.getItem("user_username");
+    const wasFollowing = isFollowing;
+    setIsFollowing(!wasFollowing);
+    setFollowers((prev) =>
+      wasFollowing
+        ? prev.filter((f) => String(f.user_pk) !== String(currentUserPk))
+        : [
+            ...prev,
+            {
+              user_pk: currentUserPk,
+              user_username: currentUsername,
+              user_full_name: currentUsername,
+            },
+          ]
+    );
+
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -196,7 +213,7 @@ const UserPage = () => {
         return;
       }
 
-      if (isFollowing)
+      if (wasFollowing)
         await api.delete(`/follows/${user?.user_pk}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -206,17 +223,20 @@ const UserPage = () => {
           { followed_user_fk: user?.user_pk },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-
-      setIsFollowing((prev) => !prev);
-      // Avoid full refetch to prevent layout jump; adjust follower list locally
-      setFollowers((prev) => {
-        if (isFollowing) {
-          return prev.filter((f) => f.user_pk !== localStorage.getItem("user_pk"));
-        }
-        const currentUserPk = localStorage.getItem("user_pk");
-        return [...prev, { user_pk: currentUserPk }];
-      });
     } catch (err) {
+      setIsFollowing(wasFollowing);
+      setFollowers((prev) =>
+        wasFollowing
+          ? [
+              ...prev,
+              {
+                user_pk: currentUserPk,
+                user_username: currentUsername,
+                user_full_name: currentUsername,
+              },
+            ]
+          : prev.filter((f) => String(f.user_pk) !== String(currentUserPk))
+      );
       setError("Failed to update follow status.");
     }
   };

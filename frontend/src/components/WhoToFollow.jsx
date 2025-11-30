@@ -5,7 +5,7 @@ import "../css/WhoToFollow.css";
 import { getProfilePictureUrl } from "../utils/imageUtils";
 import { buildProfilePath } from "../utils/urlHelpers";
 
-const WhoToFollow = ({ users: initialUsers }) => {
+const WhoToFollow = ({ users: initialUsers, onFollowChange }) => {
   const [visibleUsers, setVisibleUsers] = useState(3);
   const [users, setUsers] = useState([]);
 
@@ -35,6 +35,7 @@ const WhoToFollow = ({ users: initialUsers }) => {
       return;
     }
     const isFollowing = users[index].is_following;
+    const targetUser = users[index];
     try {
       const updatedUsers = [...users];
       updatedUsers[index].is_following = !isFollowing;
@@ -49,6 +50,9 @@ const WhoToFollow = ({ users: initialUsers }) => {
           { followed_user_fk: userPk },
           { headers: { Authorization: `Bearer ${token}` } }
         );
+      }
+      if (typeof onFollowChange === "function") {
+        onFollowChange(!isFollowing, targetUser);
       }
     } catch (error) {
       console.error(
