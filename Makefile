@@ -50,6 +50,11 @@ backend: up
 frontend:
 	cd frontend && npm start
 
+# all-docker: kør alt i Docker (ingen host-php eller npm start)
+# - brug containerens web på http://localhost (port 80)
+all-docker:
+	docker-compose up -d
+
 # all: start alt i Docker, backend i baggrund, frontend i forgrund (efter new)
 all: up
 	cd backend && nohup php artisan serve --port=8000 >/tmp/backend.log 2>&1 &
