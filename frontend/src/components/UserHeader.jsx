@@ -1,10 +1,7 @@
 import { useState, useRef } from "react";
 import { api } from "../api";
 import { getCoverImageUrl, getProfilePictureUrl } from "../utils/imageUtils";
-import {
-  parseApiErrorMessage,
-  validateImageFile,
-} from "../utils/validation";
+import { parseApiErrorMessage, validateImageFile } from "../utils/validation";
 import FieldError from "./FieldError";
 
 const UserHeader = ({
@@ -20,6 +17,7 @@ const UserHeader = ({
   isFollowing,
   onDeleteProfile,
   formErrors = {},
+  setIsEditing,
 }) => {
   const [profilePicture, setProfilePicture] = useState(null);
   const [uploadError, setUploadError] = useState("");
@@ -60,16 +58,13 @@ const UserHeader = ({
     try {
       const file = fileInputRef.current.files[0];
       if (!file) return;
-
       const imageError = validateImageFile(file);
       if (imageError) {
         setUploadError(imageError);
         return;
       }
-
       const formData = new FormData();
       formData.append("profile_picture", file);
-
       const token = localStorage.getItem("token");
       const response = await api.post(
         `/users/${user.user_pk}/profile-picture`,
@@ -81,7 +76,6 @@ const UserHeader = ({
           },
         }
       );
-
       setUser((prevUser) => ({
         ...prevUser,
         user_profile_picture: response.data.user_profile_picture,
@@ -102,16 +96,13 @@ const UserHeader = ({
     try {
       const file = coverInputRef.current.files[0];
       if (!file) return;
-
       const imageError = validateImageFile(file);
       if (imageError) {
         setCoverUploadError(imageError);
         return;
       }
-
       const formData = new FormData();
       formData.append("cover_picture", file);
-
       const token = localStorage.getItem("token");
       const response = await api.post(
         `/users/${user.user_pk}/cover-picture`,
@@ -123,7 +114,6 @@ const UserHeader = ({
           },
         }
       );
-
       setUser?.((prevUser) => ({
         ...prevUser,
         user_cover_picture: response.data.user_cover_picture,
@@ -141,6 +131,12 @@ const UserHeader = ({
   };
 
   const closeActionsMenu = () => setIsActionsMenuOpen(false);
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    
+  };
+
 
   return (
     <div className="user-header-wrapper">
@@ -183,43 +179,33 @@ const UserHeader = ({
       </div>
       <div className="user-header">
         <div className="profile-picture-container">
-          <div className="avatar-wrapper">
-            <img
-              src={profilePicture || getProfilePictureUrl(user.user_profile_picture)}
-              alt="Profile"
-              className="user-avatar"
-            />
-            {isCurrentUser && (
-              <div className="avatar-overlay">
-                <button
-                  type="button"
-                  className="avatar-btn"
-                  onClick={() => fileInputRef.current.click()}>
-                  <i className="fa-solid fa-camera"></i>
-                </button>
-                {profilePicture && (
-                  <button
-                    type="button"
-                    className="avatar-btn save"
-                    onClick={handleUploadProfilePicture}>
-                    Save
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+          <img
+            src={
+              profilePicture || getProfilePictureUrl(user.user_profile_picture)
+            }
+            alt="Profile"
+            className="user-avatar"
+          />
           {isCurrentUser && (
-            <>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleProfilePictureChange}
-                accept="image/*"
-                style={{ display: "none" }}
-              />
-              <span className="upload-error">{uploadError || ""}</span>
-            </>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleProfilePictureChange}
+              accept="image/*"
+              style={{ display: "none" }}
+            />
           )}
+          {profilePicture && (
+            <div className="profile-picture-preview">
+              <button
+                type="button"
+                className="save-profile-btn"
+                onClick={handleUploadProfilePicture}>
+                Save Image
+              </button>
+            </div>
+          )}
+          <span className="upload-error">{uploadError || ""}</span>
         </div>
         <div className="user-info">
           {isEditing ? (
@@ -232,7 +218,10 @@ const UserHeader = ({
                 className="form-control"
                 placeholder="Full Name"
               />
-              <FieldError error={formErrors.user_full_name} className="field-error" />
+              <FieldError
+                error={formErrors.user_full_name}
+                className="field-error"
+              />
               <input
                 type="text"
                 name="user_username"
@@ -241,7 +230,10 @@ const UserHeader = ({
                 className="form-control"
                 placeholder="Username"
               />
-              <FieldError error={formErrors.user_username} className="field-error" />
+              <FieldError
+                error={formErrors.user_username}
+                className="field-error"
+              />
               <input
                 type="email"
                 name="user_email"
@@ -249,10 +241,16 @@ const UserHeader = ({
                 className="form-control disabled-input"
                 disabled
               />
-              <FieldError error={formErrors.user_email} className="field-error" />
+              <FieldError
+                error={formErrors.user_email}
+                className="field-error"
+              />
               <div className="user-actions">
                 <button className="save-btn" onClick={handleSaveEdit}>
                   Save
+                </button>
+                <button className="cancel-btn" onClick={handleCancelEdit}>
+                  Cancel
                 </button>
               </div>
             </>
@@ -295,6 +293,14 @@ const UserHeader = ({
                             handleEdit();
                           }}>
                           Edit profile
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            closeActionsMenu();
+                            fileInputRef.current.click();
+                          }}>
+                          Upload profile picture
                         </button>
                         <button
                           type="button"

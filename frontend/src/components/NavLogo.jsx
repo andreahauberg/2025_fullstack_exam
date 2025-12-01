@@ -6,7 +6,11 @@ const NavLogo = () => {
   return (
     <li class="nav-logo">
       <button onClick={() => navigate("/home")} title="Home">
-        <i className="fab fa-twitter"></i>
+        <img
+          src="/favicon/weave.png"
+          alt="Weave Logo"
+          class="nav-logo-image"
+        />
       </button>
     </li>
   );

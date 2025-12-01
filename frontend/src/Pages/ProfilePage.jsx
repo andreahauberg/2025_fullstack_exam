@@ -234,6 +234,7 @@ const ProfilePage = () => {
     }
   };
 
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setEditedUser((prev) => ({ ...prev, [name]: value }));
@@ -358,6 +359,7 @@ const ProfilePage = () => {
           handleChange={handleChange}
           handleEdit={handleEdit}
           handleSaveEdit={handleSaveEdit}
+          setIsEditing={setIsEditing}
           isCurrentUser={isCurrentUser}
           onFollowToggle={handleFollowToggle}
           isFollowing={isFollowing}

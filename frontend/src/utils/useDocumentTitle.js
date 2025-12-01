@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-const DEFAULT_TITLE = "Welcome to X";
+const DEFAULT_TITLE = "Welcome to Weave";
 
 export const useDocumentTitle = (title, { restoreOnUnmount = true } = {}) => {
   const previousTitle = useRef(document?.title || DEFAULT_TITLE);
