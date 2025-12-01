@@ -5,7 +5,7 @@ import NavBar from "../components/NavBar";
 import WhoToFollow from "../components/WhoToFollow";
 import Trending from "../components/Trending";
 import UserHeader from "../components/UserHeader";
-import UserStats from "../components/UserStats";
+// import UserStats from "../components/UserStats";
 import UserList from "../components/UserList";
 import UserPosts from "../components/UserPosts";
 import UserTabs from "../components/UserTabs";
@@ -83,6 +83,7 @@ const ProfilePage = () => {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
+        console.log("User response data:", userResponse.data); 
       if (!userResponse.data?.user) {
         navigate("/404", { replace: true, state: { missingUsername: username } });
         return;
@@ -180,18 +181,34 @@ const ProfilePage = () => {
     fetchRepostPosts();
   }, [activeTab, fetchRepostPosts]);
 
-  useEffect(() => {
-    const handleRepostsUpdate = (event) => {
-      const updatedPost = event.detail?.post;
-      if (!updatedPost?.post_pk) return;
-      setRepostPosts((prev) => {
-        const filtered = (prev || []).filter((p) => p.post_pk !== updatedPost.post_pk);
-        return updatedPost.is_reposted_by_user ? [updatedPost, ...filtered] : filtered;
-      });
-    };
-    window.addEventListener("reposts-updated", handleRepostsUpdate);
-    return () => window.removeEventListener("reposts-updated", handleRepostsUpdate);
-  }, []);
+useEffect(() => {
+  const handleRepostsUpdate = (event) => {
+    const updatedPost = event.detail?.post;
+    if (!updatedPost?.post_pk) return;
+
+    setRepostPosts((prev) => {
+      const filtered = (prev || []).filter(
+        (p) => p.post_pk !== updatedPost.post_pk
+      );
+      return updatedPost.is_reposted_by_user
+        ? [updatedPost, ...filtered]
+        : filtered;
+    });
+
+    // Opdater repost_count
+    setUser((prev) => ({
+      ...prev,
+      reposts_count: updatedPost.is_reposted_by_user
+        ? Number(prev.reposts_count || 0) + 1
+        : Math.max(0, Number(prev.reposts_count || 0) - 1),
+    }));
+  };
+
+  window.addEventListener("reposts-updated", handleRepostsUpdate);
+  return () =>
+    window.removeEventListener("reposts-updated", handleRepostsUpdate);
+}, []);
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -354,13 +371,22 @@ const ProfilePage = () => {
   if (error) return <p className="error">{error}</p>;
   if (!user) return <p className="error">User not found.</p>;
 
-  const handleUpdateRepostPost = (updatedPost) => {
-    setRepostPosts((prev) =>
-      (prev || []).map((p) =>
-        p.post_pk === updatedPost.post_pk ? { ...p, ...updatedPost } : p
-      )
-    );
-  };
+const handleUpdateRepostPost = (updatedPost) => {
+  setRepostPosts((prev) =>
+    (prev || []).map((p) =>
+      p.post_pk === updatedPost.post_pk ? { ...p, ...updatedPost } : p
+    )
+  );
+
+  // Opdater repost_count baseret på, om brugeren har repostet eller fjernet repost
+  setUser((prev) => ({
+    ...prev,
+    reposts_count: updatedPost.is_reposted_by_user
+      ? Number(prev.reposts_count || 0) + 1
+      : Math.max(0, Number(prev.reposts_count || 0) - 1),
+  }));
+};
+
 
   const handlePostCreated = (newPost) => {
     if (!newPost?.post_pk || !isCurrentUser) return;
@@ -391,16 +417,13 @@ const ProfilePage = () => {
           isFollowing={isFollowing}
           onDeleteProfile={() => setIsDeleteDialogOpen(true)}
         />
-        <UserStats
-          postsCount={user.posts_count || 0}
-          followersCount={followers.length}
-          followingCount={following.length}
-        />
         <UserTabs
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           followersCount={followers.length}
           followingCount={following.length}
+          postsCount={user.posts_count || 0}
+          repostCount={user.reposts_count || 0}
         />
 
         <div className="user-tab-panels">
