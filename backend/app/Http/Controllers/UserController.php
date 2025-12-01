@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -90,7 +91,17 @@ public function show($userIdentifier)
     {
         try {
             $user = User::findOrFail($userPk);
-            $user->delete();
+
+            DB::transaction(function () use ($user) {
+                $now = now();
+                // Soft-delete brugerens posts
+                DB::table('posts')
+                    ->where('post_user_fk', $user->user_pk)
+                    ->update(['deleted_at' => $now]);
+
+                // Soft-delete user
+                $user->delete();
+            });
 
             return response()->json(['message' => 'User deleted successfully.']);
         } catch (\Exception $e) {

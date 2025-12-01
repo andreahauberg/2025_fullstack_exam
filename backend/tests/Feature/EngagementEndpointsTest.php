@@ -105,6 +105,33 @@ class EngagementEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_repost_is_idempotent_for_same_user_and_post(): void
+    {
+        $user = $this->makeUser('repost@example.com', 'reposter');
+        Sanctum::actingAs($user);
+        $post = $this->makePost($user);
+
+        $first = $this->postJson('/api/reposts', ['post_pk' => $post->post_pk]);
+        $first->assertCreated();
+
+        $second = $this->postJson('/api/reposts', ['post_pk' => $post->post_pk]);
+        $second->assertStatus(200);
+
+        $this->assertDatabaseCount('reposts', 1);
+    }
+
+    public function test_user_cannot_follow_self(): void
+    {
+        $user = $this->makeUser('self@example.com', 'selfuser');
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson('/api/follows', [
+            'followed_user_fk' => $user->user_pk,
+        ]);
+
+        $response->assertStatus(422);
+    }
+
     private function makeUser(string $email = 'user@example.com', string $username = 'user'): User
     {
         return User::create([
