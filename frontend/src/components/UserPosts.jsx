@@ -116,7 +116,7 @@ const UserPosts = ({ userPk, isCurrentUser, newPost }) => {
               post={post}
               onUpdatePost={handleUpdatePost}
               onDeletePost={isCurrentUser ? handleDeletePost : null}
-              hideHeader={false}
+              hideHeader={true}
             />
           ))}
         </>
