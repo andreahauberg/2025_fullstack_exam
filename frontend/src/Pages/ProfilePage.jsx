@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import NavBar from "../components/NavBar";
@@ -16,7 +16,7 @@ import "../css/UserPage.css";
 import {
   extractFieldErrors,
   parseApiErrorMessage,
-  validateProfileUpdate,
+  validateFields,
 } from "../utils/validation";
 import LoadingOverlay from "../components/LoadingOverlay";
 import { useDocumentTitle } from "../utils/useDocumentTitle";
@@ -45,6 +45,7 @@ const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("posts");
   const [isFollowing, setIsFollowing] = useState(false);
   const [latestPost, setLatestPost] = useState(null);
+  const hasLoadedRepostsRef = useRef(false);
   const profileTitle = user?.user_username
     ? `${user.user_full_name || user.user_username} (@${user.user_username}) / X`
     : "Profile";
@@ -127,7 +128,7 @@ const ProfilePage = () => {
     }
   };
 
-  const fetchRepostPosts = async () => {
+  const fetchRepostPosts = useCallback(async () => {
     if (repostLoadingRef.current || !repostHasMoreRef.current) return;
     setIsRepostsLoading(true);
     try {
@@ -148,6 +149,7 @@ const ProfilePage = () => {
       const more = response.data.current_page < response.data.last_page;
       setHasMoreReposts(more);
       if (more) repostPageRef.current += 1;
+      hasLoadedRepostsRef.current = true;
     } catch (err) {
       console.error("Error fetching reposts:", err.response?.data || err.message);
       setRepostPosts([]);
@@ -155,7 +157,7 @@ const ProfilePage = () => {
     } finally {
       setIsRepostsLoading(false);
     }
-  };
+  }, [username]);
 
   useEffect(() => {
     fetchData();
@@ -167,9 +169,16 @@ const ProfilePage = () => {
     repostPageRef.current = 1;
     repostHasMoreRef.current = true;
     repostLoadingRef.current = false;
-    fetchRepostPosts();
+    hasLoadedRepostsRef.current = false;
     setLatestPost(null);
-  }, [fetchRepostPosts, username]);
+    if (activeTab === "reposts") fetchRepostPosts();
+  }, [username, activeTab, fetchRepostPosts]);
+
+  useEffect(() => {
+    if (activeTab !== "reposts") return;
+    if (hasLoadedRepostsRef.current) return;
+    fetchRepostPosts();
+  }, [activeTab, fetchRepostPosts]);
 
   useEffect(() => {
     const handleRepostsUpdate = (event) => {
@@ -212,7 +221,11 @@ const ProfilePage = () => {
   };
 
   const handleSaveEdit = async () => {
-    const clientErrors = validateProfileUpdate(editedUser);
+    const clientErrors = validateFields(editedUser, [
+      "user_full_name",
+      "user_username",
+      "user_email",
+    ]);
     if (Object.keys(clientErrors).length > 0) {
       setFormErrors(clientErrors);
       return;

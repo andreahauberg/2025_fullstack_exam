@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { api } from "../api";
-import { parseApiErrorMessage, validateComment } from "../utils/validation";
+import { parseApiErrorMessage, validateFields } from "../utils/validation";
 import FieldError from "./FieldError";
 
 const CommentForm = ({ postPk, setComments }) => {
@@ -13,9 +13,12 @@ const CommentForm = ({ postPk, setComments }) => {
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
 
-    const validationError = validateComment(comment);
-    if (validationError) {
-      setErrorMessage(validationError);
+    const validationErrors = validateFields(
+      { comment_message: comment },
+      ["comment_message"]
+    );
+    if (validationErrors.comment_message) {
+      setErrorMessage(validationErrors.comment_message);
       return;
     }
 

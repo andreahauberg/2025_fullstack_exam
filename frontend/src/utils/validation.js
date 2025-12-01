@@ -2,6 +2,71 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const usernameRegex = /^[a-zA-Z0-9._]+$/;
 
 const normalizeText = (value) => (typeof value === "string" ? value.trim() : "");
+const normalizePassword = (value) => (typeof value === "string" ? value : "");
+const normalizeEmail = (value) => normalizeText(value).toLowerCase();
+
+const required = (message) => (value) => (!value ? message : "");
+const minLen = (min, message) => (value = "") =>
+  value.length < min ? message : "";
+const maxLen = (max, message) => (value = "") =>
+  value.length > max ? message : "";
+const pattern = (regex, message) => (value = "") =>
+  value && !regex.test(value) ? message : "";
+
+const runRules = (value, rules = []) =>
+  rules.map((rule) => rule(value)).find(Boolean) || "";
+
+const fieldRules = {
+  user_full_name: {
+    normalize: normalizeText,
+    rules: [
+      required("Full name is required."),
+      maxLen(20, "Full name cannot exceed 20 characters."),
+    ],
+  },
+  user_username: {
+    normalize: normalizeText,
+    rules: [
+      required("Username is required."),
+      minLen(3, "Username must be at least 3 characters."),
+      maxLen(20, "Username cannot exceed 20 characters."),
+      pattern(
+        usernameRegex,
+        "Username can only contain letters, numbers, underscores, and dots."
+      ),
+    ],
+  },
+  user_email: {
+    normalize: normalizeEmail,
+    rules: [
+      required("Email is required."),
+      pattern(emailRegex, "Please enter a valid email."),
+      maxLen(100, "Email cannot exceed 100 characters."),
+    ],
+  },
+  user_password: {
+    normalize: normalizePassword,
+    rules: [
+      required("Password is required."),
+      minLen(8, "Password must be at least 8 characters."),
+      maxLen(255, "Password is too long."),
+    ],
+  },
+  post_content: {
+    normalize: normalizeText,
+    rules: [
+      required("Post content is required."),
+      maxLen(280, "Post cannot exceed 280 characters."),
+    ],
+  },
+  comment_message: {
+    normalize: normalizeText,
+    rules: [
+      required("Comment cannot be empty."),
+      maxLen(280, "Comment cannot exceed 280 characters."),
+    ],
+  },
+};
 
 export const getErrorText = (error) =>
   Array.isArray(error) ? error[0] : error || "";
@@ -19,77 +84,16 @@ export const parseApiErrorMessage = (
 export const extractFieldErrors = (error) =>
   error?.response?.data?.errors || {};
 
-export const validateSignup = (data) => {
+export const validateFields = (data, fields) => {
   const errors = {};
-
-  const fullName = normalizeText(data.user_full_name);
-  const username = normalizeText(data.user_username);
-  const email = normalizeText(data.user_email);
-  const password = data.user_password || "";
-
-  if (!fullName) errors.user_full_name = "Full name is required.";
-  else if (fullName.length > 20)
-    errors.user_full_name = "Full name cannot exceed 20 characters.";
-
-  if (!username) {
-    errors.user_username = "Username is required.";
-  } else {
-    if (username.length < 3)
-      errors.user_username = "Username must be at least 3 characters.";
-    if (username.length > 20)
-      errors.user_username = "Username cannot exceed 20 characters.";
-    if (!usernameRegex.test(username))
-      errors.user_username =
-        "Username can only contain letters, numbers, underscores, and dots.";
-  }
-
-  if (!email) {
-    errors.user_email = "Email is required.";
-  } else if (!emailRegex.test(email)) {
-    errors.user_email = "Please enter a valid email.";
-  } else if (email.length > 100) {
-    errors.user_email = "Email cannot exceed 100 characters.";
-  }
-
-  if (!password) {
-    errors.user_password = "Password is required.";
-  } else if (password.length < 8) {
-    errors.user_password = "Password must be at least 8 characters.";
-  } else if (password.length > 255) {
-    errors.user_password = "Password is too long.";
-  }
-
+  fields.forEach((field) => {
+    const config = fieldRules[field];
+    if (!config) return;
+    const value = config.normalize ? config.normalize(data[field]) : data[field];
+    const error = runRules(value, config.rules);
+    if (error) errors[field] = error;
+  });
   return errors;
-};
-
-export const validateLogin = (data) => {
-  const errors = {};
-
-  const email = normalizeText(data.user_email);
-  const password = data.user_password || "";
-
-  if (!email) {
-    errors.user_email = "Email is required.";
-  } else if (!emailRegex.test(email)) {
-    errors.user_email = "Please enter a valid email.";
-  }
-
-  if (!password) {
-    errors.user_password = "Password is required.";
-  } else if (password.length < 8) {
-    errors.user_password = "Password must be at least 8 characters.";
-  } else if (password.length > 255) {
-    errors.user_password = "Password is too long.";
-  }
-
-  return errors;
-};
-
-export const validateComment = (comment) => {
-  const trimmed = normalizeText(comment);
-  if (!trimmed) return "Comment cannot be empty.";
-  if (trimmed.length > 280) return "Comment cannot exceed 280 characters.";
-  return "";
 };
 
 export const validateImageFile = (
@@ -104,53 +108,4 @@ export const validateImageFile = (
   if (sizeMB > maxMB) return `Image must be smaller than ${maxMB}MB.`;
 
   return "";
-};
-
-export const validatePost = (content, imageFile) => {
-  const errors = {};
-  const trimmedContent = normalizeText(content);
-
-  if (!trimmedContent) errors.post_content = "Post content is required.";
-  else if (trimmedContent.length > 280)
-    errors.post_content = "Post cannot exceed 280 characters.";
-
-  const imageError = validateImageFile(imageFile);
-  if (imageError) errors.post_image = imageError;
-
-  return errors;
-};
-
-export const validateProfileUpdate = (data) => {
-  const errors = {};
-  const fullName = normalizeText(data.user_full_name);
-  const username = normalizeText(data.user_username);
-  const email = normalizeText(data.user_email);
-
-  if (!fullName) {
-    errors.user_full_name = "Full name is required.";
-  } else if (fullName.length > 20) {
-    errors.user_full_name = "Full name cannot exceed 20 characters.";
-  }
-
-  if (!username) {
-    errors.user_username = "Username is required.";
-  } else {
-    if (username.length < 3)
-      errors.user_username = "Username must be at least 3 characters.";
-    if (username.length > 20)
-      errors.user_username = "Username cannot exceed 20 characters.";
-    if (!usernameRegex.test(username))
-      errors.user_username =
-        "Username can only contain letters, numbers, underscores, and dots.";
-  }
-
-  if (!email) {
-    errors.user_email = "Email is required.";
-  } else if (!emailRegex.test(email)) {
-    errors.user_email = "Please enter a valid email.";
-  } else if (email.length > 100) {
-    errors.user_email = "Email cannot exceed 100 characters.";
-  }
-
-  return errors;
 };

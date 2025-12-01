@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import {
   extractFieldErrors,
   parseApiErrorMessage,
-  validateSignup,
+  validateFields,
 } from "../utils/validation";
 import FieldError from "./FieldError";
 
@@ -29,7 +29,12 @@ function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const clientErrors = validateSignup(formData);
+    const clientErrors = validateFields(formData, [
+      "user_full_name",
+      "user_username",
+      "user_email",
+      "user_password",
+    ]);
     if (Object.keys(clientErrors).length > 0) {
       setErrors(clientErrors);
       return;
@@ -75,7 +80,7 @@ function Signup() {
             name="user_full_name"
             value={formData.user_full_name}
             onChange={handleChange}
-            disabled={isLoading} // Deaktiver input under loading
+            disabled={isLoading}
             className={errors.user_full_name ? "form-control input-error" : "form-control"}
           />
           <FieldError error={errors.user_full_name} />

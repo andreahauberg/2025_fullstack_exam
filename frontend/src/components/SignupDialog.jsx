@@ -4,7 +4,7 @@ import Dialog from "./Dialog";
 import {
   extractFieldErrors,
   parseApiErrorMessage,
-  validateSignup,
+  validateFields,
 } from "../utils/validation";
 import FieldError from "./FieldError";
 
@@ -28,7 +28,12 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const clientErrors = validateSignup(formData);
+    const clientErrors = validateFields(formData, [
+      "user_full_name",
+      "user_username",
+      "user_email",
+      "user_password",
+    ]);
     if (Object.keys(clientErrors).length > 0) {
       setErrors(clientErrors);
       return;
