@@ -464,37 +464,7 @@
   background: rgba(224, 36, 94, 0.1);
 }
 
-/* Buttons */
-.follow-btn {
-  background: #0f1419;
-  color: #fff;
-  border: 1px solid transparent;
-  border-radius: 9999px;
-  padding: 8px 16px;
-  cursor: pointer;
-  font-weight: 700;
-  font-size: 14px;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
 
-.follow-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.follow-btn.unfollow {
-  background: #fff;
-  color: #0f1419;
-  border: 1px solid #cfd9de;
-}
-
-.follow-btn.unfollow:hover {
-  background: #f7f9fa;
-}
 
 /* Responsive Styles */
 @media (max-width: 768px) {
@@ -528,10 +498,7 @@
     margin-top: 12px;
   }
 
-  .user-actions .follow-btn {
-    width: 100%;
-    max-width: 200px;
-  }
+
 
   .cover-buttons {
     justify-content: center;
