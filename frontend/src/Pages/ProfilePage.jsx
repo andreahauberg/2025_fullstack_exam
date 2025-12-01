@@ -23,6 +23,7 @@ import { useDocumentTitle } from "../utils/useDocumentTitle";
 import { useAuth } from "../context/AuthContext";
 
 const ProfilePage = () => {
+  
   const { username } = useParams();
   const navigate = useNavigate();
   const { user: authUser, logout } = useAuth();
@@ -219,6 +220,10 @@ useEffect(() => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [activeTab, fetchRepostPosts]);
 
+  useEffect(() => {
+    console.log("Following list updated:", following);
+  }, [following]);
+
   const handleEdit = () => {
     setFormErrors({});
     setIsEditing(true);
@@ -300,28 +305,38 @@ useEffect(() => {
     }
   };
 
-  const handleSidebarFollowChange = (isNowFollowing, targetUser) => {
-    if (!targetUser?.user_pk) return;
-    setFollowing((prev) => {
-      if (isNowFollowing) {
-        const exists = prev.some(
-          (u) => String(u.user_pk) === String(targetUser.user_pk)
-        );
-        if (exists) return prev;
-        return [
-          ...prev,
-          {
-            user_pk: targetUser.user_pk,
-            user_username: targetUser.user_username,
-            user_full_name: targetUser.user_full_name,
-          },
-        ];
-      }
-      return prev.filter(
-        (u) => String(u.user_pk) !== String(targetUser.user_pk)
+const handleSidebarFollowChange = (isNowFollowing, targetUser) => {
+  if (!targetUser?.user_pk) return;
+
+  // Opdater following-listen optimistisk
+  setFollowing((prev) => {
+    if (isNowFollowing) {
+      const exists = prev.some(
+        (u) => String(u.user_pk) === String(targetUser.user_pk)
       );
-    });
-  };
+      if (exists) return prev;
+      return [
+        ...prev,
+        {
+          user_pk: targetUser.user_pk,
+          user_username: targetUser.user_username,
+          user_full_name: targetUser.user_full_name,
+        },
+      ];
+    }
+    return prev.filter((u) => String(u.user_pk) !== String(targetUser.user_pk));
+  });
+
+  // Opdater following-counten optimistisk
+  setUser((prev) => ({
+    ...prev,
+    following_count: isNowFollowing
+      ? Number(prev.following_count || 0) + 1
+      : Math.max(0, Number(prev.following_count || 0) - 1),
+  }));
+};
+
+
 
   const handleDeleteProfile = async () => {
     try {
@@ -364,6 +379,8 @@ const handleUpdateRepostPost = (updatedPost) => {
         : prev
     );
   };
+
+  
 
   return (
     <div id="container">
@@ -426,6 +443,8 @@ const handleUpdateRepostPost = (updatedPost) => {
               title="Followers"
               users={followers}
               emptyMessage="No followers yet."
+              onFollowChange={handleSidebarFollowChange}
+              setUser={setUser}
             />
           )}
           {activeTab === "following" && (
@@ -433,6 +452,8 @@ const handleUpdateRepostPost = (updatedPost) => {
               title="Following"
               users={following}
               emptyMessage="Not following anyone yet."
+              onFollowChange={handleSidebarFollowChange}
+              setUser={setUser}
             />
           )}
         </div>

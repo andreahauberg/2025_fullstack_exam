@@ -11,6 +11,7 @@ const UserList = ({
   users: initialUsers,
   emptyMessage,
   maxVisible = 3,
+  onFollowChange,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [users, setUsers] = useState([]);
@@ -18,7 +19,6 @@ const UserList = ({
   const { user: authUser } = useAuth();
   const currentUserPk = authUser?.user_pk;
 
-  // Initialiser users med is_following fra initialUsers
   useEffect(() => {
     if (initialUsers) {
       setUsers(
@@ -39,6 +39,14 @@ const UserList = ({
     updatedUsers[index].is_following = !isFollowing;
     setUsers(updatedUsers);
     setIsFollowLoading(true);
+
+    // Kalder callback med det samme (optimistisk opdatering)
+    if (typeof onFollowChange === "function") {
+      onFollowChange(!isFollowing, {
+        ...users[index],
+        is_following: !isFollowing,
+      });
+    }
 
     try {
       if (isFollowing) {
@@ -90,10 +98,9 @@ const UserList = ({
               {user.user_pk !== currentUserPk && (
                 <button
                   className={`follow-btn ${
-                    user.is_following ? "following" : "follow"
+                    user.is_following ? "unfollow" : ""
                   }`}
-                  onClick={() => handleFollow(user.user_pk, index)}
-                  disabled={isFollowLoading}>
+                  onClick={() => handleFollow(user.user_pk, index)}>
                   <i
                     className={
                       user.is_following
