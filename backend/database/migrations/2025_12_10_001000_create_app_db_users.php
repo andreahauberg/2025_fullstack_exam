@@ -8,7 +8,7 @@ return new class extends Migration
     public function up(): void
     {
         if (DB::getDriverName() !== 'mysql') {
-            return; // DB users/privileges handled only for MySQL
+            return;
         }
 
         $database = env('DB_DATABASE');
