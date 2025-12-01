@@ -42,8 +42,9 @@ const ProfilePage = () => {
   const repostPageRef = useRef(1);
   const repostLoadingRef = useRef(false);
   const repostHasMoreRef = useRef(true);
-  const [activeTab, setActiveTab] = useState("posts"); // posts | reposts | followers | following
+  const [activeTab, setActiveTab] = useState("posts");
   const [isFollowing, setIsFollowing] = useState(false);
+  const [latestPost, setLatestPost] = useState(null);
   const profileTitle = user?.user_username
     ? `${user.user_full_name || user.user_username} (@${user.user_username}) / X`
     : "Profile";
@@ -58,7 +59,9 @@ const ProfilePage = () => {
   }, [hasMoreReposts]);
 
   const currentUserPk = localStorage.getItem("user_pk");
-  const isCurrentUser = user?.user_pk === currentUserPk;
+  const isCurrentUser =
+    user?.user_pk !== undefined &&
+    String(user.user_pk) === String(currentUserPk);
 
   const fetchData = async () => {
     try {
@@ -159,14 +162,14 @@ const ProfilePage = () => {
   }, [username]);
 
   useEffect(() => {
-    // reset repost pagination when user changes
     setRepostPosts([]);
     setHasMoreReposts(true);
     repostPageRef.current = 1;
     repostHasMoreRef.current = true;
     repostLoadingRef.current = false;
     fetchRepostPosts();
-  }, [username]);
+    setLatestPost(null);
+  }, [fetchRepostPosts, username]);
 
   useEffect(() => {
     const handleRepostsUpdate = (event) => {
@@ -201,7 +204,7 @@ const ProfilePage = () => {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [activeTab]);
+  }, [activeTab, fetchRepostPosts]);
 
   const handleEdit = () => {
     setFormErrors({});
@@ -346,6 +349,16 @@ const ProfilePage = () => {
     );
   };
 
+  const handlePostCreated = (newPost) => {
+    if (!newPost?.post_pk || !isCurrentUser) return;
+    setLatestPost(newPost);
+    setUser((prev) =>
+      prev
+        ? { ...prev, posts_count: Number(prev.posts_count || 0) + 1 }
+        : prev
+    );
+  };
+
   return (
     <div id="container">
       <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
@@ -379,7 +392,11 @@ const ProfilePage = () => {
 
         <div className="user-tab-panels">
           {activeTab === "posts" && (
-            <UserPosts userPk={user?.user_pk} isCurrentUser={isCurrentUser} />
+            <UserPosts
+              userPk={user?.user_pk}
+              isCurrentUser={isCurrentUser}
+              newPost={latestPost}
+            />
           )}
           {activeTab === "reposts" && (
             <>
@@ -427,10 +444,7 @@ const ProfilePage = () => {
       <PostDialog
         isOpen={isPostDialogOpen}
         onClose={() => setIsPostDialogOpen(false)}
-        onSuccess={(newPost) => {
-          // UserPosts håndterer opdateringen internt via handlePostCreated
-          // Ingen yderligere handling nødvendig her
-        }}
+        onSuccess={handlePostCreated}
       />
       <ConfirmationDialog
         isOpen={isDeleteDialogOpen}
