@@ -5,7 +5,7 @@ import "../css/App.css";
 import "../css/404.css";
 
 const NotFoundPage = () => {
-  useDocumentTitle("Page not found / X");
+  useDocumentTitle("Page not found / Weaver");
 
   return (
     <div id="container">

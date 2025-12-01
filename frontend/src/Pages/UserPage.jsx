@@ -38,7 +38,7 @@ const UserPage = () => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("posts"); // posts | reposts | followers | following
   const profileTitle = user?.user_username
-    ? `${user.user_full_name || user.user_username} (@${user.user_username}) / X`
+    ? `${user.user_full_name || user.user_username} (@${user.user_username}) / Weaver`
     : "Profile";
   useDocumentTitle(profileTitle);
 
