@@ -22,8 +22,8 @@ class CommentsTableSeeder extends Seeder
             return;
         }
 
-        // Generer 100 dummy comments
-        for ($i = 0; $i < 100; $i++) {
+        // Generer et større datasæt
+        for ($i = 0; $i < 2000; $i++) {
             $commentPk = Str::uuid();
             $randomUserPk = $users->random();
             $randomPostPk = $posts->random();
