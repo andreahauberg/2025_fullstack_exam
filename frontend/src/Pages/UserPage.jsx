@@ -10,6 +10,8 @@ import UserList from "../components/UserList";
 import UserPosts from "../components/UserPosts";
 import UserTabs from "../components/UserTabs";
 import Post from "../components/Post";
+import ConfirmationDialog from "../components/ConfirmationDialog";
+import PostDialog from "../components/PostDialog";
 import LoadingOverlay from "../components/LoadingOverlay";
 import "../css/UserPage.css";
 import { useDocumentTitle } from "../utils/useDocumentTitle";
@@ -25,6 +27,8 @@ const UserPage = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [repostPosts, setRepostPosts] = useState([]);
   const [isRepostsLoading, setIsRepostsLoading] = useState(false);
+  const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [hasMoreReposts, setHasMoreReposts] = useState(true);
   const repostPageRef = useRef(1);
   const repostLoadingRef = useRef(false);
@@ -255,13 +259,14 @@ const UserPage = () => {
 
   return (
     <div id="container">
-      <NavBar />
+      <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
       <main className="user-main">
         <UserHeader
           user={user}
           isCurrentUser={false}
           onFollowToggle={handleFollowToggle}
           isFollowing={isFollowing}
+          onDeleteProfile={() => setIsDeleteDialogOpen(true)}
         />
         <UserStats
           postsCount={user.posts_count || 0}
@@ -319,6 +324,17 @@ const UserPage = () => {
         <Trending trending={trending} />
         <WhoToFollow users={usersToFollow} />
       </aside>
+      <PostDialog
+        isOpen={isPostDialogOpen}
+        onClose={() => setIsPostDialogOpen(false)}
+        onSuccess={(newPost) => {}}
+      />
+      <ConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        title="Delete Profile"
+        message="Are you sure you want to delete your profile? This action cannot be undone."
+      />
     </div>
   );
 };

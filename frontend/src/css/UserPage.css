@@ -311,6 +311,8 @@
 .user-list-item {
   padding: 12px 0;
   border-bottom: 1px solid #e1e8ed;
+  display:flex;
+  justify-content: space-between;
 }
 
 .user-list-item:last-child {

@@ -38,17 +38,30 @@ class UserController extends Controller
 public function show($userIdentifier)
 {
     try {
+        $currentUser = Auth::user(); // Få den nuværende bruger
         $user = User::with(['posts.user', 'followers', 'following'])
             ->withCount(['posts', 'followers', 'following'])
             ->where('user_pk', $userIdentifier)
             ->orWhere('user_username', $userIdentifier)
             ->firstOrFail();
 
+        // Tilføj is_following til followers
+        $followers = $user->followers->map(function ($follower) use ($currentUser) {
+            $follower->is_following = $currentUser ? $currentUser->isFollowing($follower) : false;
+            return $follower;
+        });
+
+        // Tilføj is_following til following (altid true, da du følger dem)
+        $following = $user->following->map(function ($followedUser) use ($currentUser) {
+            $followedUser->is_following = true; // Du følger dem allerede
+            return $followedUser;
+        });
+
         return response()->json([
             'user' => $user,
             'posts' => $user->posts,
-            'followers' => $user->followers,
-            'following' => $user->following,
+            'followers' => $followers,
+            'following' => $following,
         ]);
     } catch (\Exception $e) {
         \Log::error('Error fetching user data: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
