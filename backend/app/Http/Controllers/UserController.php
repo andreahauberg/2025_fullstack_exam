@@ -40,22 +40,34 @@ class UserController extends Controller
 public function show($userIdentifier)
 {
     try {
-        $currentUser = Auth::user(); 
+        $currentUser = Auth::user();
         $user = User::with(['posts.user', 'followers', 'following'])
             ->withCount(['posts', 'followers', 'following'])
             ->where('user_pk', $userIdentifier)
             ->orWhere('user_username', $userIdentifier)
             ->firstOrFail();
 
+        // Hent reposts_count fra user_engagements view
+        $engagement = DB::table('user_engagements')
+            ->where('user_pk', $user->user_pk)
+            ->first();
+
+        // Tilføj reposts_count til user-objektet
+        $user->reposts_count = $engagement->reposts_count ?? 0;
+
+        // Tilføj is_following til followers og following
         $followers = $user->followers->map(function ($follower) use ($currentUser) {
             $follower->is_following = $currentUser ? $currentUser->isFollowing($follower) : false;
             return $follower;
         });
 
         $following = $user->following->map(function ($followedUser) use ($currentUser) {
-            $followedUser->is_following = true; // Du følger dem allerede
+            $followedUser->is_following = true;
             return $followedUser;
         });
+
+        // Tilføj reposts_count til user-objektet i responsen
+        $user->reposts_count = $engagement->reposts_count ?? 0;
 
         return response()->json([
             'user' => $user,
@@ -73,6 +85,7 @@ public function show($userIdentifier)
         ], 500);
     }
 }
+
 
     public function update(Request $request, $userPk)
     {

@@ -34,7 +34,6 @@ class CommentsTableSeeder extends Seeder
                 'comment_user_fk' => $randomUserPk,
                 'comment_message' => $faker->realText(rand(10, 140)),
                 'created_at' => now(),
-                'updated_at' => now(),
             ]);
         }
     }

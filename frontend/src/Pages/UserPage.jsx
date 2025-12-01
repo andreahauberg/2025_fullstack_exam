@@ -247,16 +247,13 @@ const UserPage = () => {
           isFollowing={isFollowing}
           onDeleteProfile={() => setIsDeleteDialogOpen(true)}
         />
-        <UserStats
-          postsCount={user.posts_count || 0}
-          followersCount={followers.length}
-          followingCount={following.length}
-        />
         <UserTabs
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           followersCount={followers.length}
           followingCount={following.length}
+          postsCount={user.posts_count || 0}
+          repostCount={user.reposts_count || 0}
         />
 
         <div className="user-tab-panels">
