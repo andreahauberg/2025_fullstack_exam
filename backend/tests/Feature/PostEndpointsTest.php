@@ -68,4 +68,29 @@ class PostEndpointsTest extends TestCase
 
         $this->postJson('/api/posts', [])->assertStatus(422);
     }
+
+    public function test_deleting_user_soft_deletes_user_and_their_posts(): void
+    {
+        $user = User::create([
+            'user_pk' => (string) Str::uuid(),
+            'user_full_name' => 'Poster Person',
+            'user_username' => 'posterdelete',
+            'user_email' => 'posterdelete@example.com',
+            'user_password' => Hash::make('password123'),
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $post = Post::create([
+            'post_pk' => (string) Str::uuid(),
+            'post_content' => 'Will be soft deleted',
+            'post_user_fk' => $user->user_pk,
+        ]);
+
+        $response = $this->deleteJson("/api/users/{$user->user_pk}");
+        $response->assertOk();
+
+        $this->assertSoftDeleted('users', ['user_pk' => $user->user_pk]);
+        $this->assertSoftDeleted('posts', ['post_pk' => $post->post_pk]);
+    }
 }

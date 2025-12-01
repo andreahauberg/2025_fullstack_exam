@@ -20,8 +20,8 @@ class FollowsTableSeeder extends Seeder
             return;
         }
 
-        // Generer 50 dummy follows
-        for ($i = 0; $i < 50; $i++) {
+        // Generer et større datasæt
+        for ($i = 0; $i < 2000; $i++) {
             $followerUserPk = $users->random();
             $followedUserPk = $users->random();
 

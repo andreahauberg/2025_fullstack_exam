@@ -22,8 +22,8 @@ class LikesTableSeeder extends Seeder
             return;
         }
 
-        // Generer 100 dummy likes
-        for ($i = 0; $i < 100; $i++) {
+        // Generer et større datasæt
+        for ($i = 0; $i < 3000; $i++) {
             $likePk = Str::uuid();
             $randomUserPk = $users->random();
             $randomPostPk = $posts->random();

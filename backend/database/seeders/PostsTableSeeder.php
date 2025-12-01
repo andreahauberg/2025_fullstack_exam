@@ -28,8 +28,8 @@ class PostsTableSeeder extends Seeder
             '#mysql', '#programming', '#fullstack'
         ];
 
-        // Generer 50 dummy posts
-        for ($i = 0; $i < 50; $i++) {
+        // Generer et større datasæt
+        for ($i = 0; $i < 800; $i++) {
 
             $postPk = Str::uuid();
             $randomUserPk = $users->random();
