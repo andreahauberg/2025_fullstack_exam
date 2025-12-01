@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar";
@@ -9,6 +10,7 @@ import { api } from "../api";
 import { parseApiErrorMessage } from "../utils/validation";
 import { useDocumentTitle } from "../utils/useDocumentTitle";
 import LoadingOverlay from "../components/LoadingOverlay";
+import { useAuth } from "../context/AuthContext";
 
 const HomePage = () => {
   const [posts, setPosts] = useState([]);
@@ -27,8 +29,8 @@ const HomePage = () => {
   const [loadingState, setLoadingState] = useState(false);
   const [hasMoreState, setHasMoreState] = useState(true);
 
-  const username = localStorage.getItem("user_username");
-  const homeTitle = username ? `Home / Welcome ${username}` : "Home / Welcome";
+  const { user, logout } = useAuth();
+  const homeTitle = user?.user_username ? `Home / Welcome ${user.user_username}` : "Home / Welcome";
   useDocumentTitle(homeTitle);
 
   const navigate = useNavigate();
@@ -47,10 +49,7 @@ const HomePage = () => {
     if (loadingRef.current || !hasMoreRef.current) return;
     setLoadingState(true);
     try {
-      const token = localStorage.getItem("token");
-      const response = await api.get(`/posts?page=${requestedPage}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const response = await api.get(`/posts?page=${requestedPage}`);
       const newPosts = response.data.data ?? [];
       setFeedError("");
       setPosts((prev) => {
@@ -66,9 +65,7 @@ const HomePage = () => {
         parseApiErrorMessage(err, "Failed to load feed. Please try again.")
       );
       if (err.response?.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user_pk");
-        localStorage.removeItem("user_username");
+        logout();
         navigate("/");
       }
     } finally {
@@ -78,10 +75,7 @@ const HomePage = () => {
 
   const fetchTrending = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await api.get("/trending", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const response = await api.get("/trending");
       setTrending(response.data);
       setTrendingError("");
     } catch (err) {
@@ -96,10 +90,7 @@ const HomePage = () => {
 
   const fetchUsersToFollow = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await api.get("/users-to-follow", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const response = await api.get("/users-to-follow");
       setUsersToFollow(response.data);
       setUsersError("");
     } catch (err) {
@@ -113,12 +104,6 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/");
-      return;
-    }
-
     fetchTrending();
     fetchUsersToFollow();
     setPosts([]);

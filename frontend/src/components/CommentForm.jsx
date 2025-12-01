@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { api } from "../api";
 import { parseApiErrorMessage, validateFields } from "../utils/validation";
 import FieldError from "./FieldError";
+import { useAuth } from "../context/AuthContext";
 
 const CommentForm = ({ postPk, setComments }) => {
   const [comment, setComment] = useState("");
@@ -9,6 +10,7 @@ const CommentForm = ({ postPk, setComments }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const maxLength = 280;
   const remaining = maxLength - (comment?.length || 0);
+  const { user } = useAuth();
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
@@ -25,19 +27,11 @@ const CommentForm = ({ postPk, setComments }) => {
     setErrorMessage("");
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem("token");
-      const response = await api.post(
-        "/comments",
-        {
-          post_pk: postPk,
-          comment_message: comment,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      if (!user) throw new Error("Not authenticated");
+      const response = await api.post("/comments", {
+        post_pk: postPk,
+        comment_message: comment,
+      });
       setComments(response.data);
       setComment("");
     } catch (error) {

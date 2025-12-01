@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import NavItem from "./NavItem";
 import NavPostButton from "./NavPostButton";
 import SearchOverlay from "../components/SearchOverlay";
 import ProfileTag from "../components/ProfileTag";
-import { api } from "../api";
+import { useAuth } from "../context/AuthContext";
 
 const NavMenu = ({
   isOpen,
@@ -12,59 +12,13 @@ const NavMenu = ({
   isSearchOpen,
   setIsSearchOpen,
 }) => {
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user_pk");
-    localStorage.removeItem("user_username");
-    window.location.href = "/";
-  };
+  const { user, logout } = useAuth();
 
   const openSearch = () => {
     setIsSearchOpen(true);
   };
 
-  const userPk = localStorage.getItem("user_pk");
-  const token = localStorage.getItem("token");
-  const isAuthenticated = Boolean(token);
-  const cachedUsername = localStorage.getItem("user_username");
-  const [resolvedUsername, setResolvedUsername] = useState(
-    cachedUsername || ""
-  );
-  const [userFullName, setUserFullName] = useState("");
-  const [userProfilePicture, setUserProfilePicture] = useState("");
-
-  useEffect(() => {
-    const syncUserData = async () => {
-      if (!token || !userPk) return;
-      try {
-        const resp = await api.get(`/users/${userPk}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const userData = resp.data?.user;
-        if (userData) {
-          const uname = userData.user_username;
-          const fullName = userData.user_full_name;
-          const profilePicture = userData.user_profile_picture;
-          if (uname) {
-            localStorage.setItem("user_username", uname);
-            setResolvedUsername(uname);
-          }
-          if (fullName) {
-            setUserFullName(fullName);
-          }
-          if (profilePicture) {
-            setUserProfilePicture(profilePicture);
-          }
-        }
-      } catch (err) {
-        console.error(
-          "Failed to resolve user data:",
-          err.response?.data || err.message
-        );
-      }
-    };
-    syncUserData();
-  }, [token, userPk]);
+  const isAuthenticated = Boolean(user);
 
   const navItems = isAuthenticated
     ? [
@@ -79,10 +33,7 @@ const NavMenu = ({
         {
           icon: "fa-regular fa-user",
           text: "Profile",
-          href:
-            resolvedUsername || userPk
-              ? `/profile/${resolvedUsername || userPk}`
-              : "/home",
+          href: user?.user_username ? `/profile/${user.user_username}` : "/home",
         },
         { icon: "fa-solid fa-ellipsis", text: "More", href: "#" },
       ]
@@ -101,29 +52,29 @@ const NavMenu = ({
               icon={item.icon}
               text={item.text}
               href={item.href}
-              className={item.className}
-              onClick={item.onClick}
-            />
-          ))}
-          {isAuthenticated ? (
-            <NavItem
-              icon="fa-solid fa-right-from-bracket"
-              text="Logout"
-              onClick={handleLogout}
-            />
-          ) : null}
-        </ul>
-        {isAuthenticated && userPk && (
-          <ProfileTag
-            userPk={userPk}
-            userUsername={resolvedUsername}
-            userFullName={userFullName}
-            userProfilePicture={userProfilePicture}
-          />
-        )}
-        {isAuthenticated ? (
-          <NavPostButton setIsPostDialogOpen={setIsPostDialogOpen} />
-        ) : null}
+          className={item.className}
+          onClick={item.onClick}
+        />
+      ))}
+      {isAuthenticated ? (
+        <NavItem
+          icon="fa-solid fa-right-from-bracket"
+          text="Logout"
+          onClick={() => logout().finally(() => (window.location.href = "/"))}
+        />
+      ) : null}
+    </ul>
+    {isAuthenticated && user?.user_pk && (
+      <ProfileTag
+        userPk={user.user_pk}
+        userUsername={user.user_username}
+        userFullName={user.user_full_name}
+        userProfilePicture={user.user_profile_picture}
+      />
+    )}
+    {isAuthenticated ? (
+      <NavPostButton setIsPostDialogOpen={setIsPostDialogOpen} />
+    ) : null}
       </div>
       <SearchOverlay
         isOpen={isSearchOpen}

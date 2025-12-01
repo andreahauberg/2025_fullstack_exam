@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UserController extends Controller
 {
@@ -14,7 +15,7 @@ class UserController extends Controller
 {
     try {
         $currentUserPk = $request->user()->user_pk;
-        $users = User::where('user_pk', '!=', $currentUserPk) // Filtrer den aktuelle bruger væk
+        $users = User::where('user_pk', '!=', $currentUserPk)
             ->whereDoesntHave('followers', function ($query) use ($currentUserPk) {
                 $query->where('follower_user_fk', $currentUserPk);
             })
@@ -39,20 +40,18 @@ class UserController extends Controller
 public function show($userIdentifier)
 {
     try {
-        $currentUser = Auth::user(); // Få den nuværende bruger
+        $currentUser = Auth::user(); 
         $user = User::with(['posts.user', 'followers', 'following'])
             ->withCount(['posts', 'followers', 'following'])
             ->where('user_pk', $userIdentifier)
             ->orWhere('user_username', $userIdentifier)
             ->firstOrFail();
 
-        // Tilføj is_following til followers
         $followers = $user->followers->map(function ($follower) use ($currentUser) {
             $follower->is_following = $currentUser ? $currentUser->isFollowing($follower) : false;
             return $follower;
         });
 
-        // Tilføj is_following til following (altid true, da du følger dem)
         $following = $user->following->map(function ($followedUser) use ($currentUser) {
             $followedUser->is_following = true; // Du følger dem allerede
             return $followedUser;
@@ -64,6 +63,8 @@ public function show($userIdentifier)
             'followers' => $followers,
             'following' => $following,
         ]);
+    } catch (ModelNotFoundException $e) {
+        return response()->json(['error' => 'User not found'], 404);
     } catch (\Exception $e) {
         \Log::error('Error fetching user data: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
         return response()->json([
@@ -72,8 +73,6 @@ public function show($userIdentifier)
         ], 500);
     }
 }
-
-
 
     public function update(Request $request, $userPk)
     {
@@ -107,12 +106,10 @@ public function show($userIdentifier)
 
             DB::transaction(function () use ($user) {
                 $now = now();
-                // Soft-delete brugerens posts
                 DB::table('posts')
                     ->where('post_user_fk', $user->user_pk)
                     ->update(['deleted_at' => $now]);
 
-                // Soft-delete user
                 $user->delete();
             });
 

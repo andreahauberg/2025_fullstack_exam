@@ -4,6 +4,7 @@ import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { getProfilePictureUrl } from "../utils/imageUtils";
 import { buildProfilePath } from "../utils/urlHelpers";
 import { api } from "../api";
+import { useAuth } from "../context/AuthContext";
 
 const UserList = ({
   title,
@@ -14,7 +15,8 @@ const UserList = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [users, setUsers] = useState([]);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
-  const currentUserPk = localStorage.getItem("user_pk");
+  const { user: authUser } = useAuth();
+  const currentUserPk = authUser?.user_pk;
 
   // Initialiser users med is_following fra initialUsers
   useEffect(() => {
@@ -39,17 +41,10 @@ const UserList = ({
     setIsFollowLoading(true);
 
     try {
-      const token = localStorage.getItem("token");
       if (isFollowing) {
-        await api.delete(`/follows/${userPk}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.delete(`/follows/${userPk}`);
       } else {
-        await api.post(
-          "/follows",
-          { followed_user_fk: userPk },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.post("/follows", { followed_user_fk: userPk });
       }
     } catch (error) {
       console.error(

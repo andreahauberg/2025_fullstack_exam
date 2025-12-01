@@ -4,6 +4,7 @@ import moment from "moment";
 import { getProfilePictureUrl } from "../utils/imageUtils";
 import { buildProfilePath } from "../utils/urlHelpers";
 import { api } from "../api";
+import { useAuth } from "../context/AuthContext";
 
 const PostHeader = ({ user, created_at, edited }) => {
   const formatTime = (date) => {
@@ -23,9 +24,10 @@ const PostHeader = ({ user, created_at, edited }) => {
     }
   };
 
-  const profileHref = buildProfilePath(user);
+  const { user: authUser } = useAuth();
+  const profileHref = buildProfilePath(user, authUser?.user_pk, authUser?.user_username);
   const userPk = user?.user_pk;
-  const currentUserPk = localStorage.getItem("user_pk");
+  const currentUserPk = authUser?.user_pk;
   const isCurrentUser =
     userPk && currentUserPk && String(userPk) === String(currentUserPk);
   const [isFollowing, setIsFollowing] = useState(!!user?.is_following);
@@ -37,25 +39,18 @@ const PostHeader = ({ user, created_at, edited }) => {
 
   const handleFollow = async () => {
     if (!userPk || isCurrentUser || isFollowLoading) return;
-    const token = localStorage.getItem("token");
     const prev = isFollowing;
     setIsFollowLoading(true);
     try {
       if (isFollowing) {
-        setIsFollowing(false); // optimistic
-        await api.delete(`/follows/${userPk}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        setIsFollowing(false);
+        await api.delete(`/follows/${userPk}`);
       } else {
-        setIsFollowing(true); // optimistic
-        await api.post(
-          "/follows",
-          { followed_user_fk: userPk },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        setIsFollowing(true);
+        await api.post("/follows", { followed_user_fk: userPk });
       }
     } catch (err) {
-      setIsFollowing(prev); // rollback
+      setIsFollowing(prev);
       console.error("Follow toggle failed:", err.response?.data || err.message);
     } finally {
       setIsFollowLoading(false);

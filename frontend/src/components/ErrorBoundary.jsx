@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import "../css/App.css";
 import "../css/404.css";
 
@@ -33,9 +32,9 @@ class ErrorBoundary extends React.Component {
               <button className="btn-link" onClick={this.handleReload}>
                 Reload
               </button>
-              <Link to="/" className="btn-link">
+              <a href="/" className="btn-link">
                 Go to start
-              </Link>
+              </a>
             </div>
           </main>
         </div>

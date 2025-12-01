@@ -7,6 +7,7 @@ import {
   validateFields,
 } from "../utils/validation";
 import FieldError from "./FieldError";
+import { useAuth } from "../context/AuthContext";
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -16,6 +17,7 @@ function Login() {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false); // Tilføj loading-state
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setFormData({
@@ -37,9 +39,9 @@ function Login() {
     try {
       const response = await api.post("/login", formData);
       if (response.data.success) {
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user_pk", response.data.user.user_pk);
-        localStorage.setItem("user_username", response.data.user.user_username);
+        if (response.data?.user) {
+          login(response.data.user);
+        }
         setErrors({});
         setTimeout(() => {
           navigate("/home");

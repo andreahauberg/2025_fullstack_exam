@@ -32,12 +32,7 @@ const SearchOverlay = ({ isOpen, onClose, initialQuery = "" }) => {
   const performSearch = async (searchTerm) => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      const response = await api.post(
-        "/search",
-        { query: searchTerm },
-        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
-      );
+      const response = await api.post("/search", { query: searchTerm });
       setResults({
         users: response.data.users ?? [],
         posts: response.data.posts ?? [],

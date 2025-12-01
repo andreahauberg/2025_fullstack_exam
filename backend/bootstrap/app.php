@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\ApiExceptionMiddleware;
+use App\Http\Middleware\CookieTokenMiddleware;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\ConnectionException;
 use Illuminate\Database\QueryException;
@@ -28,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->api(
             prepend: [
+                CookieTokenMiddleware::class,
                 ApiExceptionMiddleware::class,
             ],
             append: [

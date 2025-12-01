@@ -3,6 +3,7 @@ import NavBar from "../components/NavBar";
 import { useDocumentTitle } from "../utils/useDocumentTitle";
 import "../css/App.css";
 import "../css/404.css";
+import { useAuth } from "../context/AuthContext";
 
 const errorCopy = {
   401: {
@@ -45,6 +46,7 @@ const getErrorConfig = (statusCode) => {
 const ErrorPage = () => {
   const [params] = useSearchParams();
   const location = useLocation();
+  const { user: authUser } = useAuth();
 
   const statusParam = location.state?.code ?? params.get("code");
   const explicitMessage = location.state?.message ?? params.get("message");
@@ -54,7 +56,7 @@ const ErrorPage = () => {
 
   useDocumentTitle(`${title} / Weave`);
 
-  const isAuthed = Boolean(localStorage.getItem("token"));
+  const isAuthed = Boolean(authUser);
   const primaryLink = isAuthed ? "/home" : "/";
 
   return (

@@ -7,9 +7,37 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\Cookie;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    private function issueAuthCookie(string $token): Cookie
+    {
+        $minutes = 60 * 24 * 7;
+        $secure = config('session.secure', false);
+        $sameSite = 'lax';
+
+        return cookie(
+            name: 'auth_token',
+            value: $token,
+            minutes: $minutes,
+            path: '/',
+            domain: config('session.domain'),
+            secure: $secure,
+            httpOnly: true,
+            raw: false,
+            sameSite: $sameSite,
+        );
+    }
+
+    private function authResponse(array $payload, int $status, string $token)
+    {
+        return response()
+            ->json($payload + ['token' => $token], $status)
+            ->withCookie($this->issueAuthCookie($token));
+    }
+
     public function signup(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -37,12 +65,11 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
+        return $this->authResponse([
             'success' => true,
             'message' => 'Account created successfully!',
-            'token' => $token,
             'user' => $user,
-        ], 201);
+        ], 201, $token);
     }
 
 public function login(Request $request)
@@ -70,13 +97,24 @@ public function login(Request $request)
 
     $token = $user->createToken('auth_token')->plainTextToken;
 
-    return response()->json([
+    return $this->authResponse([
         'success' => true,
         'message' => 'Logged in successfully!',
-        'token' => $token,
         'user' => $user,
-    ]);
+    ], 200, $token);
 }
+
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+        if ($user) {
+            $user->tokens()->delete();
+        }
+
+        return response()
+            ->json(['success' => true, 'message' => 'Logged out'])
+            ->withCookie(cookie()->forget('auth_token'));
+    }
 
 
 }

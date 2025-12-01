@@ -63,7 +63,6 @@ const PostDialog = ({ isOpen, onClose, onSuccess }) => {
 
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
       const formData = new FormData();
       formData.append("post_content", postContent);
       if (postImage) {
@@ -73,7 +72,6 @@ const PostDialog = ({ isOpen, onClose, onSuccess }) => {
       const response = await api.post("/posts", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
         },
       });
 

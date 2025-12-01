@@ -4,14 +4,16 @@ import { Link } from "react-router-dom";
 import "../css/WhoToFollow.css";
 import { getProfilePictureUrl } from "../utils/imageUtils";
 import { buildProfilePath } from "../utils/urlHelpers";
+import { useAuth } from "../context/AuthContext";
 
 const WhoToFollow = ({ users: initialUsers, onFollowChange }) => {
   const [visibleUsers, setVisibleUsers] = useState(3);
   const [users, setUsers] = useState([]);
+  const { user: authUser } = useAuth();
 
   useEffect(() => {
     if (initialUsers && initialUsers.length > 0) {
-      const currentUserPk = localStorage.getItem("user_pk");
+      const currentUserPk = authUser?.user_pk;
       setUsers(
         initialUsers
           .filter((user) => user.user_pk !== currentUserPk)
@@ -21,15 +23,14 @@ const WhoToFollow = ({ users: initialUsers, onFollowChange }) => {
           }))
       );
     }
-  }, [initialUsers]);
+  }, [initialUsers, authUser?.user_pk]);
 
   const loadMoreUsers = () => {
     setVisibleUsers((prev) => prev + 3);
   };
 
   const handleFollow = async (userPk, index) => {
-    const token = localStorage.getItem("token");
-    const currentUserPk = localStorage.getItem("user_pk");
+    const currentUserPk = authUser?.user_pk;
     if (userPk === currentUserPk) {
       console.warn("Cannot follow yourself!");
       return;
@@ -41,15 +42,9 @@ const WhoToFollow = ({ users: initialUsers, onFollowChange }) => {
       updatedUsers[index].is_following = !isFollowing;
       setUsers(updatedUsers);
       if (isFollowing) {
-        await api.delete(`/follows/${userPk}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.delete(`/follows/${userPk}`);
       } else {
-        await api.post(
-          "/follows",
-          { followed_user_fk: userPk },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.post("/follows", { followed_user_fk: userPk });
       }
       if (typeof onFollowChange === "function") {
         onFollowChange(!isFollowing, targetUser);

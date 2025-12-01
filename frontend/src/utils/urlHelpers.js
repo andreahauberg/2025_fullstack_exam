@@ -1,7 +1,7 @@
 export const buildProfilePath = (
   user = {},
-  currentUserPk = localStorage.getItem("user_pk"),
-  currentUsername = localStorage.getItem("user_username")
+  currentUserPk = null,
+  currentUsername = null
 ) => {
   const { user_pk, user_username } = user;
   if (!user_username) return "#";

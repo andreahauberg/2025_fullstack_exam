@@ -65,14 +65,12 @@ const UserHeader = ({
       }
       const formData = new FormData();
       formData.append("profile_picture", file);
-      const token = localStorage.getItem("token");
       const response = await api.post(
         `/users/${user.user_pk}/profile-picture`,
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -103,14 +101,12 @@ const UserHeader = ({
       }
       const formData = new FormData();
       formData.append("cover_picture", file);
-      const token = localStorage.getItem("token");
       const response = await api.post(
         `/users/${user.user_pk}/cover-picture`,
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
           },
         }
       );

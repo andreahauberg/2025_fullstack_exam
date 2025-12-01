@@ -1,19 +1,19 @@
 openapi: 3.0.3
 info:
-  title: Twitter Fullstack Exam API
+  title: Weave exam API
   version: "1.0.0"
   description: |
     REST API used by the frontend. Sanctum bearer tokens required for all protected endpoints.
 servers:
-  - url: http://127.0.0.1:8000/api
-    description: Local dev
+- url: http://127.0.0.1:8000/api
+  description: Local dev
 security:
-  - BearerAuth: []
+- BearerAuth: []
 paths:
   /signup:
     post:
       summary: Create account
-      tags: [Auth]
+      tags: [ Auth ]
       requestBody:
         required: true
         content:
@@ -32,7 +32,7 @@ paths:
   /login:
     post:
       summary: Login and get bearer token
-      tags: [Auth]
+      tags: [ Auth ]
       requestBody:
         required: true
         content:
@@ -51,12 +51,12 @@ paths:
   /posts:
     get:
       summary: List paginated posts
-      tags: [Posts]
+      tags: [ Posts ]
       parameters:
-        - in: query
-          name: page
-          schema:
-            type: integer
+      - in: query
+        name: page
+        schema:
+          type: integer
       responses:
         "200":
           description: Paginated posts
@@ -66,7 +66,7 @@ paths:
                 $ref: '#/components/schemas/PaginatedPosts'
     post:
       summary: Create post
-      tags: [Posts]
+      tags: [ Posts ]
       requestBody:
         required: true
         content:
@@ -90,9 +90,9 @@ paths:
   /posts/{post_pk}:
     put:
       summary: Update post content
-      tags: [Posts]
+      tags: [ Posts ]
       parameters:
-        - $ref: '#/components/parameters/PostPk'
+      - $ref: '#/components/parameters/PostPk'
       requestBody:
         required: true
         content:
@@ -112,18 +112,18 @@ paths:
                 $ref: '#/components/schemas/Post'
     delete:
       summary: Delete post
-      tags: [Posts]
+      tags: [ Posts ]
       parameters:
-        - $ref: '#/components/parameters/PostPk'
+      - $ref: '#/components/parameters/PostPk'
       responses:
         "200":
           description: Deleted
   /users/{userPk}/posts:
     get:
       summary: List posts for user
-      tags: [Posts]
+      tags: [ Posts ]
       parameters:
-        - $ref: '#/components/parameters/UserPk'
+      - $ref: '#/components/parameters/UserPk'
       responses:
         "200":
           description: Paginated posts
@@ -134,9 +134,9 @@ paths:
   /users/{userPk}/reposts:
     get:
       summary: List reposted posts for user
-      tags: [Posts]
+      tags: [ Posts ]
       parameters:
-        - $ref: '#/components/parameters/UserPk'
+      - $ref: '#/components/parameters/UserPk'
       responses:
         "200":
           description: Paginated posts
@@ -147,7 +147,7 @@ paths:
   /likes:
     post:
       summary: Like a post
-      tags: [Reactions]
+      tags: [ Reactions ]
       requestBody:
         required: true
         content:
@@ -163,16 +163,16 @@ paths:
   /likes/{post_pk}:
     delete:
       summary: Unlike a post
-      tags: [Reactions]
+      tags: [ Reactions ]
       parameters:
-        - $ref: '#/components/parameters/PostPk'
+      - $ref: '#/components/parameters/PostPk'
       responses:
         "200":
           description: Deleted
   /reposts:
     post:
       summary: Repost a post
-      tags: [Reactions]
+      tags: [ Reactions ]
       requestBody:
         required: true
         content:
@@ -188,16 +188,16 @@ paths:
   /reposts/{post_pk}:
     delete:
       summary: Remove repost
-      tags: [Reactions]
+      tags: [ Reactions ]
       parameters:
-        - $ref: '#/components/parameters/PostPk'
+      - $ref: '#/components/parameters/PostPk'
       responses:
         "200":
           description: Deleted
   /comments:
     post:
       summary: Create comment
-      tags: [Comments]
+      tags: [ Comments ]
       requestBody:
         required: true
         content:
@@ -214,9 +214,9 @@ paths:
   /comments/{comment_pk}:
     put:
       summary: Update comment
-      tags: [Comments]
+      tags: [ Comments ]
       parameters:
-        - $ref: '#/components/parameters/CommentPk'
+      - $ref: '#/components/parameters/CommentPk'
       requestBody:
         required: true
         content:
@@ -235,16 +235,16 @@ paths:
                 $ref: '#/components/schemas/Comment'
     delete:
       summary: Delete comment
-      tags: [Comments]
+      tags: [ Comments ]
       parameters:
-        - $ref: '#/components/parameters/CommentPk'
+      - $ref: '#/components/parameters/CommentPk'
       responses:
         "200":
           description: Deleted
   /trending:
     get:
       summary: Trending hashtags
-      tags: [Discovery]
+      tags: [ Discovery ]
       responses:
         "200":
           description: Trending list
@@ -262,7 +262,7 @@ paths:
   /users-to-follow:
     get:
       summary: Suggestions to follow
-      tags: [Discovery]
+      tags: [ Discovery ]
       responses:
         "200":
           description: Users to follow
@@ -275,7 +275,7 @@ paths:
   /follows:
     post:
       summary: Follow user
-      tags: [Follows]
+      tags: [ Follows ]
       requestBody:
         required: true
         content:
@@ -291,22 +291,22 @@ paths:
   /follows/{followed_user_fk}:
     delete:
       summary: Unfollow user
-      tags: [Follows]
+      tags: [ Follows ]
       parameters:
-        - name: followed_user_fk
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: followed_user_fk
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
         "200":
           description: Deleted
   /users/{userPk}:
     get:
       summary: Get user profile + counts
-      tags: [Users]
+      tags: [ Users ]
       parameters:
-        - $ref: '#/components/parameters/UserPk'
+      - $ref: '#/components/parameters/UserPk'
       responses:
         "200":
           description: User profile
@@ -323,9 +323,9 @@ paths:
                       $ref: '#/components/schemas/Post'
     put:
       summary: Update user profile
-      tags: [Users]
+      tags: [ Users ]
       parameters:
-        - $ref: '#/components/parameters/UserPk'
+      - $ref: '#/components/parameters/UserPk'
       requestBody:
         required: true
         content:
@@ -341,18 +341,18 @@ paths:
                 $ref: '#/components/schemas/User'
     delete:
       summary: Delete user
-      tags: [Users]
+      tags: [ Users ]
       parameters:
-        - $ref: '#/components/parameters/UserPk'
+      - $ref: '#/components/parameters/UserPk'
       responses:
         "200":
           description: Deleted
   /users/{userPk}/profile-picture:
     post:
       summary: Upload profile picture
-      tags: [Users]
+      tags: [ Users ]
       parameters:
-        - $ref: '#/components/parameters/UserPk'
+      - $ref: '#/components/parameters/UserPk'
       requestBody:
         required: true
         content:
@@ -369,9 +369,9 @@ paths:
   /users/{userPk}/cover-picture:
     post:
       summary: Upload cover picture
-      tags: [Users]
+      tags: [ Users ]
       parameters:
-        - $ref: '#/components/parameters/UserPk'
+      - $ref: '#/components/parameters/UserPk'
       requestBody:
         required: true
         content:
@@ -388,7 +388,7 @@ paths:
   /search:
     post:
       summary: Search users and posts
-      tags: [Discovery]
+      tags: [ Discovery ]
       requestBody:
         required: true
         content:
@@ -429,7 +429,7 @@ components:
   schemas:
     SignupRequest:
       type: object
-      required: [user_full_name, user_username, user_email, user_password]
+      required: [ user_full_name, user_username, user_email, user_password ]
       properties:
         user_full_name:
           type: string
@@ -443,7 +443,7 @@ components:
           format: password
     LoginRequest:
       type: object
-      required: [user_email, user_password]
+      required: [ user_email, user_password ]
       properties:
         user_email:
           type: string
@@ -542,7 +542,7 @@ components:
           format: date-time
     CommentCreateRequest:
       type: object
-      required: [comment_post_fk, comment_message]
+      required: [ comment_post_fk, comment_message ]
       properties:
         comment_post_fk:
           type: string

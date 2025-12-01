@@ -20,10 +20,12 @@ import {
 } from "../utils/validation";
 import LoadingOverlay from "../components/LoadingOverlay";
 import { useDocumentTitle } from "../utils/useDocumentTitle";
+import { useAuth } from "../context/AuthContext";
 
 const ProfilePage = () => {
   const { username } = useParams();
   const navigate = useNavigate();
+  const { user: authUser, logout } = useAuth();
   const [user, setUser] = useState(null);
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
@@ -47,7 +49,7 @@ const ProfilePage = () => {
   const [latestPost, setLatestPost] = useState(null);
   const hasLoadedRepostsRef = useRef(false);
   const profileTitle = user?.user_username
-    ? `${user.user_full_name || user.user_username} (@${user.user_username}) / X`
+    ? `${user.user_full_name || user.user_username} (@${user.user_username}) / Weave`
     : "Profile";
   useDocumentTitle(profileTitle);
 
@@ -59,29 +61,18 @@ const ProfilePage = () => {
     repostHasMoreRef.current = hasMoreReposts;
   }, [hasMoreReposts]);
 
-  const currentUserPk = localStorage.getItem("user_pk");
+  const currentUserPk = authUser?.user_pk;
   const isCurrentUser =
     user?.user_pk !== undefined &&
     String(user.user_pk) === String(currentUserPk);
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/");
-        return;
-      }
       const [userResponse, trendingResponse, usersToFollowResponse] =
         await Promise.all([
-          api.get(`/users/${username}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          api.get("/trending", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          api.get("/users-to-follow", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
+          api.get(`/users/${username}`),
+          api.get("/trending"),
+          api.get("/users-to-follow"),
         ]);
       if (!userResponse.data?.user) {
         navigate("/404", { replace: true, state: { missingUsername: username } });
@@ -116,9 +107,7 @@ const ProfilePage = () => {
         return;
       }
       if (status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user_pk");
-        localStorage.removeItem("user_username");
+        await logout();
         navigate("/");
         return;
       }
@@ -132,12 +121,8 @@ const ProfilePage = () => {
     if (repostLoadingRef.current || !repostHasMoreRef.current) return;
     setIsRepostsLoading(true);
     try {
-      const token = localStorage.getItem("token");
       const response = await api.get(
         `/users/${username}/reposts?page=${repostPageRef.current}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
       );
       const data = response.data.data ?? response.data ?? [];
       setRepostPosts((prev) => {
@@ -161,6 +146,8 @@ const ProfilePage = () => {
 
   useEffect(() => {
     fetchData();
+    
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [username]);
 
   useEffect(() => {
@@ -232,10 +219,7 @@ const ProfilePage = () => {
     }
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await api.put(`/users/${user?.user_pk}`, editedUser, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.put(`/users/${user?.user_pk}`, editedUser);
 
       setUser(response.data);
       setIsEditing(false);
@@ -257,8 +241,8 @@ const ProfilePage = () => {
   };
 
   const handleFollowToggle = async () => {
-    const currentUserPk = localStorage.getItem("user_pk");
-    const currentUsername = localStorage.getItem("user_username");
+    const currentUserPk = authUser?.user_pk;
+    const currentUsername = authUser?.user_username;
     const wasFollowing = isFollowing;
     setIsFollowing(!wasFollowing);
     setFollowers((prev) =>
@@ -275,22 +259,10 @@ const ProfilePage = () => {
     );
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/");
-        return;
-      }
-
       if (wasFollowing) {
-        await api.delete(`/follows/${user?.user_pk}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.delete(`/follows/${user?.user_pk}`);
       } else {
-        await api.post(
-          "/follows",
-          { followed_user_fk: user?.user_pk },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.post("/follows", { followed_user_fk: user?.user_pk });
       }
     } catch (err) {
       setIsFollowing(wasFollowing);
@@ -336,13 +308,8 @@ const ProfilePage = () => {
 
   const handleDeleteProfile = async () => {
     try {
-      const token = localStorage.getItem("token");
-      await api.delete(`/users/${user?.user_pk}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      localStorage.removeItem("token");
-      localStorage.removeItem("user_pk");
-      localStorage.removeItem("user_username");
+      await api.delete(`/users/${user?.user_pk}`);
+      await logout();
       navigate("/");
     } catch (error) {
       console.error("Error deleting profile:", error);

@@ -7,6 +7,7 @@ import {
   validateFields,
 } from "../utils/validation";
 import FieldError from "./FieldError";
+import { useAuth } from "../context/AuthContext";
 
 const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
   const [formData, setFormData] = useState({
@@ -17,6 +18,7 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setFormData({
@@ -42,14 +44,8 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
     setIsLoading(true);
     try {
       const response = await api.post("/signup", formData);
-      if (response.data?.token) {
-        localStorage.setItem("token", response.data.token);
-      }
-      if (response.data?.user?.user_pk) {
-        localStorage.setItem("user_pk", response.data.user.user_pk);
-      }
-      if (response.data?.user?.user_username) {
-        localStorage.setItem("user_username", response.data.user.user_username);
+      if (response.data?.user) {
+        login(response.data.user);
       }
       setErrors({});
       setTimeout(() => {

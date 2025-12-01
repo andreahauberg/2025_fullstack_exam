@@ -5,6 +5,7 @@ const baseURL =
   process.env.REACT_APP_API_BASE_URL ||
   process.env.REACT_APP_API_BASE ||
   "http://127.0.0.1:8000/api";
+const rootURL = baseURL.replace(/\/api\/?$/, "");
 
 export const api = axios.create({
   baseURL,
@@ -12,20 +13,10 @@ export const api = axios.create({
     "Content-Type": "application/json",
     Accept: "application/json",
   },
+  withCredentials: true,
+  xsrfCookieName: "XSRF-TOKEN",
+  xsrfHeaderName: "X-XSRF-TOKEN",
 });
-
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 
 const MAX_RETRIES = 2; 
 const RETRY_STATUS = [429, 500, 502, 503, 504];
@@ -59,6 +50,27 @@ const redirectToErrorPage = (status, message) => {
 
   window.location.assign(`/error?code=${code}${encodedMessage}`);
 };
+
+let csrfLoaded = false;
+
+const ensureCsrfCookie = async () => {
+  if (csrfLoaded) return;
+  await axios.get(`${rootURL}/sanctum/csrf-cookie`, {
+    withCredentials: true,
+  });
+  csrfLoaded = true;
+};
+
+api.interceptors.request.use(
+  async (config) => {
+    const method = (config.method || "get").toLowerCase();
+    if (!isIdempotentMethod(method)) {
+      await ensureCsrfCookie();
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 api.interceptors.response.use(
   (response) => response,
