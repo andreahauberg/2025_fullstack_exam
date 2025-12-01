@@ -27,6 +27,30 @@ api.interceptors.request.use(
   }
 );
 
+const MAX_RETRIES = 2; 
+const RETRY_STATUS = [429, 500, 502, 503, 504];
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const isIdempotentMethod = (method) =>
+  ["get", "head", "options"].includes((method || "").toLowerCase());
+
+const shouldRetryRequest = (error) => {
+  const config = error?.config;
+  if (!config) return false;
+  if (!isIdempotentMethod(config.method)) return false;
+
+  const retryCount = config.__retryCount || 0;
+  if (retryCount >= MAX_RETRIES) return false;
+
+  const status = error?.response?.status;
+  const isNetworkError = !error?.response;
+
+  if (isNetworkError) return true;
+  if (RETRY_STATUS.includes(status)) return true;
+
+  return false;
+};
+
 const redirectToErrorPage = (status, message) => {
   const code = status || 503;
   const encodedMessage = message ? `&message=${encodeURIComponent(message)}` : "";
@@ -38,7 +62,16 @@ const redirectToErrorPage = (status, message) => {
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    if (shouldRetryRequest(error)) {
+      const config = error.config;
+      config.__retryCount = (config.__retryCount || 0) + 1;
+
+      const delayMs = Math.min(500 * 2 ** (config.__retryCount - 1), 3000);
+      await sleep(delayMs);
+      return api(config);
+    }
+
     const status = error?.response?.status;
     const message = parseApiErrorMessage(error);
 
