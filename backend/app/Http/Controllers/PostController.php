@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use App\Notifications\NewPostNotification;
+use Illuminate\Support\Facades\Notification;
 
 class PostController extends Controller
 {
@@ -69,6 +71,15 @@ public function store(Request $request)
     }
 
     $post->load('user');
+    $author = $post->user;
+
+    if ($author) {
+        $followers = $author->followers()->get();
+        if ($followers->isNotEmpty()) {
+            // synchronous delivery: write notifications to DB immediately 
+            Notification::sendNow($followers, new NewPostNotification($post));
+        }
+    }
     return response()->json($post, 201);
 }
 

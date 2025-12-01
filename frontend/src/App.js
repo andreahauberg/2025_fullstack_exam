@@ -1,8 +1,9 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import LandingPage from "./Pages/LandingPage"
+import LandingPage from "./Pages/LandingPage";
 import HomePage from "./Pages/HomePage";
 import ProfilePage from "./Pages/ProfilePage";
+import NotificationsPage from "./Pages/NotificationsPage";
 import UserPage from "./Pages/UserPage";
 import NotFoundPage from "./Pages/NotFoundPage";
 
@@ -39,6 +40,14 @@ const App = () => {
           element={
             <ProtectedRoute>
               <HomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <NotificationsPage />
             </ProtectedRoute>
           }
         />

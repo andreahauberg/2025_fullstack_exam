@@ -70,9 +70,9 @@ main::-webkit-scrollbar {
   font-size: 24px;
   cursor: pointer;
 }
-  .nav-logo-image{
-    max-width: 48px;
-  }
+.nav-logo-image {
+  max-width: 48px;
+}
 
 .nav-menu-container {
   display: flex;
@@ -123,6 +123,42 @@ main::-webkit-scrollbar {
   padding: 12px;
 }
 
+/* notifications */
+.nav-notifications-button {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 12px;
+  border-radius: 9999px;
+  width: 100%;
+  cursor: pointer;
+  font-size: 20px;
+  transition: background-color 0.2s;
+  justify-content: flex-start;
+}
+
+.nav-notifications-button i {
+  margin-right: 12px;
+  width: 24px;
+  text-align: center;
+}
+
+.nav-notifications-button span {
+  font-size: 20px;
+}
+
+.nav-flag {
+  margin-left: auto; /* skub til højre */
+  background-color: #f01d39;
+  color: #fff;
+  border-radius: 50%;
+  padding: 4px 6px;
+  font-size: 12px !important;
+  font-weight: 600;
+  line-height: 1;
+}
+
 .profile-tag {
   display: flex;
   align-items: center;
@@ -138,8 +174,6 @@ main::-webkit-scrollbar {
 .profile-tag:hover {
   background-color: rgba(29, 161, 242, 0.1);
 }
-
-
 
 .profile-tag-avatar {
   border-radius: 50%;
@@ -440,10 +474,9 @@ aside::-webkit-scrollbar {
     display: none;
   }
   .profile-tag-avatar:hover {
-  border: solid 2px #1d9bf0;
-}
-.profile-tag:hover{
-  background-color: white;
-}
-
+    border: solid 2px #1d9bf0;
+  }
+  .profile-tag:hover {
+    background-color: white;
+  }
 }

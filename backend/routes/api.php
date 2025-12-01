@@ -8,6 +8,7 @@ use App\Http\Controllers\TrendingController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\RepostController;
+use App\Http\Controllers\NotificationsController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\SearchController;
 
@@ -43,5 +44,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/users/{userPk}', [UserController::class, 'destroy']);
     Route::get('/users/{userPk}/reposts', [PostController::class, 'userReposts']);
     Route::post('/search', [SearchController::class, 'search'])->middleware('auth:sanctum');
+    Route::get('/notifications', [NotificationsController::class, 'index']);
+    Route::post('/notifications/{id}/read', [NotificationsController::class, 'markAsRead']);
+    Route::delete('/notifications/{id}', [NotificationsController::class, 'destroy']);
+    Route::post('/notifications/read-all', [NotificationsController::class, 'markAllAsRead']);
 
 });
