@@ -117,7 +117,7 @@ const NotificationsPage = () => {
                   <div>
                     <div style={{ fontWeight: 700 }}>{n.data?.excerpt || "New activity"}</div>
                     <div style={{ color: "#666", marginTop: 6 }}>
-                      {n.data?.author_username || ""} • {formatRelativeTime(n.data?.post_created_at || n.created_at)}
+                      @{n.data?.author_username || ""} • {formatRelativeTime(n.data?.post_created_at || n.created_at)}
                     </div>
                   </div>
                 </div>
