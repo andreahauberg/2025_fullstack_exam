@@ -5,7 +5,6 @@ import NavBar from "../components/NavBar";
 import WhoToFollow from "../components/WhoToFollow";
 import Trending from "../components/Trending";
 import UserHeader from "../components/UserHeader";
-import UserStats from "../components/UserStats";
 import UserList from "../components/UserList";
 import UserPosts from "../components/UserPosts";
 import UserTabs from "../components/UserTabs";
