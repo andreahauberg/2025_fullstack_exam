@@ -6,6 +6,7 @@ import ProfilePage from "./Pages/ProfilePage";
 import UserPage from "./Pages/UserPage";
 import NotFoundPage from "./Pages/NotFoundPage";
 import ErrorPage from "./Pages/ErrorPage";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const isAuthenticated = () => Boolean(localStorage.getItem("token"));
 
@@ -25,45 +26,47 @@ const PublicRoute = ({ children }) => {
 
 const App = () => {
   return (
-    <Router>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <PublicRoute>
-              <LandingPage />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path="/home"
-          element={
-            <ProtectedRoute>
-              <HomePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile/:username"
-          element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/error" element={<ErrorPage />} />
-        <Route
-          path="/user/:username"
-          element={
-            <ProtectedRoute>
-              <UserPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/404" element={<NotFoundPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <PublicRoute>
+                <LandingPage />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute>
+                <HomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile/:username"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/error" element={<ErrorPage />} />
+          <Route
+            path="/user/:username"
+            element={
+              <ProtectedRoute>
+                <UserPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/404" element={<NotFoundPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Router>
+    </ErrorBoundary>
   );
 };
 
