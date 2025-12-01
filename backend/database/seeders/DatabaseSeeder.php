@@ -39,6 +39,7 @@ class DatabaseSeeder extends Seeder
             CommentsTableSeeder::class,
             FollowsTableSeeder::class,
             LikesTableSeeder::class,
+            RepostsTableSeeder::class,
         ]);
     }
 }
