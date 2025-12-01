@@ -32,3 +32,9 @@
   color: #536471;
   line-height: 1.5;
 }
+
+.notfound-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}

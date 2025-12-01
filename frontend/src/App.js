@@ -5,6 +5,7 @@ import HomePage from "./Pages/HomePage";
 import ProfilePage from "./Pages/ProfilePage";
 import UserPage from "./Pages/UserPage";
 import NotFoundPage from "./Pages/NotFoundPage";
+import ErrorPage from "./Pages/ErrorPage";
 
 const isAuthenticated = () => Boolean(localStorage.getItem("token"));
 
@@ -50,6 +51,7 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+        <Route path="/error" element={<ErrorPage />} />
         <Route
           path="/user/:username"
           element={
