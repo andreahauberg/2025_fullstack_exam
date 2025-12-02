@@ -28,15 +28,7 @@ function LandingPage() {
   return (
     <div className="landing-container">
       <div className="landing-left">
-        <svg
-          className="logo"
-          viewBox="0 0 300 300"
-          xmlns="http://www.w3.org/2000/svg">
-          <g fill="none" stroke="#fff" strokeWidth="44">
-            <line x1="40" y1="40" x2="260" y2="260" />
-            <line x1="260" y1="40" x2="40" y2="260" />
-          </g>
-        </svg>
+        <img src="/favicon/weave.png" alt="Weave Logo" className="logo" />
       </div>
       <div className="landing-right">
         <h1>Happening now</h1>
@@ -46,18 +38,18 @@ function LandingPage() {
           <button onClick={() => setIsLoginOpen(true)}>Login</button>
         </div>
       </div>
-        <SignupDialog
-          isOpen={isSignupOpen}
-          onClose={() => setIsSignupOpen(false)}
-          onSuccess={handleSignupSuccess}
-            onOpenLogin={handleOpenLogin}
-        />
-        <LoginDialog
-          isOpen={isLoginOpen}
-          onClose={() => setIsLoginOpen(false)}
-          onSuccess={handleLoginSuccess}
-          onOpenSignup={handleOpenSignup}
-        />
+      <SignupDialog
+        isOpen={isSignupOpen}
+        onClose={() => setIsSignupOpen(false)}
+        onSuccess={handleSignupSuccess}
+        onOpenLogin={handleOpenLogin}
+      />
+      <LoginDialog
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        onSuccess={handleLoginSuccess}
+        onOpenSignup={handleOpenSignup}
+      />
     </div>
   );
 }
