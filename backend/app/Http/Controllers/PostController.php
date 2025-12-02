@@ -13,37 +13,28 @@ class PostController extends Controller
 {
 public function index(Request $request)
 {
-    try {
-        $page = $request->query('page', 1);
-        $currentUserPk = $request->user() ? $request->user()->user_pk : null;
-        $posts = Post::with(['user', 'comments.user'])
-            ->withCount(['likes', 'comments', 'reposts'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10, ['*'], 'page', $page);
+    $page = $request->query('page', 1);
+    $currentUserPk = $request->user() ? $request->user()->user_pk : null;
+    $posts = Post::with(['user', 'comments.user'])
+        ->withCount(['likes', 'comments', 'reposts'])
+        ->orderBy('created_at', 'desc')
+        ->paginate(10, ['*'], 'page', $page);
 
-        $posts->getCollection()->transform(function ($post) use ($currentUserPk) {
-            $post->is_liked_by_user = $currentUserPk ? $post->likes()->where('like_user_fk', $currentUserPk)->exists() : false;
-            $post->is_reposted_by_user = $currentUserPk ? $post->reposts()->where('repost_user_fk', $currentUserPk)->exists() : false;
-            if ($post->relationLoaded('user') && $post->user) {
-                $post->user->is_following = $currentUserPk
-                    ? DB::table('follows')
-                        ->where('followed_user_fk', $post->post_user_fk)
-                        ->where('follower_user_fk', $currentUserPk)
-                        ->exists()
-                    : false;
-            }
-            return $post;
-        });
+    $posts->getCollection()->transform(function ($post) use ($currentUserPk) {
+        $post->is_liked_by_user = $currentUserPk ? $post->likes()->where('like_user_fk', $currentUserPk)->exists() : false;
+        $post->is_reposted_by_user = $currentUserPk ? $post->reposts()->where('repost_user_fk', $currentUserPk)->exists() : false;
+        if ($post->relationLoaded('user') && $post->user) {
+            $post->user->is_following = $currentUserPk
+                ? DB::table('follows')
+                    ->where('followed_user_fk', $post->post_user_fk)
+                    ->where('follower_user_fk', $currentUserPk)
+                    ->exists()
+                : false;
+        }
+        return $post;
+    });
 
-
-        return response()->json($posts);
-    } catch (\Exception $e) {
-        \Log::error('Error fetching posts: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
-        return response()->json([
-            'error' => 'An error occurred while fetching posts.',
-            'message' => $e->getMessage(),
-        ], 500);
-    }
+    return response()->json($posts);
 }
 
 

@@ -12,8 +12,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 class UserController extends Controller
 {
     public function usersToFollow(Request $request)
-{
-    try {
+    {
         $currentUserPk = $request->user()->user_pk;
         $users = User::where('user_pk', '!=', $currentUserPk)
             ->whereDoesntHave('followers', function ($query) use ($currentUserPk) {
@@ -22,24 +21,17 @@ class UserController extends Controller
             ->inRandomOrder()
             ->limit(6)
             ->get()
-            ->map(function ($user) use ($currentUserPk) {
+            ->map(function ($user) {
                 $user->is_following = false;
                 return $user;
             });
+
         return response()->json($users);
-    } catch (\Exception $e) {
-        \Log::error('Error fetching users to follow: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
-        return response()->json([
-            'error' => 'An error occurred while fetching users to follow.',
-            'message' => $e->getMessage(),
-        ], 500);
     }
-}
 
 
-public function show($userIdentifier)
-{
-    try {
+    public function show($userIdentifier)
+    {
         $currentUser = Auth::user();
         $user = User::with(['posts.user', 'followers', 'following'])
             ->withCount(['posts', 'followers', 'following'])
@@ -47,44 +39,29 @@ public function show($userIdentifier)
             ->orWhere('user_username', $userIdentifier)
             ->firstOrFail();
 
-        // Hent reposts_count fra user_engagements view
         $engagement = DB::table('user_engagements')
             ->where('user_pk', $user->user_pk)
             ->first();
 
-        // Tilføj reposts_count til user-objektet
         $user->reposts_count = $engagement->reposts_count ?? 0;
 
-              // Tilføj is_following til followers og following
-              $followers = $user->followers->map(function ($follower) use ($currentUser) {
-                $follower->is_following = $currentUser ? $currentUser->isFollowing($follower) : false;
-                return $follower;
-            });
-    
-            $following = $user->following->map(function ($followedUser) use ($currentUser) {
-                $followedUser->is_following = true;
-                return $followedUser;
-            });
-    
-            // Tilføj reposts_count til user-objektet i responsen
-            $user->reposts_count = $engagement->reposts_count ?? 0;
-            
+        $followers = $user->followers->map(function ($follower) use ($currentUser) {
+            $follower->is_following = $currentUser ? $currentUser->isFollowing($follower) : false;
+            return $follower;
+        });
+
+        $following = $user->following->map(function ($followedUser) {
+            $followedUser->is_following = true;
+            return $followedUser;
+        });
+
         return response()->json([
             'user' => $user,
             'posts' => $user->posts,
             'followers' => $followers,
             'following' => $following,
         ]);
-    } catch (ModelNotFoundException $e) {
-        return response()->json(['error' => 'User not found'], 404);
-    } catch (\Exception $e) {
-        \Log::error('Error fetching user data: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
-        return response()->json([
-            'error' => 'An error occurred while fetching user data.',
-            'message' => $e->getMessage(),
-        ], 500);
     }
-}
 
 
 
@@ -96,45 +73,29 @@ public function show($userIdentifier)
             'user_email' => 'required|email|max:255|unique:users,user_email,' . $userPk . ',user_pk',
         ]);
 
-        try {
-            $user = User::findOrFail($userPk);
-            $user->user_full_name = $request->user_full_name;
-            $user->user_username = $request->user_username;
-            $user->user_email = $request->user_email;
-            $user->save();
+        $user = User::findOrFail($userPk);
+        $user->user_full_name = $request->user_full_name;
+        $user->user_username = $request->user_username;
+        $user->user_email = $request->user_email;
+        $user->save();
 
-            return response()->json($user);
-        } catch (\Exception $e) {
-            \Log::error('Error updating user: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
-            return response()->json([
-                'error' => 'An error occurred while updating user.',
-                'message' => $e->getMessage(),
-            ], 500);
-        }
+        return response()->json($user);
     }
 
     public function destroy($userPk)
     {
-        try {
-            $user = User::findOrFail($userPk);
+        $user = User::findOrFail($userPk);
 
-            DB::transaction(function () use ($user) {
-                $now = now();
-                DB::table('posts')
-                    ->where('post_user_fk', $user->user_pk)
-                    ->update(['deleted_at' => $now]);
+        DB::transaction(function () use ($user) {
+            $now = now();
+            DB::table('posts')
+                ->where('post_user_fk', $user->user_pk)
+                ->update(['deleted_at' => $now]);
 
-                $user->delete();
-            });
+            $user->delete();
+        });
 
-            return response()->json(['message' => 'User deleted successfully.']);
-        } catch (\Exception $e) {
-            \Log::error('Error deleting user: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
-            return response()->json([
-                'error' => 'An error occurred while deleting user.',
-                'message' => $e->getMessage(),
-            ], 500);
-        }
+        return response()->json(['message' => 'User deleted successfully.']);
     }
 
     
@@ -144,7 +105,6 @@ public function uploadProfilePicture(Request $request, $userPk)
         'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
     ]);
 
-    try {
         $user = User::findOrFail($userPk);
 
         if ($request->hasFile('profile_picture')) {
@@ -159,14 +119,7 @@ public function uploadProfilePicture(Request $request, $userPk)
             'message' => 'Profile picture uploaded successfully.',
             'user_profile_picture' => $user->user_profile_picture,
         ]);
-    } catch (\Exception $e) {
-        \Log::error('Error uploading profile picture: ' . $e->getMessage());
-        return response()->json([
-            'error' => 'An error occurred while uploading profile picture.',
-            'message' => $e->getMessage(),
-        ], 500);
     }
-}
 
 public function uploadCoverPicture(Request $request, $userPk)
 {
@@ -174,7 +127,6 @@ public function uploadCoverPicture(Request $request, $userPk)
         'cover_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:4096',
     ]);
 
-    try {
         $user = User::findOrFail($userPk);
 
         if ($request->hasFile('cover_picture')) {
@@ -189,14 +141,7 @@ public function uploadCoverPicture(Request $request, $userPk)
             'message' => 'Cover picture uploaded successfully.',
             'user_cover_picture' => $user->user_cover_picture,
         ]);
-    } catch (\Exception $e) {
-        \Log::error('Error uploading cover picture: ' . $e->getMessage());
-        return response()->json([
-            'error' => 'An error occurred while uploading cover picture.',
-            'message' => $e->getMessage(),
-        ], 500);
     }
-}
 
 
 }
