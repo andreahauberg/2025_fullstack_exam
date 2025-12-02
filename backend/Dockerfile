@@ -1,4 +1,4 @@
-FROM php:8.2-apche
+FROM php:8.2-apache
 
 # Installer systemafhængigheder
 RUN apt-get update && apt-get install -y \
