@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { api } from "../api";
 import NavBar from "../components/NavBar";
 import WhoToFollow from "../components/WhoToFollow";
