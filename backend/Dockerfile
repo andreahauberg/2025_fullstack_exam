@@ -1,6 +1,6 @@
-FROM php:8.2-apache
+FROM php:8.2-apche
 
-# Installer systemafhængigheder (inkl. dem, der kræves til PHP-udvidelser)
+# Installer systemafhængigheder
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -28,3 +28,22 @@ RUN a2enmod rewrite
 
 # Kopier Apache-konfiguration
 COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
+
+# Kopier projektfiler
+WORKDIR /var/www/html
+COPY . .
+
+# Installer Composer-afhængigheder
+RUN composer install --no-dev --optimize-autoloader
+
+# Kør Laravel kommandoer
+RUN php artisan key:generate
+RUN php artisan config:clear
+RUN php artisan migrate --force
+
+# Sæt rettigheder for Laravel storage
+RUN chown -R www-data:www-data /var/www/html/storage
+RUN chmod -R 775 /var/www/html/storage
+
+# Start Apache
+CMD ["apache2-foreground"]
