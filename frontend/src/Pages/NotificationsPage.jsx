@@ -98,7 +98,7 @@ const NotificationsPage = () => {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <h1 style={{ margin: 0 }}>Notifications</h1>
           <div>
-            <button onClick={markAll} disabled={unreadCount === 0} style={{ background: "transparent", border: "none", color: "var(--brand-color)", cursor: unreadCount === 0 ? "default" : "pointer" }}>
+            <button onClick={markAll} disabled={unreadCount === 0} style={{ background: "transparent", border: "none", color: "#888", cursor: unreadCount === 0 ? "default" : "pointer" }}>
               Mark all as read
             </button>
           </div>
@@ -123,11 +123,11 @@ const NotificationsPage = () => {
                 </div>
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                   {!n.read_at && (
-                    <button onClick={() => markAsRead(n.id)} style={{ background: "transparent", border: "none", color: "var(--brand-color)", cursor: "pointer" }}>
+                    <button onClick={() => markAsRead(n.id)} style={{ background: "transparent", border: "none", color: "#888", cursor: "pointer" }}>
                       Mark
                     </button>
                   )}
-                  <button onClick={() => deleteNotification(n.id)} title="Delete notification" style={{ background: "transparent", border: "none", color: "#888", cursor: "pointer" }}>
+                  <button onClick={() => deleteNotification(n.id)} title="Delete notification" style={{ background: "transparent", border: "none", color: "red", cursor: "pointer" }}>
                     Delete
                   </button>
                 </div>
