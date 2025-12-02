@@ -1,11 +1,16 @@
 <?php
+
+use App\Http\Middleware\ApiExceptionMiddleware;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\ConnectionException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Middleware\HandleCors; // Tilføj denne linje
-use Sentry\Laravel\Integration;
-use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Middleware\HandleCors;
+use Illuminate\Http\Request;
+use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,23 +20,51 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // API-only app: don't redirect guests to a missing "login" route, just return 401
         $middleware->redirectGuestsTo(fn () => null);
 
         $middleware->web(append: [
-            HandleCors::class, // Tilføj CORS til web-middleware
+            HandleCors::class,
         ]);
 
-        $middleware->api(append: [
-            HandleCors::class, // Tilføj CORS til API-middleware
-        ]);
+        $middleware->api(
+            prepend: [
+                ApiExceptionMiddleware::class,
+            ],
+            append: [
+                HandleCors::class, 
+            ],
+        );
     })
     ->withExceptions(function (Exceptions $exceptions) {
         Integration::handles($exceptions);
 
-        // Return JSON 401 instead of redirecting to a non-existent login route
         $exceptions->renderable(function (AuthenticationException $e, $request) {
-            return new JsonResponse(['message' => 'Unauthenticated.'], 401);
+            return new JsonResponse([
+                'error' => 'unauthenticated',
+                'message' => 'Unauthenticated.',
+            ], 401);
+        });
+
+        $exceptions->renderable(function (ConnectionException|\PDOException $e, Request $request) {
+            if (! $request->expectsJson()) {
+                return null;
+            }
+
+            return new JsonResponse([
+                'error' => 'service_unavailable',
+                'message' => 'The database is unavailable. Please try again later.',
+            ], 503);
+        });
+
+        $exceptions->renderable(function (QueryException $e, Request $request) {
+            if (! $request->expectsJson()) {
+                return null;
+            }
+
+            return new JsonResponse([
+                'error' => 'database_error',
+                'message' => 'A database error occurred.',
+            ], 500);
         });
     })
     ->create();
