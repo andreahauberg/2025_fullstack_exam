@@ -635,7 +635,7 @@
     display: flex;
     gap: 10px;
     margin-top: 6px;
-    align-items: center;
+    justify-content: right;
   }
 
   .user-actions-menu {
