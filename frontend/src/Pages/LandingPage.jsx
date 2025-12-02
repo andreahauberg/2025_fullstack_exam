@@ -28,7 +28,7 @@ function LandingPage() {
   return (
     <div className="landing-container">
       <div className="landing-left">
-        <img src="/favicon/weave.png" alt="Weave Logo" className="logo" />
+        <img src="/weave-logo.png" alt="Weave Logo" className="logo" />
       </div>
       <div className="landing-right">
         <h1>Happening now</h1>
