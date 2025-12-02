@@ -9,8 +9,10 @@ import PostDialog from "../components/PostDialog";
 import { formatRelativeTime } from "../utils/timeUtils";
 import { useNavigate } from "react-router-dom";
 import { buildProfilePath } from "../utils/urlHelpers";
+import { useDocumentTitle } from "../utils/useDocumentTitle";
 
 const NotificationsPage = () => {
+  useDocumentTitle("Notifications");
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
