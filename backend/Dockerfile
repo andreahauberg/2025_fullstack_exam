@@ -29,9 +29,10 @@ RUN a2enmod rewrite
 # Kopier Apache-konfiguration
 COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
 
-# Kopier projektfiler
+# Kopier projektfiler og .env.example som .env
 WORKDIR /var/www/html
 COPY . .
+COPY .env.example .env
 
 # Installer Composer-afhængigheder
 RUN composer install --no-dev --optimize-autoloader

@@ -5,7 +5,6 @@ node_modules/
 # Ignorer miljøkonfiguration
 .env
 .env.local
-.env.example
 .env*.local
 
 # Ignorer IDE- og editor-filer
