@@ -1,14 +1,77 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { getProfilePictureUrl } from "../utils/imageUtils";
 import { buildProfilePath } from "../utils/urlHelpers";
+import { api } from "../api";
 
-const UserList = ({ title, users, emptyMessage, maxVisible = 3 }) => {
+const UserList = ({
+  title,
+  users: initialUsers,
+  emptyMessage,
+  maxVisible = 3,
+  onFollowChange,
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
+  const currentUserPk = localStorage.getItem("user_pk");
 
-  // Vis kun de første `maxVisible` brugere, hvis listen ikke er udvidet
+  useEffect(() => {
+    if (initialUsers) {
+      setUsers(
+        initialUsers.map((user) => ({
+          ...user,
+          is_following: user.is_following ?? false,
+        }))
+      );
+    }
+  }, [initialUsers]);
+
   const visibleUsers = isExpanded ? users : users.slice(0, maxVisible);
+
+  const handleFollow = async (userPk, index) => {
+    if (!userPk || isFollowLoading) return;
+    const isFollowing = users[index].is_following;
+    const updatedUsers = [...users];
+    updatedUsers[index].is_following = !isFollowing;
+    setUsers(updatedUsers);
+    setIsFollowLoading(true);
+
+    // Kalder callback med det samme (optimistisk opdatering)
+    if (typeof onFollowChange === "function") {
+      onFollowChange(!isFollowing, {
+        ...users[index],
+        is_following: !isFollowing,
+      });
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      if (isFollowing) {
+        await api.delete(`/follows/${userPk}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        await api.post(
+          "/follows",
+          { followed_user_fk: userPk },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Follow toggle failed:",
+        error.response?.data || error.message
+      );
+      // Rollback
+      const updatedUsers = [...users];
+      updatedUsers[index].is_following = isFollowing;
+      setUsers(updatedUsers);
+    } finally {
+      setIsFollowLoading(false);
+    }
+  };
 
   return (
     <div className="user-list">
@@ -24,7 +87,7 @@ const UserList = ({ title, users, emptyMessage, maxVisible = 3 }) => {
       </div>
       {users.length > 0 ? (
         <ul className={`user-list-items ${isExpanded ? "expanded" : ""}`}>
-          {visibleUsers.map((user) => (
+          {visibleUsers.map((user, index) => (
             <li key={user.user_pk} className="user-list-item">
               <Link to={buildProfilePath(user)} className="user-list-link">
                 <img
@@ -32,12 +95,25 @@ const UserList = ({ title, users, emptyMessage, maxVisible = 3 }) => {
                   alt={user.user_full_name}
                   className="user-list-avatar"
                 />
-
                 <div className="user-list-info">
                   <p className="user-list-name">{user.user_full_name}</p>
                   <p className="user-list-handle">@{user.user_username}</p>
                 </div>
               </Link>
+              {user.user_pk !== currentUserPk && (
+                <button
+                  className={`follow-btn ${
+                    user.is_following ? "unfollow" : ""
+                  }`}
+                  onClick={() => handleFollow(user.user_pk, index)}>
+                  <i
+                    className={
+                      user.is_following
+                        ? "fa-solid fa-user-check"
+                        : "fa-solid fa-user-plus"
+                    }></i>
+                </button>
+              )}
             </li>
           ))}
         </ul>

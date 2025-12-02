@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { api } from "../api";
 import Post from "../components/Post";
 
-const UserPosts = ({ userPk, isCurrentUser }) => {
+const UserPosts = ({ userPk, isCurrentUser, newPost }) => {
   const [posts, setPosts] = useState([]);
   const [loadingState, setLoadingState] = useState(false);
   const [hasMoreState, setHasMoreState] = useState(true);
@@ -12,7 +12,6 @@ const UserPosts = ({ userPk, isCurrentUser }) => {
   const loadingRef = useRef(false);
   const hasMoreRef = useRef(true);
 
-  // Opdater refs når state ændres
   useEffect(() => {
     loadingRef.current = loadingState;
   }, [loadingState]);
@@ -20,43 +19,36 @@ const UserPosts = ({ userPk, isCurrentUser }) => {
     hasMoreRef.current = hasMoreState;
   }, [hasMoreState]);
 
-  // ----------------------------------------
-  // Fetch posts
-  // ----------------------------------------
-const fetchPosts = async (requestedPage = pageRef.current) => {
-  if (loadingRef.current || !hasMoreRef.current) return;
+  const fetchPosts = async (requestedPage = pageRef.current) => {
+    if (loadingRef.current || !hasMoreRef.current) return;
 
-  setLoadingState(true);
+    setLoadingState(true);
 
-  try {
-    const response = await api.get(
-      `/users/${userPk}/posts?page=${requestedPage}`
-    );
-    const newPosts = response.data.data ?? []; // <-- rettet
-
-    setPosts((prev) => {
-      const filtered = newPosts.filter(
-        (post) => !prev.some((p) => p.post_pk === post.post_pk)
+    try {
+      const response = await api.get(
+        `/users/${userPk}/posts?page=${requestedPage}`
       );
-      return [...prev, ...filtered];
-    });
+      const newPosts = response.data.data ?? [];
 
-    const more = response.data.current_page < response.data.last_page; // <-- rettet
-    setHasMoreState(more);
+      setPosts((prev) => {
+        const filtered = newPosts.filter(
+          (post) => !prev.some((p) => p.post_pk === post.post_pk)
+        );
+        return [...prev, ...filtered];
+      });
 
-    if (more) pageRef.current += 1;
-  } catch (err) {
-    console.error("Error fetching posts:", err.response?.data ?? err.message);
-    setError("Failed to load posts.");
-  } finally {
-    setLoadingState(false);
-  }
-};
+      const more = response.data.current_page < response.data.last_page;
+      setHasMoreState(more);
 
+      if (more) pageRef.current += 1;
+    } catch (err) {
+      console.error("Error fetching posts:", err.response?.data ?? err.message);
+      setError("Failed to load posts.");
+    } finally {
+      setLoadingState(false);
+    }
+  };
 
-  // ----------------------------------------
-  // Initial load / reset ved ny bruger
-  // ----------------------------------------
   useEffect(() => {
     setPosts([]);
     setHasMoreState(true);
@@ -65,9 +57,6 @@ const fetchPosts = async (requestedPage = pageRef.current) => {
     fetchPosts(1);
   }, [userPk]);
 
-  // ----------------------------------------
-  // Infinite scroll
-  // ----------------------------------------
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop =
@@ -88,34 +77,32 @@ const fetchPosts = async (requestedPage = pageRef.current) => {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [fetchPosts]);
 
-  // ----------------------------------------
-  // Post handlers
-  // ----------------------------------------
-  const handlePostCreated = (newPost) => {
-    if (isCurrentUser) setPosts((prev) => [newPost, ...prev]);
+  useEffect(() => {
+    if (!isCurrentUser || !newPost?.post_pk) return;
+    setPosts((prev) => {
+      const exists = prev.some((post) => post.post_pk === newPost.post_pk);
+      if (exists) return prev;
+      return [newPost, ...prev];
+    });
+  }, [newPost, isCurrentUser]);
+
+  const handleUpdatePost = (updatedPost) => {
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.post_pk === updatedPost.post_pk
+          ? { ...updatedPost, user: post.user }
+          : post
+      )
+    );
   };
-
-const handleUpdatePost = (updatedPost) => {
-  setPosts((prev) =>
-    prev.map((post) =>
-      post.post_pk === updatedPost.post_pk
-        ? { ...updatedPost, user: post.user } // behold user fra eksisterende post
-        : post
-    )
-  );
-};
-
 
   const handleDeletePost = (deletedPostPk) => {
     if (isCurrentUser)
       setPosts((prev) => prev.filter((post) => post.post_pk !== deletedPostPk));
   };
 
-  // ----------------------------------------
-  // Render
-  // ----------------------------------------
   if (error) return <p className="error-message">{error}</p>;
 
   return (
@@ -124,16 +111,16 @@ const handleUpdatePost = (updatedPost) => {
       {posts.length > 0 ? (
         <>
           {posts.map((post) => (
-              <Post
-                key={post.post_pk}
-                post={post}
-                onUpdatePost={handleUpdatePost}
-                onDeletePost={isCurrentUser ? handleDeletePost : null}
-                hideHeader={false}
-              />
-            ))}
-          </>
-        ) : (
+            <Post
+              key={post.post_pk}
+              post={post}
+              onUpdatePost={handleUpdatePost}
+              onDeletePost={isCurrentUser ? handleDeletePost : null}
+              hideHeader={true}
+            />
+          ))}
+        </>
+      ) : (
         <p className="empty-message">No posts yet.</p>
       )}
     </div>

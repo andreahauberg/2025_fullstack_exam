@@ -1,15 +1,16 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import NavBar from "../components/NavBar";
 import WhoToFollow from "../components/WhoToFollow";
 import Trending from "../components/Trending";
 import UserHeader from "../components/UserHeader";
-import UserStats from "../components/UserStats";
 import UserList from "../components/UserList";
 import UserPosts from "../components/UserPosts";
 import UserTabs from "../components/UserTabs";
 import Post from "../components/Post";
+import ConfirmationDialog from "../components/ConfirmationDialog";
+import PostDialog from "../components/PostDialog";
 import LoadingOverlay from "../components/LoadingOverlay";
 import "../css/UserPage.css";
 import { useDocumentTitle } from "../utils/useDocumentTitle";
@@ -25,10 +26,13 @@ const UserPage = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [repostPosts, setRepostPosts] = useState([]);
   const [isRepostsLoading, setIsRepostsLoading] = useState(false);
+  const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [hasMoreReposts, setHasMoreReposts] = useState(true);
   const repostPageRef = useRef(1);
   const repostLoadingRef = useRef(false);
   const repostHasMoreRef = useRef(true);
+  const hasLoadedRepostsRef = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("posts"); // posts | reposts | followers | following
@@ -100,7 +104,7 @@ const UserPage = () => {
     }
   };
 
-  const fetchRepostPosts = async () => {
+  const fetchRepostPosts = useCallback(async () => {
     if (repostLoadingRef.current || !repostHasMoreRef.current) return;
     setIsRepostsLoading(true);
     try {
@@ -114,6 +118,7 @@ const UserPage = () => {
       const more = response.data.current_page < response.data.last_page;
       setHasMoreReposts(more);
       if (more) repostPageRef.current += 1;
+      hasLoadedRepostsRef.current = true;
     } catch (err) {
       console.error("Error fetching reposts:", err.response?.data || err.message);
       setRepostPosts([]);
@@ -121,7 +126,7 @@ const UserPage = () => {
     } finally {
       setIsRepostsLoading(false);
     }
-  };
+  }, [username]);
 
   useEffect(() => {
     fetchData();
@@ -159,8 +164,15 @@ const UserPage = () => {
     repostPageRef.current = 1;
     repostHasMoreRef.current = true;
     repostLoadingRef.current = false;
+    hasLoadedRepostsRef.current = false;
+    if (activeTab === "reposts") fetchRepostPosts();
+  }, [username, activeTab, fetchRepostPosts]);
+
+  useEffect(() => {
+    if (activeTab !== "reposts") return;
+    if (hasLoadedRepostsRef.current) return;
     fetchRepostPosts();
-  }, [username]);
+  }, [activeTab, fetchRepostPosts]);
 
   useEffect(() => {
     const handleRepostsUpdate = (event) => {
@@ -249,11 +261,10 @@ const UserPage = () => {
 
   return (
     <div id="container">
-      <NavBar />
+      <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
       <main className="user-main">
-        <UserHeader user={user} isCurrentUser={false} onFollowToggle={handleFollowToggle} isFollowing={isFollowing} />
-        <UserStats postsCount={user.posts_count || 0} followersCount={followers.length} followingCount={following.length} />
-        <UserTabs activeTab={activeTab} setActiveTab={setActiveTab} followersCount={followers.length} followingCount={following.length} />
+        <UserHeader user={user} isCurrentUser={false} onFollowToggle={handleFollowToggle} isFollowing={isFollowing} onDeleteProfile={() => setIsDeleteDialogOpen(true)} />
+        <UserTabs activeTab={activeTab} setActiveTab={setActiveTab} followersCount={followers.length} followingCount={following.length} postsCount={user.posts_count || 0} repostCount={user.reposts_count || 0} />
 
         <div className="user-tab-panels">
           {activeTab === "posts" && <UserPosts userPk={user?.user_pk} isCurrentUser={false} />}
@@ -271,6 +282,8 @@ const UserPage = () => {
         <Trending trending={trending} />
         <WhoToFollow users={usersToFollow} />
       </aside>
+      <PostDialog isOpen={isPostDialogOpen} onClose={() => setIsPostDialogOpen(false)} onSuccess={(newPost) => {}} />
+      <ConfirmationDialog isOpen={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)} title="Delete Profile" message="Are you sure you want to delete your profile? This action cannot be undone." />
     </div>
   );
 };

@@ -22,14 +22,17 @@ class UsersTableSeeder extends Seeder
         // Aktiver fremmednøglekontrol igen
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        // Generer 20 dummy-brugere
-        for ($i = 0; $i < 20; $i++) {
+        // Generer et større datasæt
+        for ($i = 0; $i < 150; $i++) {
             $userPk = Str::uuid();
             $profilePictureUrl = "https://picsum.photos/seed/{$userPk}/200/200";
+            $rawUsername = $faker->unique()->userName;
+            // Sikrer max 20 tegn for at matche schema/validering
+            $username = substr(preg_replace('/[^A-Za-z0-9._]/', '', $rawUsername), 0, 20) ?: 'user' . $i;
 
             DB::table('users')->insert([
                 'user_pk' => $userPk,
-                'user_username' => $faker->unique()->userName,
+                'user_username' => $username,
                 'user_email' => $faker->unique()->safeEmail,
                 'user_password' => bcrypt('password'),
                 'user_full_name' => $faker->name,

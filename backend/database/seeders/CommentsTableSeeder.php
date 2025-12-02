@@ -22,8 +22,8 @@ class CommentsTableSeeder extends Seeder
             return;
         }
 
-        // Generer 100 dummy comments
-        for ($i = 0; $i < 100; $i++) {
+        // Generer et større datasæt
+        for ($i = 0; $i < 2000; $i++) {
             $commentPk = Str::uuid();
             $randomUserPk = $users->random();
             $randomPostPk = $posts->random();
@@ -34,7 +34,6 @@ class CommentsTableSeeder extends Seeder
                 'comment_user_fk' => $randomUserPk,
                 'comment_message' => $faker->realText(rand(10, 140)),
                 'created_at' => now(),
-                'updated_at' => now(),
             ]);
         }
     }

@@ -5,6 +5,8 @@ const UserTabs = ({
   setActiveTab,
   followersCount,
   followingCount,
+  postsCount,
+  repostCount,
 }) => {
   const [isSmall, setIsSmall] = useState(
     window.matchMedia("(max-width: 600px)").matches
@@ -26,14 +28,22 @@ const UserTabs = ({
       <button
         className={`user-tab ${activeTab === "posts" ? "active" : ""}`}
         onClick={() => setActiveTab("posts")}>
-        {isSmall ? <i className="fa-solid fa-pen"></i> : "Posts"}
+        {isSmall ? (
+          <i className="fa-solid fa-pen"></i> 
+        ) : (
+          `Posts (${postsCount})`
+          )}
       </button>
 
       {/* REPOSTS */}
       <button
         className={`user-tab ${activeTab === "reposts" ? "active" : ""}`}
         onClick={() => setActiveTab("reposts")}>
-        {isSmall ? <i className="fa-solid fa-retweet"></i> : "Reposts"}
+        {isSmall ? (
+          <i className="fa-solid fa-retweet"></i> 
+        ) : (
+           `Reposts (${repostCount})`
+           )}
       </button>
 
       {/* FOLLOWERS */}

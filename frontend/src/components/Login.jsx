@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import {
   extractFieldErrors,
   parseApiErrorMessage,
-  validateLogin,
+  validateFields,
 } from "../utils/validation";
 import FieldError from "./FieldError";
 
@@ -27,7 +27,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const clientErrors = validateLogin(formData);
+    const clientErrors = validateFields(formData, ["user_email", "user_password"]);
     if (Object.keys(clientErrors).length > 0) {
       setErrors(clientErrors);
       return;

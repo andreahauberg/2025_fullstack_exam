@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import NavBar from "../components/NavBar";
 import WhoToFollow from "../components/WhoToFollow";
 import Trending from "../components/Trending";
 import UserHeader from "../components/UserHeader";
-import UserStats from "../components/UserStats";
+// import UserStats from "../components/UserStats";
 import UserList from "../components/UserList";
 import UserPosts from "../components/UserPosts";
 import UserTabs from "../components/UserTabs";
@@ -13,7 +13,7 @@ import ConfirmationDialog from "../components/ConfirmationDialog";
 import PostDialog from "../components/PostDialog";
 import Post from "../components/Post";
 import "../css/UserPage.css";
-import { extractFieldErrors, parseApiErrorMessage, validateProfileUpdate } from "../utils/validation";
+import { extractFieldErrors, parseApiErrorMessage, validateFields } from "../utils/validation";
 import LoadingOverlay from "../components/LoadingOverlay";
 import { useDocumentTitle } from "../utils/useDocumentTitle";
 
@@ -38,8 +38,10 @@ const ProfilePage = () => {
   const repostPageRef = useRef(1);
   const repostLoadingRef = useRef(false);
   const repostHasMoreRef = useRef(true);
-  const [activeTab, setActiveTab] = useState("posts"); // posts | reposts | followers | following
+  const [activeTab, setActiveTab] = useState("posts");
   const [isFollowing, setIsFollowing] = useState(false);
+  const [latestPost, setLatestPost] = useState(null);
+  const hasLoadedRepostsRef = useRef(false);
   const profileTitle = user?.user_username ? `${user.user_full_name || user.user_username} (@${user.user_username}) / X` : "Profile";
   useDocumentTitle(profileTitle);
 
@@ -52,7 +54,7 @@ const ProfilePage = () => {
   }, [hasMoreReposts]);
 
   const currentUserPk = localStorage.getItem("user_pk");
-  const isCurrentUser = user?.user_pk === currentUserPk;
+  const isCurrentUser = user?.user_pk !== undefined && String(user.user_pk) === String(currentUserPk);
 
   const fetchData = async () => {
     try {
@@ -72,6 +74,7 @@ const ProfilePage = () => {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
+      console.log("User response data:", userResponse.data);
       if (!userResponse.data?.user) {
         navigate("/404", { replace: true, state: { missingUsername: username } });
         return;
@@ -107,7 +110,7 @@ const ProfilePage = () => {
     }
   };
 
-  const fetchRepostPosts = async () => {
+  const fetchRepostPosts = useCallback(async () => {
     if (repostLoadingRef.current || !repostHasMoreRef.current) return;
     setIsRepostsLoading(true);
     try {
@@ -123,6 +126,7 @@ const ProfilePage = () => {
       const more = response.data.current_page < response.data.last_page;
       setHasMoreReposts(more);
       if (more) repostPageRef.current += 1;
+      hasLoadedRepostsRef.current = true;
     } catch (err) {
       console.error("Error fetching reposts:", err.response?.data || err.message);
       setRepostPosts([]);
@@ -130,7 +134,7 @@ const ProfilePage = () => {
     } finally {
       setIsRepostsLoading(false);
     }
-  };
+  }, [username]);
 
   useEffect(() => {
     fetchData();
@@ -164,24 +168,39 @@ const ProfilePage = () => {
   }, [user, location.hash]);
 
   useEffect(() => {
-    // reset repost pagination when user changes
     setRepostPosts([]);
     setHasMoreReposts(true);
     repostPageRef.current = 1;
     repostHasMoreRef.current = true;
     repostLoadingRef.current = false;
+    hasLoadedRepostsRef.current = false;
+    setLatestPost(null);
+    if (activeTab === "reposts") fetchRepostPosts();
+  }, [username, activeTab, fetchRepostPosts]);
+
+  useEffect(() => {
+    if (activeTab !== "reposts") return;
+    if (hasLoadedRepostsRef.current) return;
     fetchRepostPosts();
-  }, [username]);
+  }, [activeTab, fetchRepostPosts]);
 
   useEffect(() => {
     const handleRepostsUpdate = (event) => {
       const updatedPost = event.detail?.post;
       if (!updatedPost?.post_pk) return;
+
       setRepostPosts((prev) => {
         const filtered = (prev || []).filter((p) => p.post_pk !== updatedPost.post_pk);
         return updatedPost.is_reposted_by_user ? [updatedPost, ...filtered] : filtered;
       });
+
+      // Opdater repost_count
+      setUser((prev) => ({
+        ...prev,
+        reposts_count: updatedPost.is_reposted_by_user ? Number(prev.reposts_count || 0) + 1 : Math.max(0, Number(prev.reposts_count || 0) - 1),
+      }));
     };
+
     window.addEventListener("reposts-updated", handleRepostsUpdate);
     return () => window.removeEventListener("reposts-updated", handleRepostsUpdate);
   }, []);
@@ -200,7 +219,11 @@ const ProfilePage = () => {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [activeTab]);
+  }, [activeTab, fetchRepostPosts]);
+
+  useEffect(() => {
+    console.log("Following list updated:", following);
+  }, [following]);
 
   const handleEdit = () => {
     setFormErrors({});
@@ -208,7 +231,7 @@ const ProfilePage = () => {
   };
 
   const handleSaveEdit = async () => {
-    const clientErrors = validateProfileUpdate(editedUser);
+    const clientErrors = validateFields(editedUser, ["user_full_name", "user_username", "user_email"]);
     if (Object.keys(clientErrors).length > 0) {
       setFormErrors(clientErrors);
       return;
@@ -291,6 +314,8 @@ const ProfilePage = () => {
 
   const handleSidebarFollowChange = (isNowFollowing, targetUser) => {
     if (!targetUser?.user_pk) return;
+
+    // Opdater following-listen optimistisk
     setFollowing((prev) => {
       if (isNowFollowing) {
         const exists = prev.some((u) => String(u.user_pk) === String(targetUser.user_pk));
@@ -306,6 +331,12 @@ const ProfilePage = () => {
       }
       return prev.filter((u) => String(u.user_pk) !== String(targetUser.user_pk));
     });
+
+    // Opdater following-counten optimistisk
+    setUser((prev) => ({
+      ...prev,
+      following_count: isNowFollowing ? Number(prev.following_count || 0) + 1 : Math.max(0, Number(prev.following_count || 0) - 1),
+    }));
   };
 
   const handleDeleteProfile = async () => {
@@ -330,6 +361,18 @@ const ProfilePage = () => {
 
   const handleUpdateRepostPost = (updatedPost) => {
     setRepostPosts((prev) => (prev || []).map((p) => (p.post_pk === updatedPost.post_pk ? { ...p, ...updatedPost } : p)));
+
+    // Opdater repost_count baseret på, om brugeren har repostet eller fjernet repost
+    setUser((prev) => ({
+      ...prev,
+      reposts_count: updatedPost.is_reposted_by_user ? Number(prev.reposts_count || 0) + 1 : Math.max(0, Number(prev.reposts_count || 0) - 1),
+    }));
+  };
+
+  const handlePostCreated = (newPost) => {
+    if (!newPost?.post_pk || !isCurrentUser) return;
+    setLatestPost(newPost);
+    setUser((prev) => (prev ? { ...prev, posts_count: Number(prev.posts_count || 0) + 1 } : prev));
   };
 
   return (
@@ -337,32 +380,25 @@ const ProfilePage = () => {
       <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
       <main className="user-main">
         <UserHeader user={user} setUser={setUser} isEditing={isEditing} editedUser={editedUser} formErrors={formErrors} handleChange={handleChange} handleEdit={handleEdit} handleSaveEdit={handleSaveEdit} setIsEditing={setIsEditing} isCurrentUser={isCurrentUser} onFollowToggle={handleFollowToggle} isFollowing={isFollowing} onDeleteProfile={() => setIsDeleteDialogOpen(true)} />
-        <UserStats postsCount={user.posts_count || 0} followersCount={followers.length} followingCount={following.length} />
-        <UserTabs activeTab={activeTab} setActiveTab={setActiveTab} followersCount={followers.length} followingCount={following.length} />
+        <UserTabs activeTab={activeTab} setActiveTab={setActiveTab} followersCount={followers.length} followingCount={following.length} postsCount={user.posts_count || 0} repostCount={user.reposts_count || 0} />
 
         <div className="user-tab-panels">
-          {activeTab === "posts" && <UserPosts userPk={user?.user_pk} isCurrentUser={isCurrentUser} />}
+          {activeTab === "posts" && <UserPosts userPk={user?.user_pk} isCurrentUser={isCurrentUser} newPost={latestPost} />}
           {activeTab === "reposts" && (
             <>
               {isRepostsLoading && <p className="loading-message">Loading reposts...</p>}
               {!isRepostsLoading && repostPosts && repostPosts.length > 0 ? repostPosts.map((post) => <Post key={post.post_pk} post={post} onUpdatePost={handleUpdateRepostPost} onDeletePost={null} hideHeader={false} />) : !isRepostsLoading && <p className="empty-message">No reposts yet.</p>}
             </>
           )}
-          {activeTab === "followers" && <UserList title="Followers" users={followers} emptyMessage="No followers yet." />}
-          {activeTab === "following" && <UserList title="Following" users={following} emptyMessage="Not following anyone yet." />}
+          {activeTab === "followers" && <UserList title="Followers" users={followers} emptyMessage="No followers yet." onFollowChange={handleSidebarFollowChange} setUser={setUser} />}
+          {activeTab === "following" && <UserList title="Following" users={following} emptyMessage="Not following anyone yet." onFollowChange={handleSidebarFollowChange} setUser={setUser} />}
         </div>
       </main>
       <aside className="user-aside">
         <Trending trending={trending} />
         <WhoToFollow users={usersToFollow} onFollowChange={handleSidebarFollowChange} />
       </aside>
-      <PostDialog
-        isOpen={isPostDialogOpen}
-        onClose={() => setIsPostDialogOpen(false)}
-        onSuccess={(newPost) => {
-          // UserPosts håndterer opdateringen internt via handlePostCreated
-        }}
-      />
+      <PostDialog isOpen={isPostDialogOpen} onClose={() => setIsPostDialogOpen(false)} onSuccess={handlePostCreated} />
       <ConfirmationDialog isOpen={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)} onConfirm={handleDeleteProfile} title="Delete Profile" message="Are you sure you want to delete your profile? This action cannot be undone." />
     </div>
   );

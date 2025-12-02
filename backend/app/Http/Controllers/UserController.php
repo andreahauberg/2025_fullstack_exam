@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -38,17 +39,38 @@ class UserController extends Controller
 public function show($userIdentifier)
 {
     try {
+        $currentUser = Auth::user();
         $user = User::with(['posts.user', 'followers', 'following'])
             ->withCount(['posts', 'followers', 'following'])
             ->where('user_pk', $userIdentifier)
             ->orWhere('user_username', $userIdentifier)
             ->firstOrFail();
 
+        // Hent reposts_count fra user_engagements view
+        $engagement = DB::table('user_engagements')
+            ->where('user_pk', $user->user_pk)
+            ->first();
+
+        // Tilføj reposts_count til user-objektet
+        $user->reposts_count = $engagement->reposts_count ?? 0;
+
+        // Tilføj is_following til followers
+        $followers = $user->followers->map(function ($follower) use ($currentUser) {
+            $follower->is_following = $currentUser ? $currentUser->isFollowing($follower) : false;
+            return $follower;
+        });
+
+        // Tilføj is_following til following
+        $following = $user->following->map(function ($followedUser) use ($currentUser) {
+            $followedUser->is_following = $currentUser ? $currentUser->isFollowing($followedUser) : false;
+            return $followedUser;
+        });
+
         return response()->json([
             'user' => $user,
             'posts' => $user->posts,
-            'followers' => $user->followers,
-            'following' => $user->following,
+            'followers' => $followers,
+            'following' => $following,
         ]);
     } catch (\Exception $e) {
         \Log::error('Error fetching user data: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
@@ -58,6 +80,8 @@ public function show($userIdentifier)
         ], 500);
     }
 }
+
+
 
 
 
@@ -90,7 +114,17 @@ public function show($userIdentifier)
     {
         try {
             $user = User::findOrFail($userPk);
-            $user->delete();
+
+            DB::transaction(function () use ($user) {
+                $now = now();
+                // Soft-delete brugerens posts
+                DB::table('posts')
+                    ->where('post_user_fk', $user->user_pk)
+                    ->update(['deleted_at' => $now]);
+
+                // Soft-delete user
+                $user->delete();
+            });
 
             return response()->json(['message' => 'User deleted successfully.']);
         } catch (\Exception $e) {

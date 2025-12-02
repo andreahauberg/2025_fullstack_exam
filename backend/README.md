@@ -57,3 +57,9 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Project-specific notes
+
+- Database users/privileges (MySQL only) are provisioned by the migration `2025_12_10_001000_create_app_db_users`. Configure these env vars before running migrations:
+  - `APP_DB_USERNAME` / `APP_DB_PASSWORD`: application user (SELECT/INSERT/UPDATE/DELETE)
+  - `ADMIN_DB_USERNAME` / `ADMIN_DB_PASSWORD`: admin user (ALL PRIVILEGES on the app DB)
