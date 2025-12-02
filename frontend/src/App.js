@@ -6,6 +6,8 @@ import ProfilePage from "./Pages/ProfilePage";
 import NotificationsPage from "./Pages/NotificationsPage";
 import UserPage from "./Pages/UserPage";
 import NotFoundPage from "./Pages/NotFoundPage";
+import ErrorPage from "./Pages/ErrorPage";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const isAuthenticated = () => Boolean(localStorage.getItem("token"));
 
@@ -24,7 +26,9 @@ const PublicRoute = ({ children }) => {
 };
 
 const App = () => {
+  
   return (
+    <ErrorBoundary>
     <Router>
       <Routes>
         <Route
@@ -59,6 +63,7 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+        <Route path="/error" element={<ErrorPage />} />
         <Route
           path="/user/:username"
           element={
@@ -71,6 +76,7 @@ const App = () => {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>
+    </ErrorBoundary>
   );
 };
 
