@@ -4,12 +4,10 @@ const ImagePlaceholder = ({ src, alt = "", className = "", style = {}, aspect = 
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
 
-  // Avoid forcing width so external CSS (avatar sizes) can control dimensions.
+  // Keep wrapper minimal so external CSS (avatar sizes, border-radius) can control appearance.
   const wrapperStyle = {
     position: "relative",
-    display: "inline-block",
     overflow: "hidden",
-    borderRadius: 12,
     background: "linear-gradient(180deg,#eef3f6,#e6edf1)",
     ...style,
   };
