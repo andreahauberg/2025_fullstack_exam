@@ -13,25 +13,52 @@ import ConfirmationDialog from "../components/ConfirmationDialog";
 import PostDialog from "../components/PostDialog";
 import Post from "../components/Post";
 import "../css/UserPage.css";
-import { extractFieldErrors, parseApiErrorMessage, validateFields } from "../utils/validation";
 import LoadingOverlay from "../components/LoadingOverlay";
 import { useDocumentTitle } from "../utils/useDocumentTitle";
+import { useFollowActions } from "../hooks/useFollowActions";
+import { useProfileData } from "../hooks/useProfileData";
+import { useProfileEditing } from "../hooks/useProfileEditing";
 
 const ProfilePage = () => {
   const { username } = useParams();
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [followers, setFollowers] = useState([]);
-  const [following, setFollowing] = useState([]);
+  const {
+    user,
+    setUser,
+    followers,
+    setFollowers,
+    following,
+    setFollowing,
+    usersToFollow,
+    trending,
+    isFollowing,
+    setIsFollowing,
+    isLoading,
+    error,
+    setError,
+  } = useProfileData(username);
+  const {
+    isEditing,
+    editedUser,
+    formErrors,
+    handleChange,
+    handleEdit,
+    handleCancelEdit,
+    handleSaveEdit,
+  } = useProfileEditing(user, setUser, setError);
+  const { handleFollowToggle, handleSidebarFollowChange } = useFollowActions({
+    user,
+    setUser,
+    followers,
+    setFollowers,
+    following,
+    setFollowing,
+    isFollowing,
+    setIsFollowing,
+    setError,
+  });
   const [repostPosts, setRepostPosts] = useState([]);
-  const [usersToFollow, setUsersToFollow] = useState([]);
-  const [trending, setTrending] = useState([]);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedUser, setEditedUser] = useState({});
-  const [formErrors, setFormErrors] = useState({});
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
   const [isRepostsLoading, setIsRepostsLoading] = useState(false);
   const [hasMoreReposts, setHasMoreReposts] = useState(true);
@@ -39,7 +66,6 @@ const ProfilePage = () => {
   const repostLoadingRef = useRef(false);
   const repostHasMoreRef = useRef(true);
   const [activeTab, setActiveTab] = useState("posts");
-  const [isFollowing, setIsFollowing] = useState(false);
   const [latestPost, setLatestPost] = useState(null);
   const hasLoadedRepostsRef = useRef(false);
   const profileTitle = user?.user_username ? `${user.user_full_name || user.user_username} (@${user.user_username}) / X` : "Profile";
@@ -55,60 +81,6 @@ const ProfilePage = () => {
 
   const currentUserPk = localStorage.getItem("user_pk");
   const isCurrentUser = user?.user_pk !== undefined && String(user.user_pk) === String(currentUserPk);
-
-  const fetchData = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/");
-        return;
-      }
-      const [userResponse, trendingResponse, usersToFollowResponse] = await Promise.all([
-        api.get(`/users/${username}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        api.get("/trending", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        api.get("/users-to-follow", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-      console.log("User response data:", userResponse.data);
-      if (!userResponse.data?.user) {
-        navigate("/404", { replace: true, state: { missingUsername: username } });
-        return;
-      }
-      setUser(userResponse.data.user);
-      setEditedUser(userResponse.data.user);
-      setFollowers(userResponse.data.followers);
-      setFollowing(userResponse.data.following);
-      setIsFollowing(userResponse.data.followers?.some((f) => f.user_pk === currentUserPk) || false);
-      setTrending(trendingResponse.data);
-      setUsersToFollow(usersToFollowResponse.data);
-    } catch (error) {
-      console.error("Error fetching data:", error.response?.data || error.message);
-      const status = error.response?.status;
-      const backendError = error.response?.data?.error || "";
-      const backendMessage = error.response?.data?.message || "";
-      const isMissingUser = status === 404 || backendError === "User not found." || backendMessage.includes("No query results") || backendMessage.includes("User not found");
-      if (isMissingUser) {
-        setIsLoading(false);
-        navigate("/404", { replace: true, state: { missingUsername: username } });
-        return;
-      }
-      if (status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user_pk");
-        localStorage.removeItem("user_username");
-        navigate("/");
-        return;
-      }
-      setError("Failed to load data.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const fetchRepostPosts = useCallback(async () => {
     if (repostLoadingRef.current || !repostHasMoreRef.current) return;
@@ -134,10 +106,6 @@ const ProfilePage = () => {
     } finally {
       setIsRepostsLoading(false);
     }
-  }, [username]);
-
-  useEffect(() => {
-    fetchData();
   }, [username]);
 
   const location = useLocation();
@@ -225,120 +193,6 @@ const ProfilePage = () => {
     console.log("Following list updated:", following);
   }, [following]);
 
-  const handleEdit = () => {
-    setFormErrors({});
-    setIsEditing(true);
-  };
-
-  const handleSaveEdit = async () => {
-    const clientErrors = validateFields(editedUser, ["user_full_name", "user_username", "user_email"]);
-    if (Object.keys(clientErrors).length > 0) {
-      setFormErrors(clientErrors);
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await api.put(`/users/${user?.user_pk}`, editedUser, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setUser(response.data);
-      setIsEditing(false);
-      setFormErrors({});
-    } catch (error) {
-      const backendErrors = extractFieldErrors(error);
-      if (Object.keys(backendErrors).length > 0) {
-        setFormErrors(backendErrors);
-      } else {
-        setError(parseApiErrorMessage(error, "Failed to update user data."));
-      }
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setEditedUser((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleFollowToggle = async () => {
-    const currentUserPk = localStorage.getItem("user_pk");
-    const currentUsername = localStorage.getItem("user_username");
-    const wasFollowing = isFollowing;
-    setIsFollowing(!wasFollowing);
-    setFollowers((prev) =>
-      wasFollowing
-        ? prev.filter((f) => String(f.user_pk) !== String(currentUserPk))
-        : [
-            ...prev,
-            {
-              user_pk: currentUserPk,
-              user_username: currentUsername,
-              user_full_name: currentUsername,
-            },
-          ]
-    );
-
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/");
-        return;
-      }
-
-      if (wasFollowing) {
-        await api.delete(`/follows/${user?.user_pk}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-      } else {
-        await api.post("/follows", { followed_user_fk: user?.user_pk }, { headers: { Authorization: `Bearer ${token}` } });
-      }
-    } catch (err) {
-      setIsFollowing(wasFollowing);
-      setFollowers((prev) =>
-        wasFollowing
-          ? [
-              ...prev,
-              {
-                user_pk: currentUserPk,
-                user_username: currentUsername,
-                user_full_name: currentUsername,
-              },
-            ]
-          : prev.filter((f) => String(f.user_pk) !== String(currentUserPk))
-      );
-      console.error("Error updating follow status:", err.response?.data || err.message);
-      setError("Failed to update follow status.");
-    }
-  };
-
-  const handleSidebarFollowChange = (isNowFollowing, targetUser) => {
-    if (!targetUser?.user_pk) return;
-
-    // Opdater following-listen optimistisk
-    setFollowing((prev) => {
-      if (isNowFollowing) {
-        const exists = prev.some((u) => String(u.user_pk) === String(targetUser.user_pk));
-        if (exists) return prev;
-        return [
-          ...prev,
-          {
-            user_pk: targetUser.user_pk,
-            user_username: targetUser.user_username,
-            user_full_name: targetUser.user_full_name,
-          },
-        ];
-      }
-      return prev.filter((u) => String(u.user_pk) !== String(targetUser.user_pk));
-    });
-
-    // Opdater following-counten optimistisk
-    setUser((prev) => ({
-      ...prev,
-      following_count: isNowFollowing ? Number(prev.following_count || 0) + 1 : Math.max(0, Number(prev.following_count || 0) - 1),
-    }));
-  };
-
   const handleDeleteProfile = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -379,7 +233,21 @@ const ProfilePage = () => {
     <div id="container">
       <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
       <main className="user-main">
-        <UserHeader user={user} setUser={setUser} isEditing={isEditing} editedUser={editedUser} formErrors={formErrors} handleChange={handleChange} handleEdit={handleEdit} handleSaveEdit={handleSaveEdit} setIsEditing={setIsEditing} isCurrentUser={isCurrentUser} onFollowToggle={handleFollowToggle} isFollowing={isFollowing} onDeleteProfile={() => setIsDeleteDialogOpen(true)} />
+        <UserHeader
+          user={user}
+          setUser={setUser}
+          isEditing={isEditing}
+          editedUser={editedUser}
+          formErrors={formErrors}
+          handleChange={handleChange}
+          handleEdit={handleEdit}
+          handleSaveEdit={handleSaveEdit}
+          handleCancelEdit={handleCancelEdit}
+          isCurrentUser={isCurrentUser}
+          onFollowToggle={handleFollowToggle}
+          isFollowing={isFollowing}
+          onDeleteProfile={() => setIsDeleteDialogOpen(true)}
+        />
         <UserTabs activeTab={activeTab} setActiveTab={setActiveTab} followersCount={followers.length} followingCount={following.length} postsCount={user.posts_count || 0} repostCount={user.reposts_count || 0} />
 
         <div className="user-tab-panels">

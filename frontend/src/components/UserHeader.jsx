@@ -17,7 +17,7 @@ const UserHeader = ({
   isFollowing,
   onDeleteProfile,
   formErrors = {},
-  setIsEditing,
+  handleCancelEdit,
 }) => {
   const [profilePicture, setProfilePicture] = useState(null);
   const [uploadError, setUploadError] = useState("");
@@ -132,9 +132,8 @@ const UserHeader = ({
 
   const closeActionsMenu = () => setIsActionsMenuOpen(false);
 
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    
+  const handleCancelClick = () => {
+    handleCancelEdit?.();
   };
 
 
@@ -249,7 +248,7 @@ const UserHeader = ({
                 <button className="save-btn" onClick={handleSaveEdit}>
                   Save
                 </button>
-                <button className="cancel-btn" onClick={handleCancelEdit}>
+                <button className="cancel-btn" onClick={handleCancelClick}>
                   Cancel
                 </button>
               </div>
