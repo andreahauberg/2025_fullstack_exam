@@ -2,7 +2,7 @@
 set -e
 cd /var/www/html
 
-# Tjek om migrations-tabellen eksisterer og har data
+# Kør migrations, hvis migrations-tabellen ikke eksisterer eller er tom
 if ! php artisan migrate:status | grep -q "batch"; then
     echo "Kører migrations..."
     php artisan migrate --force
