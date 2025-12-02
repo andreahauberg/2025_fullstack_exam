@@ -37,14 +37,18 @@ COPY .env.example .env
 # Installer Composer-afhængigheder
 RUN composer install --no-dev --optimize-autoloader
 
-# Kør Laravel kommandoer
+# Kør Laravel kommandoer (kun key:generate og config:clear)
 RUN php artisan key:generate
 RUN php artisan config:clear
-RUN php artisan migrate --force
 
 # Sæt rettigheder for Laravel storage
 RUN chown -R www-data:www-data /var/www/html/storage
 RUN chmod -R 775 /var/www/html/storage
 
-# Start Apache
+# Kopier entrypoint.sh og gør den eksekverbar
+COPY docker/entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Brug entrypoint.sh som entrypoint
+ENTRYPOINT ["entrypoint.sh"]
 CMD ["apache2-foreground"]
