@@ -1,5 +1,4 @@
 name: CI
-
 on:
   push:
     branches: [main, master]
@@ -15,17 +14,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.2"
           extensions: mbstring, pdo_mysql, dom, curl, fileinfo
           coverage: none
-
       - name: Install Composer dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
-
       - name: Copy env
         run: |
           if [ -f .env.example ]; then
@@ -33,12 +29,51 @@ jobs:
           else
             echo "APP_KEY=" > .env
           fi
-
       - name: Generate app key
         run: php artisan key:generate
-
       - name: Run backend tests
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ":memory:"
         run: php artisan test
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install npm dependencies
+        run: npm install
+      - name: Run frontend tests
+        run: npm test
+
+  deploy-to-azure:
+    needs: [backend-tests, frontend-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Build and deploy backend
+        run: |
+          cd backend
+          # Her skal du tilføje kommandoer til at bygge og deploye backend til Azure (f.eks. med Azure CLI eller Docker)
+          # Eksempel: docker build -t myapp-backend .
+          # az webapp up --name myapp-backend --resource-group mygroup --sku B1
+      - name: Build and deploy frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+          # Her skal du tilføje kommandoer til at deploye frontend til Azure (f.eks. med Azure Static Web Apps CLI)
+          # Eksempel: az staticwebapp deploy --name myapp-frontend --resource-group mygroup --source ./build
