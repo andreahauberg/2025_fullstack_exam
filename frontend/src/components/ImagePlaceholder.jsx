@@ -1,22 +1,26 @@
 import React, { useState } from "react";
 
-const ImagePlaceholder = ({ src, alt = "", className = "", style = {}, aspect = "16/9" }) => {
+const ImagePlaceholder = ({ src, alt = "", className = "", style = {}, aspect = null, placeholderSrc = null }) => {
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+
+  // Avoid forcing width so external CSS (avatar sizes) can control dimensions.
   const wrapperStyle = {
     position: "relative",
-    width: "100%",
-    aspectRatio: aspect,
+    display: "inline-block",
     overflow: "hidden",
     borderRadius: 12,
     background: "linear-gradient(180deg,#eef3f6,#e6edf1)",
     ...style,
   };
 
+  if (aspect) wrapperStyle.aspectRatio = aspect;
+
   const placeholderStyle = {
     position: "absolute",
     inset: 0,
-    display: loaded ? "none" : "block",
-    background: "linear-gradient(180deg,#eef3f6,#e6edf1)",
+    display: !loaded && !error ? "block" : "none",
+    background: placeholderSrc ? `url(${placeholderSrc}) center/cover no-repeat` : "linear-gradient(180deg,#eef3f6,#e6edf1)",
   };
 
   const imgStyle = {
@@ -26,14 +30,14 @@ const ImagePlaceholder = ({ src, alt = "", className = "", style = {}, aspect = 
     height: "100%",
     objectFit: "cover",
     transition: "opacity 240ms ease-in",
-    opacity: loaded ? 1 : 0,
-    display: "block",
+    opacity: loaded && !error ? 1 : 0,
+    display: loaded && !error ? "block" : "none",
   };
 
   return (
     <div className={className} style={wrapperStyle}>
       <div style={placeholderStyle} />
-      <img src={src} alt={alt} style={imgStyle} onLoad={() => setLoaded(true)} onError={() => setLoaded(true)} />
+      {!error && <img src={src} alt={alt} style={imgStyle} onLoad={() => setLoaded(true)} onError={() => setError(true)} />}
     </div>
   );
 };
