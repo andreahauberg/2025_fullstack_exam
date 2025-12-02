@@ -1,0 +1,105 @@
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.notifications-header__title {
+  margin: 0;
+}
+
+.notifications-header__mark-all {
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+
+.notifications-header__mark-all:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notification-card {
+  padding: 12px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  background: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notification-card--unread {
+  background: #faf6ff;
+}
+
+.notification-card__clickzone {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  cursor: pointer;
+  flex: 1;
+}
+
+.notification-card__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.notification-card__content {
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-card__text {
+  font-weight: 700;
+}
+
+.notification-card__meta {
+  color: #666;
+  margin-top: 6px;
+}
+
+.notification-card__actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.notification-card__btn {
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+}
+
+.notification-card__btn--delete {
+  color: red;
+}
+
+@media (min-width: 768px) {
+  .notifications-header {
+    margin-bottom: 16px;
+  }
+
+  .notifications-list {
+    gap: 16px;
+  }
+
+  .notification-card {
+    padding: 16px;
+  }
+}

@@ -10,6 +10,7 @@ import { formatRelativeTime } from "../utils/timeUtils";
 import { useNavigate } from "react-router-dom";
 import { buildProfilePath } from "../utils/urlHelpers";
 import { useDocumentTitle } from "../utils/useDocumentTitle";
+import "../css/NotificationsPage.css";
 
 const NotificationsPage = () => {
   useDocumentTitle("Notifications");
@@ -31,7 +32,10 @@ const NotificationsPage = () => {
       setNotifications(data.data || []);
       setUnreadCount(data.meta?.unread_count ?? 0);
     } catch (err) {
-      console.error("Failed to fetch notifications:", err.response || err.message);
+      console.error(
+        "Failed to fetch notifications:",
+        err.response || err.message
+      );
       setNotifications([]);
     } finally {
       setLoading(false);
@@ -46,11 +50,19 @@ const NotificationsPage = () => {
   const fetchSidebarData = async () => {
     try {
       const token = localStorage.getItem("token");
-      const [trendingResp, usersResp] = await Promise.all([api.get("/trending", { headers: { Authorization: `Bearer ${token}` } }), api.get("/users-to-follow", { headers: { Authorization: `Bearer ${token}` } })]);
+      const [trendingResp, usersResp] = await Promise.all([
+        api.get("/trending", { headers: { Authorization: `Bearer ${token}` } }),
+        api.get("/users-to-follow", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
       setTrending(trendingResp.data || []);
       setUsersToFollow(usersResp.data || []);
     } catch (err) {
-      console.error("Failed to fetch sidebar data:", err.response || err.message);
+      console.error(
+        "Failed to fetch sidebar data:",
+        err.response || err.message
+      );
       setTrending([]);
       setUsersToFollow([]);
     }
@@ -63,7 +75,10 @@ const NotificationsPage = () => {
     const authorUsername = n?.data?.author_username;
     const authorPk = n?.data?.author_pk;
     if (!authorUsername || !authorPk) return;
-    const path = buildProfilePath({ user_username: authorUsername, user_pk: authorPk });
+    const path = buildProfilePath({
+      user_username: authorUsername,
+      user_pk: authorPk,
+    });
     if (!path || path === "#") return;
     const hash = postPk ? `#post-${postPk}` : "";
     navigate(`${path}${hash}`);
@@ -75,7 +90,11 @@ const NotificationsPage = () => {
       await api.post(`/notifications/${id}/read`, null, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read_at: new Date().toISOString() } : n)));
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === id ? { ...n, read_at: new Date().toISOString() } : n
+        )
+      );
       setUnreadCount((c) => Math.max(0, c - 1));
     } catch (err) {
       console.error("Failed to mark as read", err.response || err.message);
@@ -91,7 +110,10 @@ const NotificationsPage = () => {
       setNotifications((prev) => prev.filter((n) => n.id !== id));
       setUnreadCount((c) => Math.max(0, c - 1));
     } catch (err) {
-      console.error("Failed to delete notification", err.response || err.message);
+      console.error(
+        "Failed to delete notification",
+        err.response || err.message
+      );
     }
   };
 
@@ -101,7 +123,9 @@ const NotificationsPage = () => {
       await api.post(`/notifications/read-all`, null, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setNotifications((prev) => prev.map((n) => ({ ...n, read_at: new Date().toISOString() })));
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, read_at: new Date().toISOString() }))
+      );
       setUnreadCount(0);
     } catch (err) {
       console.error("Failed to mark all as read", err.response || err.message);
@@ -111,40 +135,74 @@ const NotificationsPage = () => {
   return (
     <div id="container">
       <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
+
       <main>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <h1 style={{ margin: 0 }}>Notifications</h1>
-          <div>
-            <button onClick={markAll} disabled={unreadCount === 0} style={{ background: "transparent", border: "none", color: "#888", cursor: unreadCount === 0 ? "default" : "pointer" }}>
-              Mark all as read
-            </button>
-          </div>
+        <div className="notifications-header">
+          <h1 className="notifications-header__title">Notifications</h1>
+
+          <button
+            onClick={markAll}
+            disabled={unreadCount === 0}
+            className="notifications-header__mark-all">
+            Mark all as read
+          </button>
         </div>
 
         {loading && <LoadingOverlay message="Loading notifications..." />}
 
-        {!loading && notifications.length === 0 && <p className="empty-message">No notifications</p>}
+        {!loading && notifications.length === 0 && (
+          <p className="empty-message">No notifications</p>
+        )}
 
         {!loading && notifications.length > 0 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className="notifications-list">
             {notifications.map((n) => (
-              <div key={n.id} style={{ padding: 12, border: "1px solid #eee", borderRadius: 8, background: n.read_at ? "#fff" : "#faf6ff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div onClick={() => goToProfileWithPost(n)} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && goToProfileWithPost(n)} style={{ display: "flex", gap: 12, alignItems: "center", cursor: "pointer", flex: 1 }}>
-                  <img src={getProfilePictureUrl(n.data?.author_profile_picture)} alt={n.data?.author_username || "avatar"} style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontWeight: 700 }}>{n.data?.excerpt || "New activity"}</div>
-                    <div style={{ color: "#666", marginTop: 6 }}>
-                      @{n.data?.author_username || ""} • {formatRelativeTime(n.data?.post_created_at || n.created_at)}
+              <div
+                key={n.id}
+                className={`notification-card ${
+                  !n.read_at ? "notification-card--unread" : ""
+                }`}>
+                <div
+                  className="notification-card__clickzone"
+                  onClick={() => goToProfileWithPost(n)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && goToProfileWithPost(n)
+                  }>
+                  <img
+                    src={getProfilePictureUrl(n.data?.author_profile_picture)}
+                    alt={n.data?.author_username || "avatar"}
+                    className="notification-card__avatar"
+                  />
+
+                  <div className="notification-card__content">
+                    <div className="notification-card__text">
+                      {n.data?.excerpt || "New activity"}
+                    </div>
+
+                    <div className="notification-card__meta">
+                      @{n.data?.author_username || ""} •{" "}
+                      {formatRelativeTime(
+                        n.data?.post_created_at || n.created_at
+                      )}
                     </div>
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+
+                <div className="notification-card__actions">
                   {!n.read_at && (
-                    <button onClick={() => markAsRead(n.id)} style={{ background: "transparent", border: "none", color: "#888", cursor: "pointer" }}>
+                    <button
+                      onClick={() => markAsRead(n.id)}
+                      className="notification-card__btn">
                       Mark
                     </button>
                   )}
-                  <button onClick={() => deleteNotification(n.id)} title="Delete notification" style={{ background: "transparent", border: "none", color: "red", cursor: "pointer" }}>
+
+                  <button
+                    onClick={() => deleteNotification(n.id)}
+                    className="notification-card__btn notification-card__btn--delete"
+                    title="Delete notification">
                     Delete
                   </button>
                 </div>
@@ -153,7 +211,13 @@ const NotificationsPage = () => {
           </div>
         )}
       </main>
-      <PostDialog isOpen={isPostDialogOpen} onClose={() => setIsPostDialogOpen(false)} onSuccess={(newPost) => {}} />
+
+      <PostDialog
+        isOpen={isPostDialogOpen}
+        onClose={() => setIsPostDialogOpen(false)}
+        onSuccess={() => {}}
+      />
+
       <aside>
         <Trending trending={trending} />
         <WhoToFollow users={usersToFollow} />
