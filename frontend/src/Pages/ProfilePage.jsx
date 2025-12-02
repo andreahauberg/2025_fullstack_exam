@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { api } from "../api";
 import NavBar from "../components/NavBar";
 import WhoToFollow from "../components/WhoToFollow";
@@ -13,11 +13,7 @@ import ConfirmationDialog from "../components/ConfirmationDialog";
 import PostDialog from "../components/PostDialog";
 import Post from "../components/Post";
 import "../css/UserPage.css";
-import {
-  extractFieldErrors,
-  parseApiErrorMessage,
-  validateProfileUpdate,
-} from "../utils/validation";
+import { extractFieldErrors, parseApiErrorMessage, validateProfileUpdate } from "../utils/validation";
 import LoadingOverlay from "../components/LoadingOverlay";
 import { useDocumentTitle } from "../utils/useDocumentTitle";
 
@@ -44,9 +40,7 @@ const ProfilePage = () => {
   const repostHasMoreRef = useRef(true);
   const [activeTab, setActiveTab] = useState("posts"); // posts | reposts | followers | following
   const [isFollowing, setIsFollowing] = useState(false);
-  const profileTitle = user?.user_username
-    ? `${user.user_full_name || user.user_username} (@${user.user_username}) / X`
-    : "Profile";
+  const profileTitle = user?.user_username ? `${user.user_full_name || user.user_username} (@${user.user_username}) / X` : "Profile";
   useDocumentTitle(profileTitle);
 
   useEffect(() => {
@@ -67,18 +61,17 @@ const ProfilePage = () => {
         navigate("/");
         return;
       }
-      const [userResponse, trendingResponse, usersToFollowResponse] =
-        await Promise.all([
-          api.get(`/users/${username}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          api.get("/trending", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          api.get("/users-to-follow", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
+      const [userResponse, trendingResponse, usersToFollowResponse] = await Promise.all([
+        api.get(`/users/${username}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        api.get("/trending", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        api.get("/users-to-follow", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
       if (!userResponse.data?.user) {
         navigate("/404", { replace: true, state: { missingUsername: username } });
         return;
@@ -87,25 +80,15 @@ const ProfilePage = () => {
       setEditedUser(userResponse.data.user);
       setFollowers(userResponse.data.followers);
       setFollowing(userResponse.data.following);
-      setIsFollowing(
-        userResponse.data.followers?.some((f) => f.user_pk === currentUserPk) ||
-          false
-      );
+      setIsFollowing(userResponse.data.followers?.some((f) => f.user_pk === currentUserPk) || false);
       setTrending(trendingResponse.data);
       setUsersToFollow(usersToFollowResponse.data);
     } catch (error) {
-      console.error(
-        "Error fetching data:",
-        error.response?.data || error.message
-      );
+      console.error("Error fetching data:", error.response?.data || error.message);
       const status = error.response?.status;
       const backendError = error.response?.data?.error || "";
       const backendMessage = error.response?.data?.message || "";
-      const isMissingUser =
-        status === 404 ||
-        backendError === "User not found." ||
-        backendMessage.includes("No query results") ||
-        backendMessage.includes("User not found");
+      const isMissingUser = status === 404 || backendError === "User not found." || backendMessage.includes("No query results") || backendMessage.includes("User not found");
       if (isMissingUser) {
         setIsLoading(false);
         navigate("/404", { replace: true, state: { missingUsername: username } });
@@ -129,17 +112,12 @@ const ProfilePage = () => {
     setIsRepostsLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await api.get(
-        `/users/${username}/reposts?page=${repostPageRef.current}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await api.get(`/users/${username}/reposts?page=${repostPageRef.current}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = response.data.data ?? response.data ?? [];
       setRepostPosts((prev) => {
-        const filtered = data.filter(
-          (p) => !prev.some((prevPost) => prevPost.post_pk === p.post_pk)
-        );
+        const filtered = data.filter((p) => !prev.some((prevPost) => prevPost.post_pk === p.post_pk));
         return [...prev, ...filtered];
       });
       const more = response.data.current_page < response.data.last_page;
@@ -157,6 +135,33 @@ const ProfilePage = () => {
   useEffect(() => {
     fetchData();
   }, [username]);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    // If URL contains a hash like #post-blablabla, attempt to scroll to that element.
+    const hash = location.hash;
+    if (!hash) return;
+    const id = hash.replace("#", "");
+    let attempts = 0;
+    const tryScroll = () => {
+      const el = document.getElementById(id);
+      if (el) {
+        try {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        } catch (e) {
+          el.scrollIntoView();
+        }
+        return;
+      }
+      if (attempts < 6) {
+        attempts += 1;
+        setTimeout(tryScroll, 300);
+      }
+    };
+    // Delay a bit to allow child components to mount
+    setTimeout(tryScroll, 50);
+  }, [user, location.hash]);
 
   useEffect(() => {
     // reset repost pagination when user changes
@@ -185,16 +190,10 @@ const ProfilePage = () => {
     const handleScroll = () => {
       if (activeTab !== "reposts") return;
       const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-      const scrollHeight =
-        document.documentElement.scrollHeight || document.body.scrollHeight;
-      const clientHeight =
-        document.documentElement.clientHeight || window.innerHeight;
+      const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+      const clientHeight = document.documentElement.clientHeight || window.innerHeight;
 
-      if (
-        scrollTop + clientHeight >= scrollHeight - 300 &&
-        !repostLoadingRef.current &&
-        repostHasMoreRef.current
-      ) {
+      if (scrollTop + clientHeight >= scrollHeight - 300 && !repostLoadingRef.current && repostHasMoreRef.current) {
         fetchRepostPosts();
       }
     };
@@ -234,7 +233,6 @@ const ProfilePage = () => {
     }
   };
 
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setEditedUser((prev) => ({ ...prev, [name]: value }));
@@ -270,11 +268,7 @@ const ProfilePage = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
       } else {
-        await api.post(
-          "/follows",
-          { followed_user_fk: user?.user_pk },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.post("/follows", { followed_user_fk: user?.user_pk }, { headers: { Authorization: `Bearer ${token}` } });
       }
     } catch (err) {
       setIsFollowing(wasFollowing);
@@ -299,9 +293,7 @@ const ProfilePage = () => {
     if (!targetUser?.user_pk) return;
     setFollowing((prev) => {
       if (isNowFollowing) {
-        const exists = prev.some(
-          (u) => String(u.user_pk) === String(targetUser.user_pk)
-        );
+        const exists = prev.some((u) => String(u.user_pk) === String(targetUser.user_pk));
         if (exists) return prev;
         return [
           ...prev,
@@ -312,9 +304,7 @@ const ProfilePage = () => {
           },
         ];
       }
-      return prev.filter(
-        (u) => String(u.user_pk) !== String(targetUser.user_pk)
-      );
+      return prev.filter((u) => String(u.user_pk) !== String(targetUser.user_pk));
     });
   };
 
@@ -339,106 +329,41 @@ const ProfilePage = () => {
   if (!user) return <p className="error">User not found.</p>;
 
   const handleUpdateRepostPost = (updatedPost) => {
-    setRepostPosts((prev) =>
-      (prev || []).map((p) =>
-        p.post_pk === updatedPost.post_pk ? { ...p, ...updatedPost } : p
-      )
-    );
+    setRepostPosts((prev) => (prev || []).map((p) => (p.post_pk === updatedPost.post_pk ? { ...p, ...updatedPost } : p)));
   };
 
   return (
     <div id="container">
       <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
       <main className="user-main">
-        <UserHeader
-          user={user}
-          setUser={setUser}
-          isEditing={isEditing}
-          editedUser={editedUser}
-          formErrors={formErrors}
-          handleChange={handleChange}
-          handleEdit={handleEdit}
-          handleSaveEdit={handleSaveEdit}
-          setIsEditing={setIsEditing}
-          isCurrentUser={isCurrentUser}
-          onFollowToggle={handleFollowToggle}
-          isFollowing={isFollowing}
-          onDeleteProfile={() => setIsDeleteDialogOpen(true)}
-        />
-        <UserStats
-          postsCount={user.posts_count || 0}
-          followersCount={followers.length}
-          followingCount={following.length}
-        />
-        <UserTabs
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          followersCount={followers.length}
-          followingCount={following.length}
-        />
+        <UserHeader user={user} setUser={setUser} isEditing={isEditing} editedUser={editedUser} formErrors={formErrors} handleChange={handleChange} handleEdit={handleEdit} handleSaveEdit={handleSaveEdit} setIsEditing={setIsEditing} isCurrentUser={isCurrentUser} onFollowToggle={handleFollowToggle} isFollowing={isFollowing} onDeleteProfile={() => setIsDeleteDialogOpen(true)} />
+        <UserStats postsCount={user.posts_count || 0} followersCount={followers.length} followingCount={following.length} />
+        <UserTabs activeTab={activeTab} setActiveTab={setActiveTab} followersCount={followers.length} followingCount={following.length} />
 
         <div className="user-tab-panels">
-          {activeTab === "posts" && (
-            <UserPosts userPk={user?.user_pk} isCurrentUser={isCurrentUser} />
-          )}
+          {activeTab === "posts" && <UserPosts userPk={user?.user_pk} isCurrentUser={isCurrentUser} />}
           {activeTab === "reposts" && (
             <>
-              {isRepostsLoading && (
-                <p className="loading-message">Loading reposts...</p>
-              )}
-              {!isRepostsLoading && repostPosts && repostPosts.length > 0
-                ? repostPosts.map((post) => (
-                    <Post
-                      key={post.post_pk}
-                      post={post}
-                      onUpdatePost={handleUpdateRepostPost}
-                      onDeletePost={null}
-                      hideHeader={false}
-                    />
-                  ))
-                : !isRepostsLoading && (
-                    <p className="empty-message">No reposts yet.</p>
-                  )}
+              {isRepostsLoading && <p className="loading-message">Loading reposts...</p>}
+              {!isRepostsLoading && repostPosts && repostPosts.length > 0 ? repostPosts.map((post) => <Post key={post.post_pk} post={post} onUpdatePost={handleUpdateRepostPost} onDeletePost={null} hideHeader={false} />) : !isRepostsLoading && <p className="empty-message">No reposts yet.</p>}
             </>
           )}
-          {activeTab === "followers" && (
-            <UserList
-              title="Followers"
-              users={followers}
-              emptyMessage="No followers yet."
-            />
-          )}
-          {activeTab === "following" && (
-            <UserList
-              title="Following"
-              users={following}
-              emptyMessage="Not following anyone yet."
-            />
-          )}
+          {activeTab === "followers" && <UserList title="Followers" users={followers} emptyMessage="No followers yet." />}
+          {activeTab === "following" && <UserList title="Following" users={following} emptyMessage="Not following anyone yet." />}
         </div>
       </main>
       <aside className="user-aside">
         <Trending trending={trending} />
-        <WhoToFollow
-          users={usersToFollow}
-          onFollowChange={handleSidebarFollowChange}
-        />
+        <WhoToFollow users={usersToFollow} onFollowChange={handleSidebarFollowChange} />
       </aside>
       <PostDialog
         isOpen={isPostDialogOpen}
         onClose={() => setIsPostDialogOpen(false)}
         onSuccess={(newPost) => {
           // UserPosts håndterer opdateringen internt via handlePostCreated
-          // Ingen yderligere handling nødvendig her
         }}
       />
-      <ConfirmationDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={handleDeleteProfile}
-        title="Delete Profile"
-        message="Are you sure you want to delete your profile? This action cannot be undone."
-      />
+      <ConfirmationDialog isOpen={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)} onConfirm={handleDeleteProfile} title="Delete Profile" message="Are you sure you want to delete your profile? This action cannot be undone." />
     </div>
   );
 };

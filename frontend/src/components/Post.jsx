@@ -21,7 +21,7 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const currentUserPk = localStorage.getItem("user_pk");
-  
+
   useEffect(() => {
     setReposted(post.is_reposted_by_user || false);
     setRepostCount(post.reposts_count || 0);
@@ -90,11 +90,7 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
           })
         );
       } else {
-        await api.post(
-          "/reposts",
-          { post_pk: post.post_pk },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.post("/reposts", { post_pk: post.post_pk }, { headers: { Authorization: `Bearer ${token}` } });
         const nextCount = (repostCount || 0) + 1;
         setReposted(true);
         setRepostCount(nextCount);
@@ -111,7 +107,7 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
         );
       }
     } catch (error) {
-        console.error("Error handling repost:", error);
+      console.error("Error handling repost:", error);
     }
   };
 
@@ -152,28 +148,25 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
     }
   };
 
+  const handleDelete = async () => {
+    setIsDeleteDialogOpen(true);
+  };
 
-
-const handleDelete = async () => {
-  setIsDeleteDialogOpen(true);
-};
-
-const confirmDelete = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    await api.delete(`/posts/${post.post_pk}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    onDeletePost(post.post_pk);
-  } catch (error) {
-    console.error("Error deleting post:", error);
-  } finally {
-    setIsDeleteDialogOpen(false);
-  }
-};
-
+  const confirmDelete = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await api.delete(`/posts/${post.post_pk}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      onDeletePost(post.post_pk);
+    } catch (error) {
+      console.error("Error deleting post:", error);
+    } finally {
+      setIsDeleteDialogOpen(false);
+    }
+  };
 
   const formatTime = (date) => {
     const now = moment();
@@ -194,58 +187,22 @@ const confirmDelete = async () => {
   };
 
   return (
-    <div className="post">
-     {!hideHeader && (
-        <PostHeader
-          user={post.user}
-          created_at={post.created_at}
-          edited={
-            post.updated_at &&
-            post.created_at &&
-            String(post.updated_at) !== String(post.created_at)
-          }
-        />
-      )}
-      <PostContent
-        content={
-          isEditing ? (
-            <textarea
-              value={editedContent}
-              onChange={(e) => setEditedContent(e.target.value)}
-              className="edit-post-textarea"
-            />
-          ) : (
-            post.post_content
-          )
-        }
-        imagePath={post.post_image_path}
-        editedAt={post.updated_at}
-        createdAt={post.created_at}
-      />
+    //added id for scrolling to specific posts
+    <div className="post" id={`post-${post.post_pk}`}>
+      {!hideHeader && <PostHeader user={post.user} created_at={post.created_at} edited={post.updated_at && post.created_at && String(post.updated_at) !== String(post.created_at)} />}
+      <PostContent content={isEditing ? <textarea value={editedContent} onChange={(e) => setEditedContent(e.target.value)} className="edit-post-textarea" /> : post.post_content} imagePath={post.post_image_path} editedAt={post.updated_at} createdAt={post.created_at} />
       {isEditing ? (
         <div className="edit-post-actions">
           <button className="save-edit-btn" onClick={handleSaveEdit}>
             Save
           </button>
-          <button
-            className="cancel-edit-btn"
-            onClick={() => setIsEditing(false)}>
+          <button className="cancel-edit-btn" onClick={() => setIsEditing(false)}>
             Cancel
           </button>
         </div>
       ) : (
         <div className="post-actions-container">
-          <PostActions
-            liked={liked}
-            likeCount={likeCount}
-            reposted={reposted}
-            repostCount={repostCount}
-            commentCount={comments.length > 0 ? comments.length : post.comments_count}
-            showComments={showComments}
-            setShowComments={setShowComments}
-            handleLike={handleLike}
-            handleRepost={handleRepost}
-          />
+          <PostActions liked={liked} likeCount={likeCount} reposted={reposted} repostCount={repostCount} commentCount={comments.length > 0 ? comments.length : post.comments_count} showComments={showComments} setShowComments={setShowComments} handleLike={handleLike} handleRepost={handleRepost} />
           {currentUserPk === post.post_user_fk && (
             <div className="post-edit-delete-actions">
               <button className="edit-post-btn" onClick={handleEdit}>
@@ -277,9 +234,7 @@ const confirmDelete = async () => {
               setComments(updatedComments);
             }}
             onDeleteComment={(deletedCommentPk) => {
-              const updatedComments = comments.filter(
-                (comment) => comment.comment_pk !== deletedCommentPk
-              );
+              const updatedComments = comments.filter((comment) => comment.comment_pk !== deletedCommentPk);
               setComments(updatedComments);
               onUpdatePost({
                 ...post,
@@ -292,13 +247,7 @@ const confirmDelete = async () => {
           <CommentForm postPk={post.post_pk} setComments={handleCommentAdded} />
         </>
       )}
-      <ConfirmationDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={confirmDelete}
-        title="Delete Post"
-        message="Are you sure you want to delete this post?"
-      />
+      <ConfirmationDialog isOpen={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)} onConfirm={confirmDelete} title="Delete Post" message="Are you sure you want to delete this post?" />
     </div>
   );
 };

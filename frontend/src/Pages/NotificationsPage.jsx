@@ -7,6 +7,8 @@ import LoadingOverlay from "../components/LoadingOverlay";
 import { getProfilePictureUrl } from "../utils/imageUtils";
 import PostDialog from "../components/PostDialog";
 import { formatRelativeTime } from "../utils/timeUtils";
+import { useNavigate } from "react-router-dom";
+import { buildProfilePath } from "../utils/urlHelpers";
 
 const NotificationsPage = () => {
   const [notifications, setNotifications] = useState([]);
@@ -50,6 +52,19 @@ const NotificationsPage = () => {
       setTrending([]);
       setUsersToFollow([]);
     }
+  };
+
+  const navigate = useNavigate();
+
+  const goToProfileWithPost = (n) => {
+    const postPk = n?.data?.post_pk;
+    const authorUsername = n?.data?.author_username;
+    const authorPk = n?.data?.author_pk;
+    if (!authorUsername || !authorPk) return;
+    const path = buildProfilePath({ user_username: authorUsername, user_pk: authorPk });
+    if (!path || path === "#") return;
+    const hash = postPk ? `#post-${postPk}` : "";
+    navigate(`${path}${hash}`);
   };
 
   const markAsRead = async (id) => {
@@ -112,7 +127,7 @@ const NotificationsPage = () => {
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {notifications.map((n) => (
               <div key={n.id} style={{ padding: 12, border: "1px solid #eee", borderRadius: 8, background: n.read_at ? "#fff" : "#faf6ff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                <div onClick={() => goToProfileWithPost(n)} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && goToProfileWithPost(n)} style={{ display: "flex", gap: 12, alignItems: "center", cursor: "pointer", flex: 1 }}>
                   <img src={getProfilePictureUrl(n.data?.author_profile_picture)} alt={n.data?.author_username || "avatar"} style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
                   <div>
                     <div style={{ fontWeight: 700 }}>{n.data?.excerpt || "New activity"}</div>
