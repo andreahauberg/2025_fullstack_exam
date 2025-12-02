@@ -71,7 +71,6 @@ const NavMenu = ({ isOpen, setIsOpen, setIsPostDialogOpen, isSearchOpen, setIsSe
           text: "Profile",
           href: resolvedUsername || userPk ? `/profile/${resolvedUsername || userPk}` : "/home",
         },
-        { icon: "fa-solid fa-ellipsis", text: "More", href: "#" },
       ]
     : [
         { icon: "fa-solid fa-house", text: "Home", href: "/" },
