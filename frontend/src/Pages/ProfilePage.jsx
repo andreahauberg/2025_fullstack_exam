@@ -111,7 +111,7 @@ const ProfilePage = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // If URL contains a hash like #post-blablabla, attempt to scroll to that element.
+
     const hash = location.hash;
     if (!hash) return;
     const id = hash.replace("#", "");
@@ -131,7 +131,6 @@ const ProfilePage = () => {
         setTimeout(tryScroll, 300);
       }
     };
-    // Delay a bit to allow child components to mount
     setTimeout(tryScroll, 50);
   }, [user, location.hash]);
 
@@ -162,7 +161,6 @@ const ProfilePage = () => {
         return updatedPost.is_reposted_by_user ? [updatedPost, ...filtered] : filtered;
       });
 
-      // Opdater repost_count
       setUser((prev) => ({
         ...prev,
         reposts_count: updatedPost.is_reposted_by_user ? Number(prev.reposts_count || 0) + 1 : Math.max(0, Number(prev.reposts_count || 0) - 1),
@@ -216,7 +214,6 @@ const ProfilePage = () => {
   const handleUpdateRepostPost = (updatedPost) => {
     setRepostPosts((prev) => (prev || []).map((p) => (p.post_pk === updatedPost.post_pk ? { ...p, ...updatedPost } : p)));
 
-    // Opdater repost_count baseret på, om brugeren har repostet eller fjernet repost
     setUser((prev) => ({
       ...prev,
       reposts_count: updatedPost.is_reposted_by_user ? Number(prev.reposts_count || 0) + 1 : Math.max(0, Number(prev.reposts_count || 0) - 1),
