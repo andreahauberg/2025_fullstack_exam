@@ -116,7 +116,12 @@ const UserHeader = ({ user, setUser, isEditing, editedUser, handleChange, handle
   return (
     <div className="user-header-wrapper">
       <div className="user-cover">
-        <ImagePlaceholder src={coverUrl} alt="Cover" className="cover-image" style={{ width: "100%", height: "100%", borderRadius: "14px 14px 0 0" }} />
+        <div
+          className="cover-image"
+          style={{
+            backgroundImage: coverUrl ? `url(${coverUrl})` : "none",
+          }}
+        />
         {isCurrentUser && (
           <div className="cover-controls">
             <input type="file" ref={coverInputRef} onChange={handleCoverChange} accept="image/*" style={{ display: "none" }} />
@@ -137,7 +142,7 @@ const UserHeader = ({ user, setUser, isEditing, editedUser, handleChange, handle
       </div>
       <div className="user-header">
         <div className="profile-picture-container">
-          <ImagePlaceholder src={profilePicture || getProfilePictureUrl(user.user_profile_picture)} alt="Profile" className="user-avatar" style={{ borderRadius: "50%" }} placeholderSrc={getProfilePictureUrl(null)} />
+          <ImagePlaceholder src={profilePicture || getProfilePictureUrl(user.user_profile_picture)} alt="Profile" className="user-avatar" placeholderSrc={getProfilePictureUrl(null)} />
           {isCurrentUser && <input type="file" ref={fileInputRef} onChange={handleProfilePictureChange} accept="image/*" style={{ display: "none" }} />}
           {profilePicture && (
             <div className="profile-picture-preview">

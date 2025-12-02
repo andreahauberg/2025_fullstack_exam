@@ -68,7 +68,7 @@ const WhoToFollow = ({ users: initialUsers, onFollowChange }) => {
             return (
               <div key={user.user_pk} className="follow-suggestion-item">
                 <Link to={buildProfilePath(user)} className="follow-suggestion-link">
-                  <ImagePlaceholder src={getProfilePictureUrl(user.user_profile_picture)} alt={user.user_full_name} className="follow-suggestion-avatar" style={{ borderRadius: "50%" }} placeholderSrc={getProfilePictureUrl(null)} />
+                  <ImagePlaceholder src={getProfilePictureUrl(user.user_profile_picture)} alt={user.user_full_name} className="follow-suggestion-avatar" placeholderSrc={getProfilePictureUrl(null)} />
 
                   <div className="follow-suggestion-details">
                     <div className="follow-suggestion-name">{user.user_full_name}</div>
