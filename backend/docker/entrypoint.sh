@@ -1,22 +1,25 @@
 #!/bin/sh
 set -e
 cd /var/www/html
-# Start Apache uden migrations
+
+# Tjek om migrations-tabellen eksisterer og har data
+if ! php artisan migrate:status | grep -q "batch"; then
+    echo "Kører migrations..."
+    php artisan migrate --force
+else
+    echo "Migrations er allerede kørt."
+fi
+
+# Opret storage symlink (hvis den ikke eksisterer)
+if [ ! -L public/storage ]; then
+    php artisan storage:link
+fi
+
+# Kør seeders, hvis SEED_ON_BOOT=1 er sat
+if [ "${SEED_ON_BOOT}" = "1" ]; then
+    echo "Kører seeders..."
+    php artisan db:seed --force
+fi
+
+# Start Apache
 exec "$@"
-
-
-# #!/bin/sh
-# set -e
-# cd /var/www/html
-# # Kør migrations før Apache startes
-# php artisan migrate --force
-# # Opret storage symlink (idempotent)
-# if [ ! -L public/storage ]; then
-#     php artisan storage:link
-# fi
-# # Optionelt seed (sæt SEED_ON_BOOT=1 i miljøvariabler for at køre seedere)
-# if [ "${SEED_ON_BOOT}" = "1" ]; then
-#     php artisan db:seed --force
-# fi
-# # Start Apache
-# exec "$@"
