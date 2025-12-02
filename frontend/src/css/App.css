@@ -149,7 +149,7 @@ main::-webkit-scrollbar {
 }
 
 .nav-flag {
-  margin-left: auto; /* skub til højre */
+  margin-left: auto;
   background-color: #f01d39;
   color: #fff;
   border-radius: 50%;
@@ -384,99 +384,170 @@ aside::-webkit-scrollbar {
   border-radius: 8px;
 }
 
-/* Responsive Styles */
-@media (max-width: 1024px) {
-  #container {
-    grid-template-columns: auto 1fr;
-  }
-
-  aside {
-    display: none;
-  }
+/* Mobile-first base (tidligere max-width: 1000px) */
+.navbar {
+  width: 25px;
 }
 
-@media (max-width: 1000px) {
+.burger-menu {
+  display: block;
+  position: fixed;
+  top: 10px;
+  left: 4px;
+  z-index: 101;
+}
+
+.nav-menu-container {
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 50px;
+  height: 94vh;
+  background-color: white;
+  transition: left 0.3s ease;
+  z-index: 100;
+  padding-top: 50px;
+}
+
+.nav-menu-container.active {
+  left: 0;
+}
+
+.nav-menu li button span {
+  display: none;
+}
+
+.nav-menu li button {
+  justify-content: center;
+}
+
+.nav-menu li button i {
+  margin-right: 0;
+}
+
+.post-btn {
+  padding: 12px;
+  border-radius: 50%;
+  width: auto;
+}
+
+.post-btn-text {
+  display: none;
+}
+
+.post-btn i {
+  margin: 0;
+  font-size: 20px;
+}
+
+.nav-logo {
+  display: none;
+  list-style: none;
+}
+
+.profile-tag {
+  justify-content: center;
+  padding: 12px;
+  margin: 8px 12px;
+  width: calc(100% - 24px);
+  border: none;
+}
+
+.profile-tag-avatar {
+  margin-right: 0;
+  margin-left: 1rem;
+}
+
+.profile-tag-name,
+.profile-tag-handle {
+  display: none;
+}
+.profile-tag-avatar:hover {
+  border: solid 2px #1d9bf0;
+}
+.profile-tag:hover {
+  background-color: white;
+}
+
+/* Mobile-first base (tidligere max-width: 1024px) */
+#container {
+  grid-template-columns: auto 1fr;
+}
+
+aside {
+  display: none;
+}
+
+/* Desktop – min-width i stedet for max-width */
+@media (min-width: 1001px) {
   .navbar {
-    width: 25px;
+    width: 275px;
   }
 
   .burger-menu {
-    display: block;
-    position: fixed;
-    top: 10px;
-    left: 4px;
-    z-index: 101;
+    display: none;
   }
 
   .nav-menu-container {
-    position: fixed;
-    top: 0;
-    left: -100%;
-    width: 50px;
-    height: 94vh;
-    background-color: white;
-    transition: left 0.3s ease;
-    z-index: 100;
-    padding-top: 50px;
-  }
-
-  .nav-menu-container.active {
+    position: static;
+    width: auto;
+    height: 100%;
+    padding-top: 0;
     left: 0;
   }
 
   .nav-menu li button span {
-    display: none;
+    display: inline;
   }
 
   .nav-menu li button {
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .nav-menu li button i {
-    margin-right: 0;
+    margin-right: 12px;
   }
 
   .post-btn {
-    padding: 12px;
-    border-radius: 50%;
-    width: auto;
+    padding: 16px 24px;
+    border-radius: 9999px;
+    width: 100%;
   }
 
   .post-btn-text {
-    display: none;
+    display: inline;
   }
 
   .post-btn i {
-    margin: 0;
-    font-size: 20px;
+    margin-left: 8px;
+    font-size: inherit;
   }
 
   .nav-logo {
-    display: none;
-    list-style: none;
+    display: block;
   }
 
   .profile-tag {
-    justify-content: center;
-    padding: 12px;
-    margin: 8px 12px;
-    width: calc(100% - 24px);
-    border: none;
+    display: flex;
+    border: 1px solid #eff3f4;
   }
 
   .profile-tag-avatar {
-    margin-right: 0;
-    margin-left: 1rem;
+    margin-right: 12px;
   }
 
   .profile-tag-name,
   .profile-tag-handle {
-    display: none;
+    display: block;
   }
-  .profile-tag-avatar:hover {
-    border: solid 2px #1d9bf0;
+}
+
+@media (min-width: 1025px) {
+  #container {
+    grid-template-columns: auto 1fr auto;
   }
-  .profile-tag:hover {
-    background-color: white;
+
+  aside {
+    display: block;
   }
 }

@@ -5,7 +5,7 @@ import ImagePlaceholder from "./ImagePlaceholder";
 import { parseApiErrorMessage, validateImageFile } from "../utils/validation";
 import FieldError from "./FieldError";
 
-const UserHeader = ({ user, setUser, isEditing, editedUser, handleChange, handleEdit, handleSaveEdit, isCurrentUser, onFollowToggle, isFollowing, onDeleteProfile, formErrors = {}, setIsEditing }) => {
+const UserHeader = ({ user, setUser, isEditing, editedUser, handleChange, handleEdit, handleSaveEdit, isCurrentUser, onFollowToggle, isFollowing, onDeleteProfile, formErrors = {}, handleCancelEdit }) => {
   const [profilePicture, setProfilePicture] = useState(null);
   const [uploadError, setUploadError] = useState("");
   const [coverImage, setCoverImage] = useState(null);
@@ -109,8 +109,8 @@ const UserHeader = ({ user, setUser, isEditing, editedUser, handleChange, handle
 
   const closeActionsMenu = () => setIsActionsMenuOpen(false);
 
-  const handleCancelEdit = () => {
-    setIsEditing(false);
+  const handleCancelClick = () => {
+    handleCancelEdit?.();
   };
 
   return (
@@ -161,7 +161,7 @@ const UserHeader = ({ user, setUser, isEditing, editedUser, handleChange, handle
                 <button className="save-btn" onClick={handleSaveEdit}>
                   Save
                 </button>
-                <button className="cancel-btn" onClick={handleCancelEdit}>
+                <button className="cancel-btn" onClick={handleCancelClick}>
                   Cancel
                 </button>
               </div>

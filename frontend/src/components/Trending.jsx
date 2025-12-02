@@ -48,7 +48,6 @@ const Trending = ({ trending }) => {
               <span className="item_title">Trending in {item.country}</span>
               <p>#{item.topic}</p>
             </div>
-            <span className="option">⋮</span>
           </div>
         ))}
         {trendingWithCountries &&

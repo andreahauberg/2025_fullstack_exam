@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { api } from "../api";
 import NavBar from "../components/NavBar";
 import WhoToFollow from "../components/WhoToFollow";
@@ -14,16 +14,37 @@ import PostDialog from "../components/PostDialog";
 import LoadingOverlay from "../components/LoadingOverlay";
 import "../css/UserPage.css";
 import { useDocumentTitle } from "../utils/useDocumentTitle";
+import { useFollowActions } from "../hooks/useFollowActions";
+import { useProfileData } from "../hooks/useProfileData";
 
 const UserPage = () => {
   const { username } = useParams();
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [followers, setFollowers] = useState([]);
-  const [following, setFollowing] = useState([]);
-  const [usersToFollow, setUsersToFollow] = useState([]);
-  const [trending, setTrending] = useState([]);
-  const [isFollowing, setIsFollowing] = useState(false);
+  const {
+    user,
+    setUser,
+    followers,
+    setFollowers,
+    following,
+    setFollowing,
+    usersToFollow,
+    trending,
+    isFollowing,
+    setIsFollowing,
+    isLoading,
+    error,
+    setError,
+  } = useProfileData(username, { requireAuth: false });
+  const { handleFollowToggle } = useFollowActions({
+    user,
+    setUser,
+    followers,
+    setFollowers,
+    following,
+    setFollowing,
+    isFollowing,
+    setIsFollowing,
+    setError,
+  });
   const [repostPosts, setRepostPosts] = useState([]);
   const [isRepostsLoading, setIsRepostsLoading] = useState(false);
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
@@ -33,8 +54,6 @@ const UserPage = () => {
   const repostLoadingRef = useRef(false);
   const repostHasMoreRef = useRef(true);
   const hasLoadedRepostsRef = useRef(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("posts"); // posts | reposts | followers | following
   const profileTitle = user?.user_username ? `${user.user_full_name || user.user_username} (@${user.user_username}) / X` : "Profile";
   useDocumentTitle(profileTitle);
@@ -46,63 +65,6 @@ const UserPage = () => {
   useEffect(() => {
     repostHasMoreRef.current = hasMoreReposts;
   }, [hasMoreReposts]);
-
-  const fetchData = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const currentUserPk = localStorage.getItem("user_pk");
-
-      const [userResp, trendingResp, usersToFollowResp] = await Promise.all([
-        api.get(`/users/${username}`, token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
-        token
-          ? api.get("/trending", {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-          : Promise.resolve({ data: [] }),
-        token
-          ? api.get("/users-to-follow", {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-          : Promise.resolve({ data: [] }),
-      ]);
-
-      if (!userResp.data?.user) {
-        navigate("/404", { replace: true, state: { missingUsername: username } });
-        return;
-      }
-      setUser(userResp.data.user);
-      setFollowers(userResp.data.followers);
-      setFollowing(userResp.data.following);
-      setTrending(trendingResp.data);
-      setUsersToFollow(usersToFollowResp.data);
-
-      if (token && currentUserPk) {
-        setIsFollowing(userResp.data.followers.some((f) => f.user_pk === currentUserPk));
-      }
-      setError(null);
-    } catch (err) {
-      console.error(err.response?.data || err.message);
-      const status = err.response?.status;
-      const backendError = err.response?.data?.error || "";
-      const backendMessage = err.response?.data?.message || "";
-      const isMissingUser = status === 404 || backendError === "User not found." || backendMessage.includes("No query results") || backendMessage.includes("User not found");
-      if (isMissingUser) {
-        setIsLoading(false);
-        navigate("/404", { replace: true, state: { missingUsername: username } });
-        return;
-      }
-      if (status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user_pk");
-        localStorage.removeItem("user_username");
-        navigate("/");
-        return;
-      }
-      setError("Failed to load data.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const fetchRepostPosts = useCallback(async () => {
     if (repostLoadingRef.current || !repostHasMoreRef.current) return;
@@ -126,10 +88,6 @@ const UserPage = () => {
     } finally {
       setIsRepostsLoading(false);
     }
-  }, [username]);
-
-  useEffect(() => {
-    fetchData();
   }, [username]);
 
   const location = useLocation();
@@ -203,54 +161,6 @@ const UserPage = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [activeTab]);
 
-  const handleFollowToggle = async () => {
-    const currentUserPk = localStorage.getItem("user_pk");
-    const currentUsername = localStorage.getItem("user_username");
-    const wasFollowing = isFollowing;
-    setIsFollowing(!wasFollowing);
-    setFollowers((prev) =>
-      wasFollowing
-        ? prev.filter((f) => String(f.user_pk) !== String(currentUserPk))
-        : [
-            ...prev,
-            {
-              user_pk: currentUserPk,
-              user_username: currentUsername,
-              user_full_name: currentUsername,
-            },
-          ]
-    );
-
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/");
-        return;
-      }
-
-      if (wasFollowing)
-        await api.delete(`/follows/${user?.user_pk}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-      else await api.post("/follows", { followed_user_fk: user?.user_pk }, { headers: { Authorization: `Bearer ${token}` } });
-    } catch (err) {
-      setIsFollowing(wasFollowing);
-      setFollowers((prev) =>
-        wasFollowing
-          ? [
-              ...prev,
-              {
-                user_pk: currentUserPk,
-                user_username: currentUsername,
-                user_full_name: currentUsername,
-              },
-            ]
-          : prev.filter((f) => String(f.user_pk) !== String(currentUserPk))
-      );
-      setError("Failed to update follow status.");
-    }
-  };
-
   if (isLoading) return <LoadingOverlay message="Loading profile..." />;
   if (error) return <p className="error">{error}</p>;
   if (!user) return <p className="error">User not found.</p>;
@@ -263,7 +173,14 @@ const UserPage = () => {
     <div id="container">
       <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
       <main className="user-main">
-        <UserHeader user={user} isCurrentUser={false} onFollowToggle={handleFollowToggle} isFollowing={isFollowing} onDeleteProfile={() => setIsDeleteDialogOpen(true)} />
+        <UserHeader
+          user={user}
+          setUser={setUser}
+          isCurrentUser={false}
+          onFollowToggle={handleFollowToggle}
+          isFollowing={isFollowing}
+          onDeleteProfile={() => setIsDeleteDialogOpen(true)}
+        />
         <UserTabs activeTab={activeTab} setActiveTab={setActiveTab} followersCount={followers.length} followingCount={following.length} postsCount={user.posts_count || 0} repostCount={user.reposts_count || 0} />
 
         <div className="user-tab-panels">
