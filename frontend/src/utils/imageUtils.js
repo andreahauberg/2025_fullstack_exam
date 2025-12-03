@@ -4,7 +4,7 @@ const getApiOrigin = () => {
   const baseFromApi = api?.defaults?.baseURL;
   const envBase =
     process.env.REACT_APP_API_BASE_URL || process.env.REACT_APP_API_BASE;
-  const fallbackBase = "https://two025-fullstack-exam-zzdo.onrender.com/api";
+  const fallbackBase = "https://two025-fullstack-exam-zzdo.onrender.com";
   const candidate = baseFromApi || envBase || fallbackBase;
 
   try {
