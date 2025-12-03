@@ -1,12 +1,16 @@
 import React from "react";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import App from "./App";
 import { MemoryRouter } from "react-router-dom";
 
-test("renders learn react link", () => {
+test("renders the App component", () => {
   render(
     <MemoryRouter>
       <App />
     </MemoryRouter>
   );
+
+const loginButton = screen.getByRole("button", { name: /log ind/i });
+expect(loginButton).toBeInTheDocument();
+
 });
