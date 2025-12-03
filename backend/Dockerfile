@@ -59,3 +59,7 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 # Brug entrypoint.sh som entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["apache2-foreground"]
+
+# Brug miljøvariabler fra Render
+ENV APP_ENV=production
+ENV APP_DEBUG=false

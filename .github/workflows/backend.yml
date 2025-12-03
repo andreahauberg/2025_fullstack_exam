@@ -1,0 +1,45 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [ main, Testing-CI-CD/Andrea ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Install Composer dependencies
+        working-directory: ./backend
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Run PHPUnit tests
+        working-directory: ./backend
+        run: ./vendor/bin/phpunit
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Render CLI
+        run: npm install -g @renderinc/render-cli
+
+      - name: Deploy to Render
+        working-directory: ./backend
+        run: |
+          render deploy \
+            --service-id=${{ secrets.RENDER_BACKEND_SERVICE_ID }} \
+            --api-key=${{ secrets.RENDER_API_KEY }}
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
