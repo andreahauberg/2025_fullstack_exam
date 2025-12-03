@@ -31,6 +31,10 @@ jobs:
         working-directory: ./backend
         run: composer install --prefer-dist --no-progress
 
+      - name: Generate APP_KEY
+        working-directory: ./backend
+        run: php artisan key:generate
+
       - name: Run PHPUnit tests
         working-directory: ./backend
         run: ./vendor/bin/phpunit
