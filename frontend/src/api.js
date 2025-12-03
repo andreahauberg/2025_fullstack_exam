@@ -1,17 +1,29 @@
 import axios from "axios";
 import { parseApiErrorMessage } from "./utils/validation";
 
-const baseURL =
-  process.env.REACT_APP_API_BASE_URL ||
-  "http://localhost/api";
 
 export const api = axios.create({
-  baseURL,
+  baseURL: "http://localhost",
   withCredentials: true,
   headers: {
-    "Content-Type": "application/json",
     Accept: "application/json",
+    "Content-Type": "application/json",
   },
+});
+
+const shouldPrefixApi = (url) => {
+  if (typeof url !== "string") return false;
+  if (!url.startsWith("/")) return false;
+  if (url.startsWith("/api")) return false;
+  if (url.startsWith("/sanctum")) return false;
+  return true;
+};
+
+api.interceptors.request.use((config) => {
+  if (config?.url && shouldPrefixApi(config.url)) {
+    config.url = `/api${config.url}`;
+  }
+  return config;
 });
 
 const MAX_RETRIES = 2;

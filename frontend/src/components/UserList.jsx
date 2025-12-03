@@ -4,6 +4,7 @@ import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { getProfilePictureUrl } from "../utils/imageUtils";
 import { buildProfilePath } from "../utils/urlHelpers";
 import { api } from "../api";
+import { useAuth } from "../hooks/useAuth";
 
 const UserList = ({
   title,
@@ -15,15 +16,17 @@ const UserList = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [users, setUsers] = useState([]);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
-  const currentUserPk = localStorage.getItem("user_pk");
+  const { user: authUser } = useAuth();
 
   useEffect(() => {
     if (initialUsers) {
       setUsers(
-        initialUsers.map((user) => ({
-          ...user,
-          is_following: user.is_following ?? false,
-        }))
+        initialUsers
+          .filter((user) => user.user_pk !== authUser?.user_pk)
+          .map((user) => ({
+            ...user,
+            is_following: user.is_following ?? false,
+          }))
       );
     }
   }, [initialUsers]);
@@ -32,42 +35,31 @@ const UserList = ({
 
   const handleFollow = async (userPk, index) => {
     if (!userPk || isFollowLoading) return;
+  
     const isFollowing = users[index].is_following;
-    const updatedUsers = [...users];
-    updatedUsers[index].is_following = !isFollowing;
-    setUsers(updatedUsers);
+  
+    const updated = [...users];
+    updated[index].is_following = !isFollowing;
+    setUsers(updated);
+  
     setIsFollowLoading(true);
-
-    // Kalder callback med det samme (optimistisk opdatering)
+  
     if (typeof onFollowChange === "function") {
-      onFollowChange(!isFollowing, {
-        ...users[index],
-        is_following: !isFollowing,
-      });
+      onFollowChange(!isFollowing, { ...users[index], is_following: !isFollowing });
     }
-
+  
     try {
-      const token = localStorage.getItem("token");
       if (isFollowing) {
-        await api.delete(`/follows/${userPk}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.delete(`/follows/${userPk}`);
       } else {
-        await api.post(
-          "/follows",
-          { followed_user_fk: userPk },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.post("/follows", { followed_user_fk: userPk });
       }
-    } catch (error) {
-      console.error(
-        "Follow toggle failed:",
-        error.response?.data || error.message
-      );
-      // Rollback
-      const updatedUsers = [...users];
-      updatedUsers[index].is_following = isFollowing;
-      setUsers(updatedUsers);
+    } catch (err) {
+      console.error("Follow toggle failed:", err);
+  
+      const rollback = [...users];
+      rollback[index].is_following = isFollowing;
+      setUsers(rollback);
     } finally {
       setIsFollowLoading(false);
     }
@@ -89,7 +81,9 @@ const UserList = ({
         <ul className={`user-list-items ${isExpanded ? "expanded" : ""}`}>
           {visibleUsers.map((user, index) => (
             <li key={user.user_pk} className="user-list-item">
-              <Link to={buildProfilePath(user)} className="user-list-link">
+              <Link
+                to={buildProfilePath(user, { currentUser: authUser })}
+                className="user-list-link">
                 <img
                   src={getProfilePictureUrl(user.user_profile_picture)}
                   alt={user.user_full_name}
@@ -100,7 +94,7 @@ const UserList = ({
                   <p className="user-list-handle">@{user.user_username}</p>
                 </div>
               </Link>
-              {user.user_pk !== currentUserPk && (
+              {String(user.user_pk) !== String(authUser?.user_pk) && (
                 <button
                   className={`follow-btn ${
                     user.is_following ? "unfollow" : ""

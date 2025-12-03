@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import SignupDialog from "../components/SignupDialog";
 import LoginDialog from "../components/LoginDialog";
@@ -15,10 +15,16 @@ function LandingPage() {
 
   useDocumentTitle(DEFAULT_TITLE);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/home", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
   if (isAuthenticated) return <Navigate to="/home" replace />;
 
-  const handleSignupSuccess = () => navigate("/home");
-  const handleLoginSuccess = () => navigate("/home");
+  const handleSignupSuccess = () => navigate("/home", { replace: true });
+  const handleLoginSuccess = () => navigate("/home", { replace: true });
 
   const handleOpenLogin = () => setIsLoginOpen(true);
   const handleOpenSignup = () => setIsSignupOpen(true);

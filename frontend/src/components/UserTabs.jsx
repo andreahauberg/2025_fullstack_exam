@@ -24,7 +24,6 @@ const UserTabs = ({
 
   return (
     <div className="user-tabs" role="tablist" aria-label="Profile content">
-      {/* POSTS */}
       <button
         className={`user-tab ${activeTab === "posts" ? "active" : ""}`}
         onClick={() => setActiveTab("posts")}>
@@ -35,7 +34,6 @@ const UserTabs = ({
           )}
       </button>
 
-      {/* REPOSTS */}
       <button
         className={`user-tab ${activeTab === "reposts" ? "active" : ""}`}
         onClick={() => setActiveTab("reposts")}>
@@ -45,8 +43,6 @@ const UserTabs = ({
            `Reposts (${repostCount})`
            )}
       </button>
-
-      {/* FOLLOWERS */}
       <button
         className={`user-tab ${activeTab === "followers" ? "active" : ""}`}
         onClick={() => setActiveTab("followers")}>
@@ -57,7 +53,6 @@ const UserTabs = ({
         )}
       </button>
 
-      {/* FOLLOWING */}
       <button
         className={`user-tab ${activeTab === "following" ? "active" : ""}`}
         onClick={() => setActiveTab("following")}>

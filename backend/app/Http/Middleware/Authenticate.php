@@ -7,17 +7,17 @@ use Illuminate\Http\Request;
 
 class Authenticate extends Middleware
 {
-    /**
-     * Get the path the user should be redirected to when they are not authenticated.
-     */
     protected function redirectTo(Request $request): ?string
     {
-        // Always return null for API-only auth so unauthenticated requests get a 401 instead of a redirect
-        return null;
+        return null; // Important: never redirect → always JSON errors
     }
 
     protected function unauthenticated($request, array $guards)
     {
-        abort(response()->json(['message' => 'Unauthenticated.'], 401));
+        throw new \Illuminate\Auth\AuthenticationException(
+            'Unauthenticated.',
+            $guards,
+            null
+        );
     }
 }

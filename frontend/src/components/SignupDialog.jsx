@@ -1,11 +1,7 @@
 import { useState } from "react";
-import { api } from "../api";
+import { useAuth } from "../hooks/useAuth";
 import Dialog from "./Dialog";
-import {
-  extractFieldErrors,
-  parseApiErrorMessage,
-  validateFields,
-} from "../utils/validation";
+import { parseApiErrorMessage, validateFields } from "../utils/validation";
 import FieldError from "./FieldError";
 
 const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
@@ -15,14 +11,16 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
     user_email: "",
     user_password: "",
   });
+
+  const { signup } = useAuth();
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [e.target.name]: e.target.value,
-    });
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -40,31 +38,22 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
     }
 
     setIsLoading(true);
+
     try {
-      const response = await api.post("/signup", formData);
-      if (response.data?.token) {
-        localStorage.setItem("token", response.data.token);
-      }
-      if (response.data?.user?.user_pk) {
-        localStorage.setItem("user_pk", response.data.user.user_pk);
-      }
-      if (response.data?.user?.user_username) {
-        localStorage.setItem("user_username", response.data.user.user_username);
-      }
-      setErrors({});
-      setTimeout(() => {
+      const result = await signup(formData);
+
+      if (result.success) {
+        setErrors({});
         onSuccess();
         onClose();
-      }, 2000);
-    } catch (error) {
-      const fieldErrors = extractFieldErrors(error);
-      if (Object.keys(fieldErrors).length > 0) {
-        setErrors(fieldErrors);
+        return;
+      }
+
+      if (result.errors && Object.keys(result.errors).length > 0) {
+        setErrors(result.errors);
       } else {
-        const fallback = parseApiErrorMessage(
-          error,
-          "Network error. Please check your connection."
-        );
+        const fallback =
+          result.message || "Signup failed. Please try again.";
         setErrors({
           user_full_name: fallback,
           user_username: fallback,
@@ -72,18 +61,26 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
           user_password: fallback,
         });
       }
+    } catch (error) {
+      const fallback = parseApiErrorMessage(
+        error,
+        "Signup failed. Please try again."
+      );
+      setErrors({
+        user_full_name: fallback,
+        user_username: fallback,
+        user_email: fallback,
+        user_password: fallback,
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Dialog
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Create your account"
-      logo={true}>
+    <Dialog isOpen={isOpen} onClose={onClose} title="Create your account" logo>
       <form className="x-dialog__form" onSubmit={handleSubmit} noValidate>
+        
         <input
           name="user_full_name"
           type="text"
@@ -91,7 +88,6 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
           value={formData.user_full_name}
           onChange={handleChange}
           disabled={isLoading}
-          autoFocus
           className={errors.user_full_name ? "form-control input-error" : "form-control"}
         />
         <span className="field-hint">Max 20 characters</span>
@@ -137,6 +133,7 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
           {isLoading ? "Signing up..." : "Sign up"}
         </button>
       </form>
+
       <p className="x-dialog__alt">
         Already have an account?{" "}
         <button
@@ -144,7 +141,8 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
           onClick={() => {
             onClose();
             onOpenLogin();
-          }}>
+          }}
+        >
           Log in
         </button>
       </p>

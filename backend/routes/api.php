@@ -12,8 +12,8 @@ use App\Http\Controllers\NotificationsController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\SearchController;
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::get('/user', function (Request $request) {
+    return response()->json($request->user());
 });
 
 Route::post('/signup', [AuthController::class, 'signup']);

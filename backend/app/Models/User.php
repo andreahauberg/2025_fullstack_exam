@@ -78,6 +78,11 @@ class User extends Authenticatable
         return 'string';
     }
 
+    public function getAuthPassword()
+    {
+        return $this->user_password;
+    }
+
     public function isFollowing(User $user)
 {
     return $this->following()->where('followed_user_fk', $user->user_pk)->exists();

@@ -27,7 +27,7 @@ const HomePage = () => {
     handlePostCreated,
     handleUpdatePost,
     handleDeletePost,
-  } = useHomeFeed();
+  } = useHomeFeed({ enabled: !loading && isAuthenticated });
 
   useDocumentTitle(
     user ? `Home / Welcome ${user.user_username}` : "Home / Weave"

@@ -22,7 +22,7 @@ import { useAuth } from "../hooks/useAuth";
 const ProfilePage = () => {
   const { username } = useParams();
   const navigate = useNavigate();
-  const { user: authUser } = useAuth();
+  const { user: authUser, logout } = useAuth();
 
   const {
     user,
@@ -60,6 +60,8 @@ const ProfilePage = () => {
     isFollowing,
     setIsFollowing,
     setError,
+    currentUser: authUser,
+    onUnauthenticated: logout,
   });
 
   const [repostPosts, setRepostPosts] = useState([]);
@@ -147,6 +149,9 @@ const ProfilePage = () => {
     setTimeout(tryScroll, 50);
   }, [user, location.hash]);
 
+  const [activeTab, setActiveTab] = useState("posts");
+  const [latestPost, setLatestPost] = useState(null);
+
   useEffect(() => {
     setRepostPosts([]);
     setHasMoreReposts(true);
@@ -156,9 +161,6 @@ const ProfilePage = () => {
 
     if (activeTab === "reposts") fetchRepostPosts();
   }, [username, activeTab, fetchRepostPosts]);
-
-  const [activeTab, setActiveTab] = useState("posts");
-  const [latestPost, setLatestPost] = useState(null);
 
   const handleDeleteProfile = async () => {
     try {

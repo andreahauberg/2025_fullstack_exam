@@ -5,33 +5,32 @@ import "../css/WhoToFollow.css";
 import { getProfilePictureUrl } from "../utils/imageUtils";
 import ImagePlaceholder from "./ImagePlaceholder";
 import { buildProfilePath } from "../utils/urlHelpers";
+import { useAuth } from "../hooks/useAuth";
 
 const WhoToFollow = ({ users: initialUsers, onFollowChange }) => {
   const [visibleUsers, setVisibleUsers] = useState(3);
   const [users, setUsers] = useState([]);
+  const { user: authUser } = useAuth();
 
   useEffect(() => {
-    if (initialUsers && initialUsers.length > 0) {
-      const currentUserPk = localStorage.getItem("user_pk");
+    if (initialUsers?.length) {
       setUsers(
         initialUsers
-          .filter((user) => user.user_pk !== currentUserPk)
+          .filter((user) => user.user_pk !== authUser?.user_pk)
           .map((user) => ({
             ...user,
             is_following: user.is_following ?? false,
           }))
       );
     }
-  }, [initialUsers]);
+  }, [initialUsers, authUser?.user_pk]);
 
   const loadMoreUsers = () => {
     setVisibleUsers((prev) => prev + 3);
   };
 
   const handleFollow = async (userPk, index) => {
-    const currentUserPk = localStorage.getItem("user_pk");
-
-    if (String(userPk) === String(currentUserPk)) {
+    if (String(userPk) === String(authUser?.user_pk)) {
       console.warn("Cannot follow yourself.");
       return;
     }
@@ -70,7 +69,9 @@ const WhoToFollow = ({ users: initialUsers, onFollowChange }) => {
         <div className="follow-suggestion">
           {users.slice(0, visibleUsers).map((user, index) => (
             <div key={user.user_pk} className="follow-suggestion-item">
-              <Link to={buildProfilePath(user)} className="follow-suggestion-link">
+              <Link
+                to={buildProfilePath(user, { currentUser: authUser })}
+                className="follow-suggestion-link">
                 <ImagePlaceholder
                   src={getProfilePictureUrl(user.user_profile_picture)}
                   alt={user.user_full_name}

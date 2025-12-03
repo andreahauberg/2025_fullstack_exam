@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api";
+import { useAuth } from "../hooks/useAuth";
 
 export const useProfileData = (username, options = {}) => {
   const { requireAuth = true } = options;
@@ -15,13 +16,15 @@ export const useProfileData = (username, options = {}) => {
 
   const navigate = useNavigate();
 
+  const { user: authUser } = useAuth();
+
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
       if (requireAuth) {
-        const authCheck = await api.get("/user");
+        const authCheck = await api.get("/api/user");
         if (!authCheck.data) {
           navigate("/");
           return;
@@ -39,7 +42,7 @@ export const useProfileData = (username, options = {}) => {
         return;
       }
 
-      const authUserPk = localStorage.getItem("user_pk");
+      const authUserPk = authUser?.user_pk;
 
       setUser(userResp.data.user);
       setFollowers(userResp.data.followers || []);
@@ -48,9 +51,9 @@ export const useProfileData = (username, options = {}) => {
       setUsersToFollow(suggestionsResp.data || []);
       setIsFollowing(
         userResp.data.followers?.some(
-          (f) => String(f.user_pk) === String(authUserPk)
-        ) || false
-      );
+        (f) => String(f.user_pk) === String(authUserPk)
+      ) || false
+    );
 
     } catch (err) {
       if (err.response?.status === 401) {
@@ -62,7 +65,7 @@ export const useProfileData = (username, options = {}) => {
     } finally {
       setIsLoading(false);
     }
-  }, [username, navigate, requireAuth]);
+  }, [authUser?.user_pk, navigate, requireAuth, username]);
 
   useEffect(() => {
     fetchData();

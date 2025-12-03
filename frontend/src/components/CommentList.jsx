@@ -6,6 +6,7 @@ import ConfirmationDialog from "./ConfirmationDialog";
 import "../css/Post-Comment.css";
 import { getProfilePictureUrl } from "../utils/imageUtils";
 import { buildProfilePath } from "../utils/urlHelpers";
+import { useAuth } from "../hooks/useAuth";
 
 const CommentList = ({
   comments,
@@ -15,7 +16,7 @@ const CommentList = ({
 }) => {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editedCommentContent, setEditedCommentContent] = useState("");
-  const currentUserPk = localStorage.getItem("user_pk");
+  const { user: authUser } = useAuth();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [commentPkToDelete, setCommentPkToDelete] = useState(null);
 
@@ -44,15 +45,10 @@ const CommentList = ({
 
   const handleSaveEditComment = async (commentPk) => {
     try {
-      const token = localStorage.getItem("token");
       const response = await api.put(
         `/comments/${commentPk}`,
         { comment_message: editedCommentContent },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        {}
       );
       onUpdateComment(response.data);
       setEditingCommentId(null);
@@ -68,12 +64,7 @@ const CommentList = ({
 
   const confirmDeleteComment = async () => {
     try {
-      const token = localStorage.getItem("token");
-      await api.delete(`/comments/${commentPkToDelete}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await api.delete(`/comments/${commentPkToDelete}`, {});
       onDeleteComment(commentPkToDelete);
     } catch (error) {
       console.error("Error deleting comment:", error);
@@ -87,7 +78,7 @@ const CommentList = ({
       {comments.map((comment) => (
         <div key={comment.comment_pk} className="post__comment">
           <Link
-            to={buildProfilePath(comment.user)}
+            to={buildProfilePath(comment.user, { currentUser: authUser })}
             className="post__comment-user-link">
             <img
               src={getProfilePictureUrl(comment.user?.user_profile_picture)}
@@ -98,7 +89,7 @@ const CommentList = ({
           <div className="post__comment-content">
             <div className="post__comment-header">
               <Link
-                to={buildProfilePath(comment.user)}
+                to={buildProfilePath(comment.user, { currentUser: authUser })}
                 className="post__comment-user-name">
                 {comment.user?.user_full_name || "Unknown User"}
               </Link>
@@ -123,7 +114,7 @@ const CommentList = ({
               </div>
             )}
           </div>
-          {currentUserPk === comment.comment_user_fk && (
+          {String(authUser?.user_pk) === String(comment.comment_user_fk) && (
             <div className="comment-actions">
               {editingCommentId === comment.comment_pk ? (
                 <>

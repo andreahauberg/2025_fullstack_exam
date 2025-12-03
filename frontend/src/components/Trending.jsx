@@ -30,7 +30,6 @@ const Trending = ({ trending }) => {
 
     const interval = setInterval(updateCountries, 15 * 60 * 1000);
 
-    // Ryd interval ved unmount
     return () => clearInterval(interval);
   }, [trending]);
 

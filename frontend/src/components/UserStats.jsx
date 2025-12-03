@@ -6,7 +6,6 @@ const UserStats = ({ postsCount, followersCount, followingCount }) => {
     window.matchMedia("(max-width: 600px)").matches
   );
 
-  // Lyt til resize – samme løsning som tabs (uden reload)
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 600px)");
     const handler = (e) => setIsSmall(e.matches);

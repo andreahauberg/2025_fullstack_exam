@@ -25,17 +25,11 @@ const CommentForm = ({ postPk, setComments }) => {
     setErrorMessage("");
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem("token");
       const response = await api.post(
         "/comments",
         {
           post_pk: postPk,
           comment_message: comment,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
         }
       );
       setComments(response.data);

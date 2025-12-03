@@ -1,4 +1,3 @@
-// NotificationCount.jsx
 import React, { useEffect, useState } from "react";
 import { api } from "../api";
 import { useNavigate } from "react-router-dom";
@@ -12,10 +11,7 @@ const NotificationCount = () => {
     const fetchMeta = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem("token");
-        const resp = await api.get(`/notifications`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const resp = await api.get(`/notifications`);
         const data = resp.data || {};
         setUnreadCount(data.meta?.unread_count ?? 0);
       } catch (err) {

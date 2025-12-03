@@ -2,8 +2,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { parseApiErrorMessage } from "../utils/validation";
+import { useAuth } from "../hooks/useAuth";
 
-export const useHomeFeed = () => {
+export const useHomeFeed = ({ enabled = true } = {}) => {
   const [posts, setPosts] = useState([]);
   const [trending, setTrending] = useState([]);
   const [usersToFollow, setUsersToFollow] = useState([]);
@@ -20,11 +21,11 @@ export const useHomeFeed = () => {
 
   const navigate = useNavigate();
 
+  const { logout } = useAuth();
   const handleUnauthorized = useCallback(() => {
-    localStorage.removeItem("user_pk");
-    localStorage.removeItem("user_username");
+    logout();
     navigate("/");
-  }, [navigate]);
+  }, [logout, navigate]);
 
   useEffect(() => {
     loadingRef.current = loadingState;
@@ -36,6 +37,7 @@ export const useHomeFeed = () => {
 
   const fetchPosts = useCallback(
     async (requestedPage) => {
+      if (!enabled) return;
       if (loadingRef.current || !hasMoreRef.current) return;
 
       setLoadingState(true);
@@ -66,10 +68,11 @@ export const useHomeFeed = () => {
         setLoadingState(false);
       }
     },
-    [handleUnauthorized]
+    [handleUnauthorized, enabled]
   );
 
   const fetchTrending = useCallback(async () => {
+    if (!enabled) return;
     try {
       const response = await api.get("/trending");
       setTrending(response.data);
@@ -83,9 +86,10 @@ export const useHomeFeed = () => {
         handleUnauthorized();
       }
     }
-  }, [handleUnauthorized]);
+  }, [handleUnauthorized, enabled]);
 
   const fetchUsersToFollow = useCallback(async () => {
+    if (!enabled) return;
     try {
       const response = await api.get("/users-to-follow");
       setUsersToFollow(response.data);
@@ -99,30 +103,33 @@ export const useHomeFeed = () => {
         handleUnauthorized();
       }
     }
-  }, [handleUnauthorized]);
+  }, [handleUnauthorized, enabled]);
 
   const initializeFeed = useCallback(() => {
+    if (!enabled) return;
     setPosts([]);
     setHasMoreState(true);
     setPage(1);
     fetchPosts(1);
-  }, [fetchPosts]);
+  }, [fetchPosts, enabled]);
 
   useEffect(() => {
+    if (!enabled) return;
     fetchTrending();
     fetchUsersToFollow();
     initializeFeed();
-  }, [fetchTrending, fetchUsersToFollow, initializeFeed]);
+  }, [fetchTrending, fetchUsersToFollow, initializeFeed, enabled]);
 
   useEffect(() => {
     if (page === 1) return;
+    if (!enabled) return;
     fetchPosts(page);
-  }, [page, fetchPosts]);
+  }, [page, fetchPosts, enabled]);
 
   const loadNextPage = useCallback(() => {
-    if (loadingRef.current || !hasMoreRef.current) return;
+    if (!enabled || loadingRef.current || !hasMoreRef.current) return;
     setPage((prev) => prev + 1);
-  }, []);
+  }, [enabled]);
 
   const handlePostCreated = useCallback((newPost) => {
     setPosts((prev) => [newPost, ...prev]);

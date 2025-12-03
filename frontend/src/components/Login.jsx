@@ -1,21 +1,18 @@
 import React, { useState } from "react";
-import { api } from "../api";
-import { useNavigate } from "react-router-dom";
-import {
-  extractFieldErrors,
-  parseApiErrorMessage,
-  validateFields,
-} from "../utils/validation";
+import { useAuth } from "../hooks/useAuth";
+import { validateFields, parseApiErrorMessage } from "../utils/validation";
 import FieldError from "./FieldError";
 
 function Login() {
+  const { login } = useAuth();
+
   const [formData, setFormData] = useState({
     user_email: "",
     user_password: "",
   });
+
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
@@ -31,6 +28,7 @@ function Login() {
       "user_email",
       "user_password",
     ]);
+
     if (Object.keys(clientErrors).length > 0) {
       setErrors(clientErrors);
       return;
@@ -39,40 +37,25 @@ function Login() {
     setIsLoading(true);
 
     try {
-      // 1: Hent CSRF-cookie (nødvendigt for Sanctum SPA)
-      await api.get("/sanctum/csrf-cookie");
+      const result = await login(formData);
 
-      // 2: Login → dette sætter session-cookie i browseren
-      const response = await api.post("/login", formData);
-
-      if (response.data.success) {
-        const user = response.data.user;
-
-        localStorage.setItem("user_pk", user.user_pk);
-        localStorage.setItem("user_username", user.user_username);
-
-        setErrors({});
-        navigate("/home");
-      } else {
-        setErrors({
-          user_email: response.data.message || "Login failed.",
-          user_password: response.data.message || "Login failed.",
-        });
+      if (!result.success) {
+        if (result.errors && Object.keys(result.errors).length > 0) {
+          setErrors(result.errors);
+        } else {
+          const msg = result.message || "Invalid login credentials.";
+          setErrors({
+            user_email: msg,
+            user_password: msg,
+          });
+        }
       }
     } catch (error) {
-      const fieldErrors = extractFieldErrors(error);
-      if (Object.keys(fieldErrors).length > 0) {
-        setErrors(fieldErrors);
-      } else {
-        const fallback = parseApiErrorMessage(
-          error,
-          "Invalid credentials or network error."
-        );
-        setErrors({
-          user_email: fallback,
-          user_password: fallback,
-        });
-      }
+      const fallback = parseApiErrorMessage(error, "Login failed.");
+      setErrors({
+        user_email: fallback,
+        user_password: fallback,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -81,6 +64,7 @@ function Login() {
   return (
     <div className="login-container">
       <h2>Log in</h2>
+
       <form onSubmit={handleSubmit} noValidate>
         <div className="form-group">
           <label>Email:</label>
@@ -90,11 +74,7 @@ function Login() {
             value={formData.user_email}
             onChange={handleChange}
             disabled={isLoading}
-            className={
-              errors.user_email
-                ? "form-control input-error"
-                : "form-control"
-            }
+            className={errors.user_email ? "form-control input-error" : "form-control"}
           />
           <FieldError error={errors.user_email} />
         </div>
@@ -107,23 +87,15 @@ function Login() {
             value={formData.user_password}
             onChange={handleChange}
             disabled={isLoading}
-            className={
-              errors.user_password
-                ? "form-control input-error"
-                : "form-control"
-            }
+            className={errors.user_password ? "form-control input-error" : "form-control"}
           />
           <FieldError error={errors.user_password} />
         </div>
 
-        <button type="submit" className="btn" disabled={isLoading}>
+        <button className="btn" type="submit" disabled={isLoading}>
           {isLoading ? "Logging in..." : "Log in"}
         </button>
       </form>
-
-      <p>
-        Don't have an account? <a href="/signup">Sign up</a>
-      </p>
     </div>
   );
 }

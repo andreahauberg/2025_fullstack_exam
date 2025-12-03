@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../api";
 import { extractFieldErrors, parseApiErrorMessage, validateFields } from "../utils/validation";
+import { useAuth } from "../hooks/useAuth";
 
 export const useProfileEditing = (user, setUser, setError) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -27,6 +28,8 @@ export const useProfileEditing = (user, setUser, setError) => {
     setEditedUser((prev) => ({ ...prev, [name]: value }));
   }, []);
 
+  const { logout } = useAuth();
+
   const handleSaveEdit = useCallback(async () => {
     const clientErrors = validateFields(
       editedUser,
@@ -47,8 +50,7 @@ export const useProfileEditing = (user, setUser, setError) => {
     } catch (error) {
       // Sanctum 401 → logout user
       if (error.response?.status === 401) {
-        localStorage.removeItem("user_pk");
-        localStorage.removeItem("user_username");
+        await logout();
         window.location.href = "/";
         return;
       }
@@ -60,7 +62,7 @@ export const useProfileEditing = (user, setUser, setError) => {
         setError?.(parseApiErrorMessage(error, "Failed to update user data."));
       }
     }
-  }, [editedUser, setError, setUser, user]);
+  }, [editedUser, logout, setError, setUser, user]);
 
   return {
     isEditing,

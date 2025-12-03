@@ -16,6 +16,7 @@ import "../css/UserPage.css";
 import { useDocumentTitle } from "../utils/useDocumentTitle";
 import { useFollowActions } from "../hooks/useFollowActions";
 import { useProfileData } from "../hooks/useProfileData";
+import { useAuth } from "../hooks/useAuth";
 
 const UserPage = () => {
   const { username } = useParams();
@@ -34,6 +35,8 @@ const UserPage = () => {
     error,
     setError,
   } = useProfileData(username, { requireAuth: false });
+  const { user: authUser, logout } = useAuth();
+
   const { handleFollowToggle } = useFollowActions({
     user,
     setUser,
@@ -44,6 +47,8 @@ const UserPage = () => {
     isFollowing,
     setIsFollowing,
     setError,
+    currentUser: authUser,
+    onUnauthenticated: logout,
   });
   const [repostPosts, setRepostPosts] = useState([]);
   const [isRepostsLoading, setIsRepostsLoading] = useState(false);

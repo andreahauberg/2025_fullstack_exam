@@ -8,6 +8,7 @@ import CommentList from "./CommentList";
 import CommentForm from "./CommentForm";
 import ConfirmationDialog from "./ConfirmationDialog";
 import "../css/Post-Comment.css";
+import { useAuth } from "../hooks/useAuth";
 
 const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
   const [liked, setLiked] = useState(post.is_liked_by_user);
@@ -19,8 +20,7 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(post.post_content);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-  const currentUserPk = localStorage.getItem("user_pk");
+  const { user: authUser } = useAuth();
 
   useEffect(() => {
     setReposted(post.is_reposted_by_user || false);
@@ -29,13 +29,8 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
 
   const handleLike = async () => {
     try {
-      const token = localStorage.getItem("token");
       if (liked) {
-        await api.delete(`/likes/${post.post_pk}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        await api.delete(`/likes/${post.post_pk}`);
         const nextCount = Math.max(0, (likeCount || 0) - 1);
         setLiked(false);
         setLikeCount(nextCount);
@@ -45,15 +40,7 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
           likes_count: nextCount,
         });
       } else {
-        await api.post(
-          "/likes",
-          { post_pk: post.post_pk },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        await api.post("/likes", { post_pk: post.post_pk });
         const nextCount = (likeCount || 0) + 1;
         setLiked(true);
         setLikeCount(nextCount);
@@ -70,11 +57,8 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
 
   const handleRepost = async () => {
     try {
-      const token = localStorage.getItem("token");
       if (reposted) {
-        await api.delete(`/reposts/${post.post_pk}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.delete(`/reposts/${post.post_pk}`);
         const nextCount = Math.max(0, (repostCount || 0) - 1);
         setReposted(false);
         setRepostCount(nextCount);
@@ -90,7 +74,7 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
           })
         );
       } else {
-        await api.post("/reposts", { post_pk: post.post_pk }, { headers: { Authorization: `Bearer ${token}` } });
+        await api.post("/reposts", { post_pk: post.post_pk });
         const nextCount = (repostCount || 0) + 1;
         setReposted(true);
         setRepostCount(nextCount);
@@ -127,15 +111,9 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
 
   const handleSaveEdit = async () => {
     try {
-      const token = localStorage.getItem("token");
       const response = await api.put(
         `/posts/${post.post_pk}`,
-        { post_content: editedContent },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { post_content: editedContent }
       );
       onUpdatePost({
         ...post,
@@ -154,12 +132,7 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
 
   const confirmDelete = async () => {
     try {
-      const token = localStorage.getItem("token");
-      await api.delete(`/posts/${post.post_pk}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await api.delete(`/posts/${post.post_pk}`);
       onDeletePost(post.post_pk);
     } catch (error) {
       console.error("Error deleting post:", error);
@@ -187,7 +160,6 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
   };
 
   return (
-    //added id for scrolling to specific posts
     <div className="post" id={`post-${post.post_pk}`}>
       {!hideHeader && <PostHeader user={post.user} created_at={post.created_at} edited={post.updated_at && post.created_at && String(post.updated_at) !== String(post.created_at)} />}
       <PostContent content={isEditing ? <textarea value={editedContent} onChange={(e) => setEditedContent(e.target.value)} className="edit-post-textarea" /> : post.post_content} imagePath={post.post_image_path} editedAt={post.updated_at} createdAt={post.created_at} />
@@ -203,7 +175,7 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
       ) : (
         <div className="post-actions-container">
           <PostActions liked={liked} likeCount={likeCount} reposted={reposted} repostCount={repostCount} commentCount={comments.length > 0 ? comments.length : post.comments_count} showComments={showComments} setShowComments={setShowComments} handleLike={handleLike} handleRepost={handleRepost} />
-          {currentUserPk === post.post_user_fk && (
+          {String(authUser?.user_pk) === String(post.post_user_fk) && (
             <div className="post-edit-delete-actions">
               <button className="edit-post-btn" onClick={handleEdit}>
                 <i className="fa-solid fa-pen-to-square"></i>

@@ -1,10 +1,11 @@
 export const buildProfilePath = (
   user = {},
-  currentUserPk = localStorage.getItem("user_pk"),
-  currentUsername = localStorage.getItem("user_username")
+  { currentUser } = {}
 ) => {
   const { user_pk, user_username } = user;
   if (!user_username) return "#";
+  const currentUserPk = currentUser?.user_pk;
+  const currentUsername = currentUser?.user_username;
   const isCurrent =
     (currentUserPk && user_pk && String(user_pk) === String(currentUserPk)) ||
     (currentUsername && user_username === currentUsername);

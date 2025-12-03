@@ -41,6 +41,7 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Account created successfully!',
+            'token' => $user->createToken('web')->plainTextToken,
             'user' => $user,
         ], 201);
     }
@@ -74,6 +75,7 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Logged in successfully!',
+            'token' => Auth::user()->createToken('web')->plainTextToken,
             'user' => Auth::user(),
         ]);
     }

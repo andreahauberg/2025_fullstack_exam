@@ -10,7 +10,6 @@ const NavItem = ({ icon, text, href, onClick, className }) => {
       return onClick();
     }
 
-    // Navigér KUN hvis href eksisterer OG IKKE er "#"
     if (href && href !== "#") {
       navigate(href);
     }

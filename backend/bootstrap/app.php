@@ -2,6 +2,10 @@
 
 use App\Http\Middleware\ApiExceptionMiddleware;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Session\Middleware\StartSession;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Illuminate\Database\ConnectionException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
@@ -29,9 +33,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(
             prepend: [
                 ApiExceptionMiddleware::class,
+                EncryptCookies::class,
+                AddQueuedCookiesToResponse::class,
+                StartSession::class,
+                ShareErrorsFromSession::class,
             ],
             append: [
-                HandleCors::class, 
+                HandleCors::class,
             ],
         );
     })

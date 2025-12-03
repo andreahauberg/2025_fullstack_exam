@@ -1,11 +1,7 @@
 import { useState } from "react";
-import { api } from "../api";
+import { useAuth } from "../hooks/useAuth";
 import Dialog from "./Dialog";
-import {
-  extractFieldErrors,
-  parseApiErrorMessage,
-  validateFields,
-} from "../utils/validation";
+import { parseApiErrorMessage, validateFields } from "../utils/validation";
 import FieldError from "./FieldError";
 
 const LoginDialog = ({ isOpen, onClose, onSuccess, onOpenSignup }) => {
@@ -14,6 +10,7 @@ const LoginDialog = ({ isOpen, onClose, onSuccess, onOpenSignup }) => {
     user_password: "",
   });
   const [errors, setErrors] = useState({});
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -34,29 +31,36 @@ const LoginDialog = ({ isOpen, onClose, onSuccess, onOpenSignup }) => {
 
     setIsLoading(true);
     try {
-      const response = await api.post("/login", formData);
-      setErrors({});
-      localStorage.setItem("token", response.data.token); // Gem token
-      localStorage.setItem("user_pk", response.data.user.user_pk); // Gem bruger PK
-      localStorage.setItem("user_username", response.data.user.user_username);
-      setTimeout(() => {
-        onSuccess();
-        onClose();
-      }, 2000);
-    } catch (error) {
-      const fieldErrors = extractFieldErrors(error);
-      if (Object.keys(fieldErrors).length > 0) {
-        setErrors(fieldErrors);
+      const result = await login(formData);
+
+      if (result.success) {
+        setErrors({});
+        setTimeout(() => {
+          onSuccess();
+          onClose();
+        }, 2000);
+        return;
+      }
+
+      if (result.errors && Object.keys(result.errors).length > 0) {
+        setErrors(result.errors);
       } else {
-        const fallback = parseApiErrorMessage(
-          error,
-          "Network error. Please check your connection."
-        );
+        const fallback =
+          result.message || "Login failed. Please check your credentials.";
         setErrors({
           user_email: fallback,
           user_password: fallback,
         });
       }
+    } catch (error) {
+      const fallback = parseApiErrorMessage(
+        error,
+        "Network error. Please check your connection."
+      );
+      setErrors({
+        user_email: fallback,
+        user_password: fallback,
+      });
     } finally {
       setIsLoading(false);
     }

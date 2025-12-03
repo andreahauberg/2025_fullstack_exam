@@ -12,26 +12,27 @@ export const useFollowActions = ({
   isFollowing,
   setIsFollowing,
   setError,
+  currentUser,
+  onUnauthenticated,
 }) => {
   const navigate = useNavigate();
 
   const handleFollowToggle = useCallback(async () => {
-    const currentUserPk = localStorage.getItem("user_pk");
-    const currentUsername = localStorage.getItem("user_username");
-
     const wasFollowing = isFollowing;
 
     setIsFollowing(!wasFollowing);
 
     setFollowers((prev) =>
-      wasFollowing
-        ? (prev || []).filter((f) => String(f.user_pk) !== String(currentUserPk))
+          wasFollowing
+        ? (prev || []).filter(
+            (f) => String(f.user_pk) !== String(currentUser?.user_pk)
+          )
         : [
             ...(prev || []),
             {
-              user_pk: currentUserPk,
-              user_username: currentUsername,
-              user_full_name: currentUsername,
+              user_pk: currentUser?.user_pk,
+              user_username: currentUser?.user_username,
+              user_full_name: currentUser?.user_full_name || currentUser?.user_username,
             },
           ]
     );
@@ -46,30 +47,33 @@ export const useFollowActions = ({
       setIsFollowing(wasFollowing);
 
       setFollowers((prev) =>
-        wasFollowing
-          ? [
-              ...(prev || []),
-              {
-                user_pk: currentUserPk,
-                user_username: currentUsername,
-                user_full_name: currentUsername,
-              },
-            ]
-          : (prev || []).filter((f) => String(f.user_pk) !== String(currentUserPk))
+          wasFollowing
+            ? [
+                ...(prev || []),
+                {
+                  user_pk: currentUser?.user_pk,
+                  user_username: currentUser?.user_username,
+                  user_full_name: currentUser?.user_full_name || currentUser?.user_username,
+                },
+              ]
+            : (prev || []).filter(
+                (f) => String(f.user_pk) !== String(currentUser?.user_pk)
+              )
       );
 
       console.error("Error updating follow status:", err);
       setError?.("Failed to update follow status.");
 
       if (err?.response?.status === 401) {
-        localStorage.removeItem("user_pk");
-        localStorage.removeItem("user_username");
+        onUnauthenticated?.();
         navigate("/");
       }
     }
   }, [
+    currentUser,
     isFollowing,
     navigate,
+    onUnauthenticated,
     setError,
     setFollowers,
     setIsFollowing,

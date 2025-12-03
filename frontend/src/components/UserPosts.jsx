@@ -25,9 +25,7 @@ const UserPosts = ({ userPk, isCurrentUser, newPost }) => {
     setLoadingState(true);
 
     try {
-      const response = await api.get(
-        `/users/${userPk}/posts?page=${requestedPage}`
-      );
+      const response = await api.get(`/users/${userPk}/posts?page=${requestedPage}`);
       const newPosts = response.data.data ?? [];
 
       setPosts((prev) => {

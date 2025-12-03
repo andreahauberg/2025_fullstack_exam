@@ -16,7 +16,7 @@ import "../css/NotificationsPage.css";
 const NotificationsPage = () => {
   useDocumentTitle("Notifications");
 
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated, loading: authLoading, user: authUser } = useAuth();
   const navigate = useNavigate();
 
   const [notifications, setNotifications] = useState([]);
@@ -68,10 +68,13 @@ const NotificationsPage = () => {
 
     if (!authorUsername || !authorPk) return;
 
-    const base = buildProfilePath({
-      user_username: authorUsername,
-      user_pk: authorPk,
-    });
+    const base = buildProfilePath(
+      {
+        user_username: authorUsername,
+        user_pk: authorPk,
+      },
+      { currentUser: authUser }
+    );
 
     const hash = postPk ? `#post-${postPk}` : "";
     navigate(`${base}${hash}`);

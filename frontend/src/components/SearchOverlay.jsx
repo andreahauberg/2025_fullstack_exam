@@ -4,7 +4,7 @@ import "../css/SearchOverlay.css";
 import { useNavigate } from "react-router-dom";
 import { getPostImageUrl } from "../utils/imageUtils";
 import { buildProfilePath } from "../utils/urlHelpers";
-
+import { useAuth } from "../hooks/useAuth";
 
 const SearchOverlay = ({ isOpen, onClose, initialQuery = "" }) => {
   const [query, setQuery] = useState(initialQuery);
@@ -32,12 +32,8 @@ const SearchOverlay = ({ isOpen, onClose, initialQuery = "" }) => {
   const performSearch = async (searchTerm) => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      const response = await api.post(
-        "/search",
-        { query: searchTerm },
-        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
-      );
+      const response = await api.post("/search", { query: searchTerm });
+
       setResults({
         users: response.data.users ?? [],
         posts: response.data.posts ?? [],
@@ -60,31 +56,35 @@ const SearchOverlay = ({ isOpen, onClose, initialQuery = "" }) => {
     return text.length > max ? text.substring(0, max) + "..." : text;
   };
 
+  const { user: authUser } = useAuth();
 
-const goToUser = (user) => {
-  const path = buildProfilePath(user);
-  if (path === "#") return;
-  navigate(path);
-  onClose();
-};
+  const goToUser = (user) => {
+    const path = buildProfilePath(user, { currentUser: authUser });
+    if (path === "#") return;
+    navigate(path);
+    onClose();
+  };
 
-const goToPostUser = (post) => {
-  const path = buildProfilePath({
-    user_username: post?.user_username,
-    user_pk: post?.user_pk,
-  });
-  if (path === "#") return;
-  navigate(path);
-  onClose();
-};
-
+  const goToPostUser = (post) => {
+    const path = buildProfilePath(
+      {
+        user_username: post?.user_username,
+        user_pk: post?.user_pk,
+      },
+      { currentUser: authUser }
+    );
+    if (path === "#") return;
+    navigate(path);
+    onClose();
+  };
 
   if (!isOpen) return null;
 
   return (
     <div
       className="search-overlay search-overlay-open"
-      onClick={(e) => e.target === e.currentTarget && onClose()}>
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
       <div className="search-overlay-box">
         <button className="search-overlay-close" onClick={onClose}>
           &times;
@@ -95,7 +95,8 @@ const goToPostUser = (post) => {
           onSubmit={(e) => {
             e.preventDefault();
             if (query.trim()) performSearch(query.trim());
-          }}>
+          }}
+        >
           <input
             type="text"
             value={query}
@@ -120,7 +121,8 @@ const goToPostUser = (post) => {
                   <li
                     key={user.user_pk}
                     className="search-results-user"
-                    onClick={() => goToUser(user)}>
+                    onClick={() => goToUser(user)}
+                  >
                     <span
                       className="search-results-user-name"
                       dangerouslySetInnerHTML={{
@@ -148,7 +150,8 @@ const goToPostUser = (post) => {
                     key={post.post_pk}
                     className="search-results-post-card"
                     onClick={() => goToPostUser(post)}
-                    style={{ cursor: "pointer" }}>
+                    style={{ cursor: "pointer" }}
+                  >
                     {post.post_image_path && (
                       <div className="search-results-post-image-wrapper">
                         <img
