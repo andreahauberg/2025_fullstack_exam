@@ -12,6 +12,10 @@ use App\Http\Controllers\NotificationsController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\SearchController;
 
+Route::options('/{any}', function () {
+    return response()->json();
+})->where('any', '.*');
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
