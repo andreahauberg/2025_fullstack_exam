@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./Pages/LandingPage";
 import HomePage from "./Pages/HomePage";
 import ProfilePage from "./Pages/ProfilePage";
@@ -29,7 +29,6 @@ const App = () => {
   
   return (
     <ErrorBoundary>
-    <Router>
       <Routes>
         <Route
           path="/"
@@ -75,7 +74,6 @@ const App = () => {
         <Route path="/404" element={<NotFoundPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
-    </Router>
     </ErrorBoundary>
   );
 };
