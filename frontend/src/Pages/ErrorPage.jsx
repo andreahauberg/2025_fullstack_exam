@@ -1,3 +1,4 @@
+// src/Pages/ErrorPage.jsx
 import { Link, useLocation } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import { useDocumentTitle } from "../utils/useDocumentTitle";
@@ -47,14 +48,20 @@ const ErrorPage = () => {
 
   const statusParam = location.state?.code;
   const explicitMessage = location.state?.message;
-  const statusCode = statusParam ? Number(statusParam) : undefined;
-  const { title, message: defaultMessage, action } = getErrorConfig(statusCode || 404);
+  const statusCode = statusParam ? Number(statusParam) : 404;
+
+  const { title, message: defaultMessage, action } = getErrorConfig(statusCode);
   const message = explicitMessage || defaultMessage;
 
   useDocumentTitle(`${title} / Weave`);
 
   const isAuthed = Boolean(localStorage.getItem("token"));
   const primaryLink = isAuthed ? "/home" : "/";
+
+  const primaryTarget =
+    action === "Go to sign in"
+      ? "/"
+      : primaryLink;
 
   return (
     <div id="container">
@@ -63,15 +70,12 @@ const ErrorPage = () => {
       <main className="notfound-main">
         <h1>{title}</h1>
         <p>{message}</p>
-        {statusCode ? (
+        {statusCode && (
           <p className="error-code">Status code: {statusCode}</p>
-        ) : null}
+        )}
 
         <div className="notfound-actions">
-          <Link
-            to={action === "Go to sign in" ? "/" : primaryLink}
-            className="btn-link"
-          >
+          <Link to={primaryTarget} className="btn-link">
             {action}
           </Link>
           <Link to={primaryLink} className="btn-link">
