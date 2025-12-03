@@ -2,7 +2,7 @@ name: Frontend CI/CD
 
 on:
   push:
-    branches: [Testing-CI-CD/Andrea]
+    branches: [main, Testing-CI-CD/Andrea]
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend.yml'
@@ -13,11 +13,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Remove existing node_modules and package-lock.json
+        working-directory: ./frontend
+        run: |
+          rm -rf node_modules
+          rm -f package-lock.json
+
       - name: Cache npm dependencies
         uses: actions/cache@v3
         with:
           path: ./frontend/node_modules
-          key: ${{ runner.os }}-npm-${{ hashFiles('./frontend/package-lock.json') }}
+          key: ${{ runner.os }}-npm-${{ hashFiles('./frontend/package.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
 
@@ -26,13 +32,14 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install ALL dependencies (inkl. devDependencies)
+      - name: Install ALL dependencies (clean install)
         working-directory: ./frontend
         run: npm install --legacy-peer-deps --force
 
       - name: Run tests
         working-directory: ./frontend
         run: npm test
+
 
   build:
     needs: test
