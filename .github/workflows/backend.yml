@@ -2,7 +2,7 @@ name: Backend CI/CD
 
 on:
   push:
-    branches: [ main, Testing-CI-CD/Andrea ]
+    branches: [main, Testing-CI-CD/Andrea]
     paths:
       - 'backend/**'
       - '.github/workflows/backend.yml'
@@ -29,18 +29,19 @@ jobs:
 
       - name: Install Composer dependencies
         working-directory: ./backend
-        run: composer install --prefer-dist --no-progress
+        run: composer install --prefer-dist --no-progress --no-interaction
 
-      - name: Create .env file and generate APP_KEY
+      - name: Create .env file
         working-directory: ./backend
-        run: |
-          cp .env.example .env
-          php artisan key:generate
+        run: cp .env.example .env
+
+      - name: Generate APP_KEY
+        working-directory: ./backend
+        run: php artisan key:generate
 
       - name: Run PHPUnit tests
         working-directory: ./backend
         run: ./vendor/bin/phpunit
-
 
   deploy:
     needs: test
@@ -48,14 +49,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Render CLI
-        run: npm install -g @renderinc/render-cli
-
-      - name: Deploy to Render
+      - name: Install dependencies
         working-directory: ./backend
+        run: composer install --prefer-dist --no-progress --no-interaction --no-dev
+
+      - name: Deploy to Render (via Git push)
         run: |
-          render deploy \
-            --service-id=${{ secrets.RENDER_BACKEND_SERVICE_ID }} \
-            --api-key=${{ secrets.RENDER_API_KEY }}
-        env:
-          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          echo "Backend deployes automatisk via Render's Git-integration. Ingen yderligere handling nødvendig."

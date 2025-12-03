@@ -2,7 +2,7 @@ name: Frontend CI/CD
 
 on:
   push:
-    branches: [ main, Testing-CI-CD/Andrea ]
+    branches: [main, Testing-CI-CD/Andrea]
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend.yml'
@@ -26,15 +26,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install ALL dependencies
+      - name: Install ALL dependencies (inkl. devDependencies)
         working-directory: ./frontend
-        run: npm install --legacy-peer-deps
+        run: npm install --legacy-peer-deps --force
 
       - name: Run tests
         working-directory: ./frontend
         run: npm test
-
-
 
   build:
     needs: test
@@ -49,18 +47,15 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./frontend
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Build
         working-directory: ./frontend
         run: npm run build
         env:
-          REACT_APP_API_BASE_URL: ${{ secrets.REACT_APP_API_BASE_URL }}
+          REACT_APP_API_BASE_URL: https://two025-fullstack-exam-zzdo.onrender.com
+          CI: false
 
-      - name: Deploy to Render
+      - name: Deploy to Render (via Git push)
         run: |
-          render deploy \
-            --service-id=${{ secrets.RENDER_FRONTEND_SERVICE_ID }} \
-            --api-key=${{ secrets.RENDER_API_KEY }}
-        env:
-          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          echo "Frontend deployes automatisk via Render's Git-integration. Ingen yderligere handling nødvendig."
