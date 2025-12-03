@@ -1,4 +1,4 @@
-import { Link, useLocation, useSearchParams } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import { useDocumentTitle } from "../utils/useDocumentTitle";
 import "../css/App.css";
@@ -38,18 +38,17 @@ const errorCopy = {
 };
 
 const getErrorConfig = (statusCode) => {
+  if (!statusCode) return errorCopy.default;
   return errorCopy[statusCode] || errorCopy.default;
 };
 
 const ErrorPage = () => {
-  const [params] = useSearchParams();
   const location = useLocation();
 
-  const rawStatus = location.state?.code ?? params.get("code");
-  const statusCode = rawStatus ? Number(rawStatus) : 404;
-
-  const explicitMessage = location.state?.message ?? params.get("message");
-  const { title, message: defaultMessage, action } = getErrorConfig(statusCode);
+  const statusParam = location.state?.code;
+  const explicitMessage = location.state?.message;
+  const statusCode = statusParam ? Number(statusParam) : undefined;
+  const { title, message: defaultMessage, action } = getErrorConfig(statusCode || 404);
   const message = explicitMessage || defaultMessage;
 
   useDocumentTitle(`${title} / Weave`);
@@ -64,9 +63,15 @@ const ErrorPage = () => {
       <main className="notfound-main">
         <h1>{title}</h1>
         <p>{message}</p>
-        {statusCode && <p className="error-code">Status code: {statusCode}</p>}
+        {statusCode ? (
+          <p className="error-code">Status code: {statusCode}</p>
+        ) : null}
+
         <div className="notfound-actions">
-          <Link to={action === "Go to sign in" ? "/" : primaryLink} className="btn-link">
+          <Link
+            to={action === "Go to sign in" ? "/" : primaryLink}
+            className="btn-link"
+          >
             {action}
           </Link>
           <Link to={primaryLink} className="btn-link">
