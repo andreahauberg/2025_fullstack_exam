@@ -10,13 +10,24 @@ jest.mock("axios", () => {
     post: jest.fn(),
     put: jest.fn(),
     delete: jest.fn(),
+
+    interceptors: {
+      request: {
+        use: jest.fn((onFulfilled) => onFulfilled({})), // bare returnér config
+      },
+      response: {
+        use: jest.fn(),
+      },
+    },
+
     create: jest.fn(function () {
-      // create() returnerer et axios-lignende objekt
       return mockAxios;
     }),
   };
+
   return mockAxios;
 });
+
 
 
 beforeEach(() => {
