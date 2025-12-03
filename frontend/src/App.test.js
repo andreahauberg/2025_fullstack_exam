@@ -3,6 +3,14 @@ import { render, screen, waitFor } from "@testing-library/react";
 import App from "./App";
 import { MemoryRouter } from "react-router-dom";
 
+
+jest.mock("axios", () => ({
+  get: jest.fn(),
+  post: jest.fn(),
+  put: jest.fn(),
+  delete: jest.fn(),
+}));
+
 beforeEach(() => {
   // Mock localStorage for at simulere en ikke-logget-ind bruger
   Storage.prototype.getItem = jest.fn((key) => {
