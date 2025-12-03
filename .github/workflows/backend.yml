@@ -13,18 +13,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ./backend/vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('./backend/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
+          tools: composer:v2
 
       - name: Install Composer dependencies
         working-directory: ./backend
-        run: composer install --no-dev --optimize-autoloader
+        run: composer install --prefer-dist --no-progress
 
       - name: Run PHPUnit tests
         working-directory: ./backend
         run: ./vendor/bin/phpunit
+
 
   deploy:
     needs: test
