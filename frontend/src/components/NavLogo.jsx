@@ -4,7 +4,7 @@ const NavLogo = () => {
   const navigate = useNavigate();
 
   return (
-    <li class="nav-logo">
+    <li className="nav-logo">
       <button onClick={() => navigate("/home")} title="Home">
         <img
           src="/favicon/weave.png"

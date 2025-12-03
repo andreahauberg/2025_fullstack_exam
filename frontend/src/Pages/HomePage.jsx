@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import NavBar from "../components/NavBar";
 import Post from "../components/Post";
 import Trending from "../components/Trending";
@@ -10,6 +10,7 @@ import { useHomeFeed } from "../hooks/useHomeFeed";
 
 const HomePage = () => {
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
+
   const {
     posts,
     trending,
@@ -24,44 +25,55 @@ const HomePage = () => {
     handleUpdatePost,
     handleDeletePost,
   } = useHomeFeed();
+
   const username = localStorage.getItem("user_username");
   const homeTitle = username ? `Home / Welcome ${username}` : "Home / Welcome";
   useDocumentTitle(homeTitle);
 
+  
+  const mainRef = useRef(null);
+
   useEffect(() => {
-    const mainEl = document.querySelector("main");
-    if (!mainEl) return;
+    const el = mainRef.current;
+    if (!el) return;
+
     let ticking = false;
+
     const handleScroll = () => {
       if (ticking) return;
       ticking = true;
+
       window.requestAnimationFrame(() => {
-        const scrollTop = mainEl.scrollTop;
-        const scrollHeight = mainEl.scrollHeight;
-        const clientHeight = mainEl.clientHeight;
-        if (
-          scrollTop + clientHeight >= scrollHeight - 300 &&
-          !loadingState &&
-          hasMoreState
-        ) {
+        const scrollTop = el.scrollTop;
+        const scrollHeight = el.scrollHeight;
+        const clientHeight = el.clientHeight;
+
+        const reachedBottom =
+          scrollTop + clientHeight >= scrollHeight - 300;
+
+        if (reachedBottom && !loadingState && hasMoreState) {
           loadNextPage();
         }
+
         ticking = false;
       });
     };
-    mainEl.addEventListener("scroll", handleScroll, { passive: true });
-    return () => mainEl.removeEventListener("scroll", handleScroll);
-  }, [hasMoreState, loadNextPage, loadingState]);
+
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [loadingState, hasMoreState, loadNextPage]);
 
   return (
     <div id="container">
       <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
 
-      <main>
+      <main ref={mainRef}>
         {loadingState && posts.length === 0 && (
           <LoadingOverlay message="Loading feed..." />
         )}
+
         {feedError && <p className="error">{feedError}</p>}
+
         {posts.map((post) => (
           <Post
             key={post.post_pk}
@@ -70,12 +82,16 @@ const HomePage = () => {
             onDeletePost={handleDeletePost}
           />
         ))}
-        {!hasMoreState && <p>No more posts to load.</p>}
+
+        {!hasMoreState && !loadingState && (
+          <p className="end-message">No more posts to load.</p>
+        )}
       </main>
 
       <aside>
         <Trending trending={trending} />
         {trendingError && <p className="error">{trendingError}</p>}
+
         <WhoToFollow users={usersToFollow} />
         {usersError && <p className="error">{usersError}</p>}
       </aside>

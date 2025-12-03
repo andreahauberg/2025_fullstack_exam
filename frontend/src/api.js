@@ -4,7 +4,10 @@ import { parseApiErrorMessage } from "./utils/validation";
 const baseURL =
   process.env.REACT_APP_API_BASE_URL ||
   process.env.REACT_APP_API_BASE ||
-  "http://127.0.0.1:8000/api";
+  "http://localhost/api";
+  
+
+  
 
 export const api = axios.create({
   baseURL,
@@ -12,6 +15,7 @@ export const api = axios.create({
     "Content-Type": "application/json",
     Accept: "application/json",
   },
+  
 });
 
 api.interceptors.request.use(
@@ -25,7 +29,10 @@ api.interceptors.request.use(
   (error) => {
     return Promise.reject(error);
   }
-);
+);api.interceptors.request.use((config) => {
+  console.log("[API]", config.method?.toUpperCase(), config.url);
+  return config;
+});
 
 const MAX_RETRIES = 2; 
 const RETRY_STATUS = [429, 500, 502, 503, 504];

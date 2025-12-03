@@ -4,70 +4,75 @@ import { api } from "../api";
 
 export const useProfileData = (username, options = {}) => {
   const { requireAuth = true } = options;
+
   const [user, setUser] = useState(null);
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
   const [usersToFollow, setUsersToFollow] = useState([]);
   const [trending, setTrending] = useState([]);
   const [isFollowing, setIsFollowing] = useState(false);
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const navigate = useNavigate();
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
-    try {
-      const token = localStorage.getItem("token");
-      if (requireAuth && !token) {
-        setIsLoading(false);
-        navigate("/");
-        return;
-      }
+    const token = localStorage.getItem("token");
 
-      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
-      const [userResponse, trendingResponse, usersToFollowResponse] = await Promise.all([
-        api.get(`/users/${username}`, config),
+    if (requireAuth && !token) {
+      setIsLoading(false);
+      navigate("/");
+      return;
+    }
+
+    const authHeaders = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+
+    try {
+      const [userResp, trendingResp, suggestResp] = await Promise.all([
+        api.get(`/users/${username}`, authHeaders),
+
         token
-          ? api.get("/trending", {
-              headers: { Authorization: `Bearer ${token}` },
-            })
+          ? api.get("/trending", authHeaders)
           : Promise.resolve({ data: [] }),
+
         token
-          ? api.get("/users-to-follow", {
-              headers: { Authorization: `Bearer ${token}` },
-            })
+          ? api.get("/users-to-follow", authHeaders)
           : Promise.resolve({ data: [] }),
       ]);
 
-      if (!userResponse.data?.user) {
-        setIsLoading(false);
+      const userData = userResp.data?.user;
+      if (!userData) {
         navigate("/404", { replace: true, state: { missingUsername: username } });
         return;
       }
 
-      const currentUserPk = localStorage.getItem("user_pk");
-      setUser(userResponse.data.user);
-      setFollowers(userResponse.data.followers || []);
-      setFollowing(userResponse.data.following || []);
-      setTrending(trendingResponse.data || []);
-      setUsersToFollow(usersToFollowResponse.data || []);
+      setUser(userData);
+      setFollowers(userResp.data.followers || []);
+      setFollowing(userResp.data.following || []);
+      setTrending(trendingResp.data || []);
+      setUsersToFollow(suggestResp.data || []);
+
+      const currentPk = localStorage.getItem("user_pk");
       setIsFollowing(
-        currentUserPk ? userResponse.data.followers?.some((f) => String(f.user_pk) === String(currentUserPk)) || false : false
+        !!currentPk &&
+        (userResp.data.followers || []).some(
+          (f) => String(f.user_pk) === String(currentPk)
+        )
       );
     } catch (err) {
       const status = err.response?.status;
-      const backendError = err.response?.data?.error || "";
-      const backendMessage = err.response?.data?.message || "";
-      const isMissingUser =
-        status === 404 ||
-        backendError === "User not found." ||
-        backendMessage.includes("No query results") ||
-        backendMessage.includes("User not found");
+      const msg = err.response?.data?.message || "";
 
-      if (isMissingUser) {
-        setIsLoading(false);
+      const userMissing =
+        status === 404 ||
+        msg.includes("User not found") ||
+        msg.includes("No query results");
+
+      if (userMissing) {
         navigate("/404", { replace: true, state: { missingUsername: username } });
         return;
       }
@@ -80,11 +85,11 @@ export const useProfileData = (username, options = {}) => {
         return;
       }
 
-      setError("Failed to load data.");
+      setError("Failed to load profile.");
     } finally {
       setIsLoading(false);
     }
-  }, [username, navigate, requireAuth]);
+  }, [username, requireAuth, navigate]);
 
   useEffect(() => {
     fetchData();

@@ -38,7 +38,6 @@ const errorCopy = {
 };
 
 const getErrorConfig = (statusCode) => {
-  if (!statusCode) return errorCopy.default;
   return errorCopy[statusCode] || errorCopy.default;
 };
 
@@ -46,9 +45,10 @@ const ErrorPage = () => {
   const [params] = useSearchParams();
   const location = useLocation();
 
-  const statusParam = location.state?.code ?? params.get("code");
+  const rawStatus = location.state?.code ?? params.get("code");
+  const statusCode = rawStatus ? Number(rawStatus) : 404;
+
   const explicitMessage = location.state?.message ?? params.get("message");
-  const statusCode = statusParam ? Number(statusParam) : undefined;
   const { title, message: defaultMessage, action } = getErrorConfig(statusCode);
   const message = explicitMessage || defaultMessage;
 
@@ -60,10 +60,11 @@ const ErrorPage = () => {
   return (
     <div id="container">
       {isAuthed && <NavBar setIsPostDialogOpen={() => {}} />}
+
       <main className="notfound-main">
         <h1>{title}</h1>
         <p>{message}</p>
-        {statusCode ? <p className="error-code">Status code: {statusCode}</p> : null}
+        {statusCode && <p className="error-code">Status code: {statusCode}</p>}
         <div className="notfound-actions">
           <Link to={action === "Go to sign in" ? "/" : primaryLink} className="btn-link">
             {action}

@@ -1,15 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../api";
-import { extractFieldErrors, parseApiErrorMessage, validateFields } from "../utils/validation";
+import {
+  extractFieldErrors,
+  parseApiErrorMessage,
+  validateFields,
+} from "../utils/validation";
 
 export const useProfileEditing = (user, setUser, setError) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedUser, setEditedUser] = useState(user ?? {});
+  const [editedUser, setEditedUser] = useState(() => user ?? {});
   const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
-    setEditedUser(user ?? {});
-  }, [user]);
+    if (!isEditing) {
+      setEditedUser(user ?? {});
+    }
+  }, [user, isEditing]);
 
   const handleEdit = useCallback(() => {
     setFormErrors({});
@@ -17,20 +23,28 @@ export const useProfileEditing = (user, setUser, setError) => {
   }, []);
 
   const handleCancelEdit = useCallback(() => {
-    setFormErrors({});
     setIsEditing(false);
+    setFormErrors({});
     setEditedUser(user ?? {});
   }, [user]);
 
   const handleChange = useCallback((event) => {
     const { name, value } = event.target;
-    setEditedUser((prev) => ({ ...prev, [name]: value }));
+    setEditedUser((prev) => {
+      if (prev[name] === value) return prev;
+      return { ...prev, [name]: value };
+    });
   }, []);
 
   const handleSaveEdit = useCallback(async () => {
-    const clientErrors = validateFields(editedUser, ["user_full_name", "user_username", "user_email"]);
-    if (Object.keys(clientErrors).length > 0) {
-      setFormErrors(clientErrors);
+    const validationErrors = validateFields(editedUser, [
+      "user_full_name",
+      "user_username",
+      "user_email",
+    ]);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setFormErrors(validationErrors);
       return;
     }
 
@@ -39,24 +53,29 @@ export const useProfileEditing = (user, setUser, setError) => {
       const response = await api.put(`/users/${user?.user_pk}`, editedUser, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUser(response.data);
+
+      setUser(response.data?.user ?? response.data);
+
       setIsEditing(false);
       setFormErrors({});
     } catch (error) {
       const backendErrors = extractFieldErrors(error);
+
       if (Object.keys(backendErrors).length > 0) {
         setFormErrors(backendErrors);
-      } else {
-        setError?.(parseApiErrorMessage(error, "Failed to update user data."));
+        return;
       }
+
+      setError?.(
+        parseApiErrorMessage(error, "Failed to update profile information.")
+      );
     }
-  }, [editedUser, setError, setFormErrors, setUser, user]);
+  }, [editedUser, setUser, setError, user]);
 
   return {
     isEditing,
     editedUser,
     formErrors,
-    setIsEditing,
     handleChange,
     handleEdit,
     handleCancelEdit,
