@@ -4,12 +4,20 @@ import App from "./App";
 import { MemoryRouter } from "react-router-dom";
 
 
-jest.mock("axios", () => ({
-  get: jest.fn(),
-  post: jest.fn(),
-  put: jest.fn(),
-  delete: jest.fn(),
-}));
+jest.mock("axios", () => {
+  const mockAxios = {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+    create: jest.fn(function () {
+      // create() returnerer et axios-lignende objekt
+      return mockAxios;
+    }),
+  };
+  return mockAxios;
+});
+
 
 beforeEach(() => {
   // Mock localStorage for at simulere en ikke-logget-ind bruger
