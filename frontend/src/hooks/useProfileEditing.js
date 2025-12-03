@@ -28,21 +28,31 @@ export const useProfileEditing = (user, setUser, setError) => {
   }, []);
 
   const handleSaveEdit = useCallback(async () => {
-    const clientErrors = validateFields(editedUser, ["user_full_name", "user_username", "user_email"]);
+    const clientErrors = validateFields(
+      editedUser,
+      ["user_full_name", "user_username", "user_email"]
+    );
+
     if (Object.keys(clientErrors).length > 0) {
       setFormErrors(clientErrors);
       return;
     }
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await api.put(`/users/${user?.user_pk}`, editedUser, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.put(`/users/${user?.user_pk}`, editedUser);
+
       setUser(response.data);
       setIsEditing(false);
       setFormErrors({});
     } catch (error) {
+      // Sanctum 401 → logout user
+      if (error.response?.status === 401) {
+        localStorage.removeItem("user_pk");
+        localStorage.removeItem("user_username");
+        window.location.href = "/";
+        return;
+      }
+
       const backendErrors = extractFieldErrors(error);
       if (Object.keys(backendErrors).length > 0) {
         setFormErrors(backendErrors);
@@ -50,7 +60,7 @@ export const useProfileEditing = (user, setUser, setError) => {
         setError?.(parseApiErrorMessage(error, "Failed to update user data."));
       }
     }
-  }, [editedUser, setError, setFormErrors, setUser, user]);
+  }, [editedUser, setError, setUser, user]);
 
   return {
     isEditing,

@@ -1,6 +1,7 @@
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import { useDocumentTitle } from "../utils/useDocumentTitle";
+import { useAuth } from "../hooks/useAuth";
 import "../css/App.css";
 import "../css/404.css";
 
@@ -43,31 +44,40 @@ const getErrorConfig = (statusCode) => {
 };
 
 const ErrorPage = () => {
+  const { isAuthenticated } = useAuth();
   const [params] = useSearchParams();
   const location = useLocation();
 
   const statusParam = location.state?.code ?? params.get("code");
   const explicitMessage = location.state?.message ?? params.get("message");
   const statusCode = statusParam ? Number(statusParam) : undefined;
-  const { title, message: defaultMessage, action } = getErrorConfig(statusCode);
+
+  const { title, message: defaultMessage, action } =
+    errorCopy[statusCode] || errorCopy.default;
+
   const message = explicitMessage || defaultMessage;
 
   useDocumentTitle(`${title} / Weave`);
 
-  const isAuthed = Boolean(localStorage.getItem("token"));
-  const primaryLink = isAuthed ? "/home" : "/";
+  const primaryLink = isAuthenticated ? "/home" : "/";
 
   return (
     <div id="container">
-      {isAuthed && <NavBar setIsPostDialogOpen={() => {}} />}
+      {isAuthenticated && <NavBar setIsPostDialogOpen={() => {}} />}
+
       <main className="notfound-main">
         <h1>{title}</h1>
         <p>{message}</p>
-        {statusCode ? <p className="error-code">Status code: {statusCode}</p> : null}
+        {statusCode && <p className="error-code">Status code: {statusCode}</p>}
+
         <div className="notfound-actions">
-          <Link to={action === "Go to sign in" ? "/" : primaryLink} className="btn-link">
+          <Link
+            to={action === "Go to sign in" ? "/" : primaryLink}
+            className="btn-link"
+          >
             {action}
           </Link>
+
           <Link to={primaryLink} className="btn-link">
             Back to feed
           </Link>

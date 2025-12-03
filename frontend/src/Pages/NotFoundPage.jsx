@@ -3,12 +3,15 @@ import NavBar from "../components/NavBar";
 import { useDocumentTitle } from "../utils/useDocumentTitle";
 import "../css/App.css";
 import "../css/404.css";
+import { useAuth } from "../hooks/useAuth";
 
 const NotFoundPage = () => {
+  const { isAuthenticated } = useAuth();
   useDocumentTitle("Page not found / Weave");
 
   return (
     <div id="container">
+     {isAuthenticated && <NavBar setIsPostDialogOpen={() => {}} />}
       <NavBar setIsPostDialogOpen={() => {}} />
 
       <main className="notfound-main">

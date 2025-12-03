@@ -10,15 +10,17 @@ export const useHomeFeed = () => {
   const [feedError, setFeedError] = useState("");
   const [trendingError, setTrendingError] = useState("");
   const [usersError, setUsersError] = useState("");
+
   const [page, setPage] = useState(1);
   const [loadingState, setLoadingState] = useState(false);
   const [hasMoreState, setHasMoreState] = useState(true);
+
   const loadingRef = useRef(false);
   const hasMoreRef = useRef(true);
+
   const navigate = useNavigate();
 
   const handleUnauthorized = useCallback(() => {
-    localStorage.removeItem("token");
     localStorage.removeItem("user_pk");
     localStorage.removeItem("user_username");
     navigate("/");
@@ -35,26 +37,28 @@ export const useHomeFeed = () => {
   const fetchPosts = useCallback(
     async (requestedPage) => {
       if (loadingRef.current || !hasMoreRef.current) return;
+
       setLoadingState(true);
       try {
-        const token = localStorage.getItem("token");
-        const response = await api.get(`/posts?page=${requestedPage}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
+        const response = await api.get(`/posts?page=${requestedPage}`);
+
         const newPosts = response.data.data ?? [];
         setFeedError("");
+
         setPosts((prev) => {
           const filtered = newPosts.filter(
-            (p) => !prev.some((prevP) => prevP.post_pk === p.post_pk)
+            (p) => !prev.some((old) => old.post_pk === p.post_pk)
           );
           return [...prev, ...filtered];
         });
+
         const more = response.data.current_page < response.data.last_page;
         setHasMoreState(more);
       } catch (err) {
         setFeedError(
           parseApiErrorMessage(err, "Failed to load feed. Please try again.")
         );
+
         if (err.response?.status === 401) {
           handleUnauthorized();
         }
@@ -67,16 +71,14 @@ export const useHomeFeed = () => {
 
   const fetchTrending = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await api.get("/trending", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const response = await api.get("/trending");
       setTrending(response.data);
       setTrendingError("");
     } catch (err) {
       setTrendingError(
         parseApiErrorMessage(err, "Unable to load trending topics right now.")
       );
+
       if (err.response?.status === 401) {
         handleUnauthorized();
       }
@@ -85,16 +87,14 @@ export const useHomeFeed = () => {
 
   const fetchUsersToFollow = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await api.get("/users-to-follow", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const response = await api.get("/users-to-follow");
       setUsersToFollow(response.data);
       setUsersError("");
     } catch (err) {
       setUsersError(
         parseApiErrorMessage(err, "Unable to load recommendations right now.")
       );
+
       if (err.response?.status === 401) {
         handleUnauthorized();
       }
@@ -109,15 +109,10 @@ export const useHomeFeed = () => {
   }, [fetchPosts]);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      handleUnauthorized();
-      return;
-    }
     fetchTrending();
     fetchUsersToFollow();
     initializeFeed();
-  }, [fetchTrending, fetchUsersToFollow, handleUnauthorized, initializeFeed]);
+  }, [fetchTrending, fetchUsersToFollow, initializeFeed]);
 
   useEffect(() => {
     if (page === 1) return;

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import Trending from "../components/Trending";
 import WhoToFollow from "../components/WhoToFollow";
@@ -7,13 +8,17 @@ import LoadingOverlay from "../components/LoadingOverlay";
 import { getProfilePictureUrl } from "../utils/imageUtils";
 import PostDialog from "../components/PostDialog";
 import { formatRelativeTime } from "../utils/timeUtils";
-import { useNavigate } from "react-router-dom";
 import { buildProfilePath } from "../utils/urlHelpers";
 import { useDocumentTitle } from "../utils/useDocumentTitle";
+import { useAuth } from "../hooks/useAuth";
 import "../css/NotificationsPage.css";
 
 const NotificationsPage = () => {
   useDocumentTitle("Notifications");
+
+  const { isAuthenticated, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -21,75 +26,60 @@ const NotificationsPage = () => {
   const [usersToFollow, setUsersToFollow] = useState([]);
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
 
-  const fetchNotifications = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-      const resp = await api.get(`/notifications`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = resp.data || {};
-      setNotifications(data.data || []);
-      setUnreadCount(data.meta?.unread_count ?? 0);
-    } catch (err) {
-      console.error(
-        "Failed to fetch notifications:",
-        err.response || err.message
-      );
-      setNotifications([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     fetchNotifications();
     fetchSidebarData();
   }, []);
 
+  if (authLoading) return <LoadingOverlay message="Initializing session…" />;
+  if (!isAuthenticated) return <Navigate to="/" replace />;
+
+  const fetchNotifications = async () => {
+    setLoading(true);
+    try {
+      const resp = await api.get("/notifications");
+      const data = resp.data || {};
+      setNotifications(data.data || []);
+      setUnreadCount(data.meta?.unread_count ?? 0);
+    } catch (err) {
+      console.error("Failed to fetch notifications:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchSidebarData = async () => {
     try {
-      const token = localStorage.getItem("token");
       const [trendingResp, usersResp] = await Promise.all([
-        api.get("/trending", { headers: { Authorization: `Bearer ${token}` } }),
-        api.get("/users-to-follow", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+        api.get("/trending"),
+        api.get("/users-to-follow"),
       ]);
       setTrending(trendingResp.data || []);
       setUsersToFollow(usersResp.data || []);
     } catch (err) {
-      console.error(
-        "Failed to fetch sidebar data:",
-        err.response || err.message
-      );
-      setTrending([]);
-      setUsersToFollow([]);
+      console.error("Failed to fetch sidebar:", err);
     }
   };
-
-  const navigate = useNavigate();
 
   const goToProfileWithPost = (n) => {
     const postPk = n?.data?.post_pk;
     const authorUsername = n?.data?.author_username;
     const authorPk = n?.data?.author_pk;
+
     if (!authorUsername || !authorPk) return;
-    const path = buildProfilePath({
+
+    const base = buildProfilePath({
       user_username: authorUsername,
       user_pk: authorPk,
     });
-    if (!path || path === "#") return;
+
     const hash = postPk ? `#post-${postPk}` : "";
-    navigate(`${path}${hash}`);
+    navigate(`${base}${hash}`);
   };
 
   const markAsRead = async (id) => {
     try {
-      const token = localStorage.getItem("token");
-      await api.post(`/notifications/${id}/read`, null, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.post(`/notifications/${id}/read`);
       setNotifications((prev) =>
         prev.map((n) =>
           n.id === id ? { ...n, read_at: new Date().toISOString() } : n
@@ -97,38 +87,29 @@ const NotificationsPage = () => {
       );
       setUnreadCount((c) => Math.max(0, c - 1));
     } catch (err) {
-      console.error("Failed to mark as read", err.response || err.message);
+      console.error("Failed to mark read", err);
     }
   };
 
   const deleteNotification = async (id) => {
     try {
-      const token = localStorage.getItem("token");
-      await api.delete(`/notifications/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`/notifications/${id}`);
       setNotifications((prev) => prev.filter((n) => n.id !== id));
       setUnreadCount((c) => Math.max(0, c - 1));
     } catch (err) {
-      console.error(
-        "Failed to delete notification",
-        err.response || err.message
-      );
+      console.error("Failed to delete", err);
     }
   };
 
   const markAll = async () => {
     try {
-      const token = localStorage.getItem("token");
-      await api.post(`/notifications/read-all`, null, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.post(`/notifications/read-all`);
       setNotifications((prev) =>
         prev.map((n) => ({ ...n, read_at: new Date().toISOString() }))
       );
       setUnreadCount(0);
     } catch (err) {
-      console.error("Failed to mark all as read", err.response || err.message);
+      console.error("Failed to mark all", err);
     }
   };
 
@@ -143,7 +124,8 @@ const NotificationsPage = () => {
           <button
             onClick={markAll}
             disabled={unreadCount === 0}
-            className="notifications-header__mark-all">
+            className="notifications-header__mark-all"
+          >
             Mark all as read
           </button>
         </div>
@@ -161,15 +143,14 @@ const NotificationsPage = () => {
                 key={n.id}
                 className={`notification-card ${
                   !n.read_at ? "notification-card--unread" : ""
-                }`}>
+                }`}
+              >
                 <div
                   className="notification-card__clickzone"
                   onClick={() => goToProfileWithPost(n)}
                   role="button"
                   tabIndex={0}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && goToProfileWithPost(n)
-                  }>
+                >
                   <img
                     src={getProfilePictureUrl(n.data?.author_profile_picture)}
                     alt={n.data?.author_username || "avatar"}
@@ -180,9 +161,8 @@ const NotificationsPage = () => {
                     <div className="notification-card__text">
                       {n.data?.excerpt || "New activity"}
                     </div>
-
                     <div className="notification-card__meta">
-                      @{n.data?.author_username || ""} •{" "}
+                      @{n.data?.author_username} •{" "}
                       {formatRelativeTime(
                         n.data?.post_created_at || n.created_at
                       )}
@@ -194,15 +174,15 @@ const NotificationsPage = () => {
                   {!n.read_at && (
                     <button
                       onClick={() => markAsRead(n.id)}
-                      className="notification-card__btn">
+                      className="notification-card__btn"
+                    >
                       Mark
                     </button>
                   )}
-
                   <button
                     onClick={() => deleteNotification(n.id)}
                     className="notification-card__btn notification-card__btn--delete"
-                    title="Delete notification">
+                  >
                     Delete
                   </button>
                 </div>
@@ -215,7 +195,6 @@ const NotificationsPage = () => {
       <PostDialog
         isOpen={isPostDialogOpen}
         onClose={() => setIsPostDialogOpen(false)}
-        onSuccess={() => {}}
       />
 
       <aside>

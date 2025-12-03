@@ -18,8 +18,11 @@ export const useFollowActions = ({
   const handleFollowToggle = useCallback(async () => {
     const currentUserPk = localStorage.getItem("user_pk");
     const currentUsername = localStorage.getItem("user_username");
+
     const wasFollowing = isFollowing;
+
     setIsFollowing(!wasFollowing);
+
     setFollowers((prev) =>
       wasFollowing
         ? (prev || []).filter((f) => String(f.user_pk) !== String(currentUserPk))
@@ -34,25 +37,14 @@ export const useFollowActions = ({
     );
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/");
-        return;
-      }
-
       if (wasFollowing) {
-        await api.delete(`/follows/${user?.user_pk}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.delete(`/follows/${user?.user_pk}`);
       } else {
-        await api.post(
-          "/follows",
-          { followed_user_fk: user?.user_pk },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.post("/follows", { followed_user_fk: user?.user_pk });
       }
     } catch (err) {
       setIsFollowing(wasFollowing);
+
       setFollowers((prev) =>
         wasFollowing
           ? [
@@ -65,10 +57,24 @@ export const useFollowActions = ({
             ]
           : (prev || []).filter((f) => String(f.user_pk) !== String(currentUserPk))
       );
-      console.error("Error updating follow status:", err.response?.data || err.message);
+
+      console.error("Error updating follow status:", err);
       setError?.("Failed to update follow status.");
+
+      if (err?.response?.status === 401) {
+        localStorage.removeItem("user_pk");
+        localStorage.removeItem("user_username");
+        navigate("/");
+      }
     }
-  }, [isFollowing, navigate, setError, setFollowers, setIsFollowing, user]);
+  }, [
+    isFollowing,
+    navigate,
+    setError,
+    setFollowers,
+    setIsFollowing,
+    user,
+  ]);
 
   const handleSidebarFollowChange = useCallback(
     (isNowFollowing, targetUser) => {
@@ -76,8 +82,11 @@ export const useFollowActions = ({
 
       setFollowing((prev) => {
         if (isNowFollowing) {
-          const exists = prev.some((u) => String(u.user_pk) === String(targetUser.user_pk));
+          const exists = prev.some(
+            (u) => String(u.user_pk) === String(targetUser.user_pk)
+          );
           if (exists) return prev;
+
           return [
             ...(prev || []),
             {
@@ -87,7 +96,12 @@ export const useFollowActions = ({
             },
           ];
         }
-        return prev?.filter((u) => String(u.user_pk) !== String(targetUser.user_pk)) || [];
+
+        return (
+          prev?.filter(
+            (u) => String(u.user_pk) !== String(targetUser.user_pk)
+          ) || []
+        );
       });
 
       setUser((prev) => ({

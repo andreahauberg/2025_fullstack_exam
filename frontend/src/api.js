@@ -3,31 +3,18 @@ import { parseApiErrorMessage } from "./utils/validation";
 
 const baseURL =
   process.env.REACT_APP_API_BASE_URL ||
-  process.env.REACT_APP_API_BASE ||
-  "http://127.0.0.1:8000/api";
+  "http://localhost/api";
 
 export const api = axios.create({
   baseURL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
 });
 
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-const MAX_RETRIES = 2; 
+const MAX_RETRIES = 2;
 const RETRY_STATUS = [429, 500, 502, 503, 504];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -53,7 +40,9 @@ const shouldRetryRequest = (error) => {
 
 const redirectToErrorPage = (status, message) => {
   const code = status || 503;
-  const encodedMessage = message ? `&message=${encodeURIComponent(message)}` : "";
+  const encodedMessage = message
+    ? `&message=${encodeURIComponent(message)}`
+    : "";
 
   if (window.location.pathname.startsWith("/error")) return;
 

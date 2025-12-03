@@ -12,6 +12,7 @@ export const useProfileData = (username, options = {}) => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const navigate = useNavigate();
 
   const fetchData = useCallback(async () => {
@@ -19,63 +20,40 @@ export const useProfileData = (username, options = {}) => {
     setError(null);
 
     try {
-      const token = localStorage.getItem("token");
-      if (requireAuth && !token) {
-        setIsLoading(false);
-        navigate("/");
-        return;
+      if (requireAuth) {
+        const authCheck = await api.get("/user");
+        if (!authCheck.data) {
+          navigate("/");
+          return;
+        }
       }
 
-      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
-      const [userResponse, trendingResponse, usersToFollowResponse] = await Promise.all([
-        api.get(`/users/${username}`, config),
-        token
-          ? api.get("/trending", {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-          : Promise.resolve({ data: [] }),
-        token
-          ? api.get("/users-to-follow", {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-          : Promise.resolve({ data: [] }),
+      const [userResp, trendingResp, suggestionsResp] = await Promise.all([
+        api.get(`/users/${username}`),
+        api.get("/trending"),
+        api.get("/users-to-follow"),
       ]);
 
-      if (!userResponse.data?.user) {
-        setIsLoading(false);
+      if (!userResp.data?.user) {
         navigate("/404", { replace: true, state: { missingUsername: username } });
         return;
       }
 
-      const currentUserPk = localStorage.getItem("user_pk");
-      setUser(userResponse.data.user);
-      setFollowers(userResponse.data.followers || []);
-      setFollowing(userResponse.data.following || []);
-      setTrending(trendingResponse.data || []);
-      setUsersToFollow(usersToFollowResponse.data || []);
+      const authUserPk = localStorage.getItem("user_pk");
+
+      setUser(userResp.data.user);
+      setFollowers(userResp.data.followers || []);
+      setFollowing(userResp.data.following || []);
+      setTrending(trendingResp.data || []);
+      setUsersToFollow(suggestionsResp.data || []);
       setIsFollowing(
-        currentUserPk ? userResponse.data.followers?.some((f) => String(f.user_pk) === String(currentUserPk)) || false : false
+        userResp.data.followers?.some(
+          (f) => String(f.user_pk) === String(authUserPk)
+        ) || false
       );
+
     } catch (err) {
-      const status = err.response?.status;
-      const backendError = err.response?.data?.error || "";
-      const backendMessage = err.response?.data?.message || "";
-      const isMissingUser =
-        status === 404 ||
-        backendError === "User not found." ||
-        backendMessage.includes("No query results") ||
-        backendMessage.includes("User not found");
-
-      if (isMissingUser) {
-        setIsLoading(false);
-        navigate("/404", { replace: true, state: { missingUsername: username } });
-        return;
-      }
-
-      if (status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user_pk");
-        localStorage.removeItem("user_username");
+      if (err.response?.status === 401) {
         navigate("/");
         return;
       }
@@ -98,9 +76,7 @@ export const useProfileData = (username, options = {}) => {
     following,
     setFollowing,
     usersToFollow,
-    setUsersToFollow,
     trending,
-    setTrending,
     isFollowing,
     setIsFollowing,
     isLoading,

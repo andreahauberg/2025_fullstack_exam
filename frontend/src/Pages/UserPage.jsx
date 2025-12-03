@@ -68,19 +68,27 @@ const UserPage = () => {
 
   const fetchRepostPosts = useCallback(async () => {
     if (repostLoadingRef.current || !repostHasMoreRef.current) return;
+  
     setIsRepostsLoading(true);
+  
     try {
-      const token = localStorage.getItem("token");
-      const response = await api.get(`/users/${username}/reposts?page=${repostPageRef.current}`, token ? { headers: { Authorization: `Bearer ${token}` } } : {});
+      const response = await api.get(`/users/${username}/reposts?page=${repostPageRef.current}`);
+  
       const data = response.data.data ?? response.data ?? [];
+  
       setRepostPosts((prev) => {
-        const filtered = data.filter((p) => !prev.some((prevPost) => prevPost.post_pk === p.post_pk));
+        const filtered = data.filter((p) => 
+          !prev.some((prevPost) => prevPost.post_pk === p.post_pk)
+        );
         return [...prev, ...filtered];
       });
+  
       const more = response.data.current_page < response.data.last_page;
       setHasMoreReposts(more);
       if (more) repostPageRef.current += 1;
+  
       hasLoadedRepostsRef.current = true;
+  
     } catch (err) {
       console.error("Error fetching reposts:", err.response?.data || err.message);
       setRepostPosts([]);

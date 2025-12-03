@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -26,57 +27,63 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $userPk = Str::random(50);
         $user = User::create([
-            'user_pk' => $userPk,
+            'user_pk' => Str::uuid(),
             'user_full_name' => $request->user_full_name,
             'user_username' => $request->user_username,
             'user_email' => $request->user_email,
             'user_password' => Hash::make($request->user_password),
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        Auth::login($user);
+        $request->session()->regenerate();
 
         return response()->json([
             'success' => true,
             'message' => 'Account created successfully!',
-            'token' => $token,
             'user' => $user,
         ], 201);
     }
 
-public function login(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'user_email' => 'required|email',
-        'user_password' => 'required|string',
-    ]);
+    public function login(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_email' => 'required|email',
+            'user_password' => 'required|string',
+        ]);
 
-    if ($validator->fails()) {
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        if (!Auth::attempt([
+            'user_email' => $request->user_email,
+            'password' => $request->user_password
+        ])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid credentials',
+            ], 401);
+        }
+
+        $request->session()->regenerate();
+
         return response()->json([
-            'success' => false,
-            'errors' => $validator->errors(),
-        ], 422);
+            'success' => true,
+            'message' => 'Logged in successfully!',
+            'user' => Auth::user(),
+        ]);
     }
 
-    $user = User::where('user_email', $request->user_email)->first();
+    public function logout(Request $request)
+    {
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-    if (!$user || !Hash::check($request->user_password, $user->user_password)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Invalid credentials',
-        ], 401);
+        return response()->json(['success' => true]);
     }
-
-    $token = $user->createToken('auth_token')->plainTextToken;
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Logged in successfully!',
-        'token' => $token,
-        'user' => $user,
-    ]);
-}
-
-
 }
