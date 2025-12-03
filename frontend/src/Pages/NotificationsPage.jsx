@@ -25,9 +25,6 @@ const NotificationsPage = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  // ----------------------
-  // Fetch: Notifications
-  // ----------------------
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
     try {
@@ -45,9 +42,6 @@ const NotificationsPage = () => {
     }
   }, [token]);
 
-  // ----------------------
-  // Fetch: Sidebar
-  // ----------------------
   const fetchSidebarData = useCallback(async () => {
     try {
       const [t, u] = await Promise.all([
@@ -63,15 +57,11 @@ const NotificationsPage = () => {
     }
   }, [token]);
 
-  // Init loads
   useEffect(() => {
     fetchNotifications();
     fetchSidebarData();
   }, [fetchNotifications, fetchSidebarData]);
 
-  // ----------------------
-  // Navigation helpers
-  // ----------------------
   const goToProfileWithPost = useCallback(
     (n) => {
       const authorUsername = n?.data?.author_username;
@@ -87,9 +77,6 @@ const NotificationsPage = () => {
     [navigate]
   );
 
-  // ----------------------
-  // Actions
-  // ----------------------
   const markAsRead = async (id) => {
     try {
       await api.post(`/notifications/${id}/read`, null, {
@@ -128,9 +115,6 @@ const NotificationsPage = () => {
     }
   };
 
-  // ----------------------
-  // RENDER
-  // ----------------------
   return (
     <div id="container">
       <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
