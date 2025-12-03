@@ -4,7 +4,7 @@ import { parseApiErrorMessage } from "./utils/validation";
 const baseURL =
   process.env.REACT_APP_API_BASE_URL ||
   process.env.REACT_APP_API_BASE ||
-  "https://two025-fullstack-exam-zzdo.onrender.com";
+  "https://two025-fullstack-exam-zzdo.onrender.com/api";
 
 export const api = axios.create({
   baseURL,
