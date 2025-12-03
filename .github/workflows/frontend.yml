@@ -26,9 +26,9 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install ALL dependencies (inkl. devDependencies)
+      - name: Install ALL dependencies
         working-directory: ./frontend
-        run: npm install --legacy-peer-deps  # Installer ALT, inkl. devDependencies
+        run: npm install --legacy-peer-deps
 
       - name: Run tests
         working-directory: ./frontend
