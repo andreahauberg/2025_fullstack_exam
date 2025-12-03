@@ -1,6 +1,6 @@
 import { getProfilePictureUrl } from "../utils/imageUtils";
 
-const ProfileTag = ({ userPk, resolvedUsername, userUsername, userFullName, userProfilePicture }) => {
+const ProfileTag = ({ userPk, userUsername, userFullName, userProfilePicture }) => {
   const profilePictureUrl = getProfilePictureUrl(userProfilePicture);
 
   return (
@@ -8,7 +8,7 @@ const ProfileTag = ({ userPk, resolvedUsername, userUsername, userFullName, user
       id="profile_tag"
       className="profile-tag"
       onClick={() =>
-        (window.location.href = `/profile/${resolvedUsername || userPk}`)
+        (window.location.href = `/profile/${userUsername || userPk}`)
       }>
       <img
         src={profilePictureUrl}
