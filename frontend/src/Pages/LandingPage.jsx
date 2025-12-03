@@ -26,6 +26,7 @@ function LandingPage() {
    }
 
   return (
+    <div data-testid="landing-page">
     <div className="landing-container">
       <div className="landing-left">
         <img src="/weave-logo.png" alt="Weave Logo" className="logo" />
@@ -50,6 +51,7 @@ function LandingPage() {
         onSuccess={handleLoginSuccess}
         onOpenSignup={handleOpenSignup}
       />
+    </div>
     </div>
   );
 }
