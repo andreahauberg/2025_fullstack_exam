@@ -29,13 +29,20 @@ RUN a2enmod rewrite
 # Kopier Apache-konfiguration
 COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
 
-# Kopier projektfiler og .env.example som .env
+# Kopier projektfiler
 WORKDIR /var/www/html
 COPY . .
-COPY .env.example .env
 
-# Installer Composer-afhængigheder
-RUN composer install --no-dev --optimize-autoloader
+# Kopier .env.example som .env (kun hvis .env ikke findes)
+RUN if [ ! -f .env ]; then cp .env.example .env; fi
+
+# Installer Composer-afhængigheder (med eller uden dev-afhængigheder baseret på miljøvariabel)
+ARG INSTALL_DEV=false
+RUN if [ "$INSTALL_DEV" = "true" ]; then \
+    composer install --optimize-autoloader; \
+else \
+    composer install --no-dev --optimize-autoloader; \
+fi
 
 # Generer APP_KEY
 RUN php artisan key:generate
