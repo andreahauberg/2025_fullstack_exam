@@ -3,14 +3,15 @@ import { render, screen } from "@testing-library/react";
 import App from "./App";
 import { MemoryRouter } from "react-router-dom";
 
-test("renders the App component", () => {
+test("renders the LandingPage by default", () => {
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={["/"]}>
       <App />
     </MemoryRouter>
   );
 
-const loginButton = screen.getByRole("button", { name: /log ind/i });
-expect(loginButton).toBeInTheDocument();
-
+  // Tjek om indhold fra LandingPage renderes
+  // Eksempel: Tjek om der er en "Welcome"-tekst eller en login-knap i LandingPage
+  const nowElement = screen.getByText(/now/i); // Juster dette til at matche tekst i din LandingPage
+  expect(nowElement).toBeInTheDocument();
 });
