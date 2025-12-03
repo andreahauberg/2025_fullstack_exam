@@ -4,19 +4,21 @@ const getApiOrigin = () => {
   const baseFromApi = api?.defaults?.baseURL;
   const envBase =
     process.env.REACT_APP_API_BASE_URL || process.env.REACT_APP_API_BASE;
-  const fallbackBase = "http://localhost/api";
+  const fallbackBase = "https://two025-fullstack-exam-zzdo.onrender.com/api";
   const candidate = baseFromApi || envBase || fallbackBase;
 
   try {
     return new URL(candidate).origin;
   } catch (e) {
-    return "http://localhost";
+    return "https://two025-fullstack-exam-zzdo.onrender.com";
   }
 };
 
 const STORAGE_BASE = `${getApiOrigin()}/storage`;
 const FRONTEND_ORIGIN =
-  typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+  typeof window !== "undefined"
+    ? window.location.origin
+    : process.env.REACT_FRONTEND_APP_URL;
 
 export const getProfilePictureUrl = (profilePicture) => {
   if (!profilePicture) {
