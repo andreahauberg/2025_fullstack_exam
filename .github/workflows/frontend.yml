@@ -24,11 +24,11 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies with clean cache
+      - name: Install dependencies
         working-directory: ./frontend
         run: npm install --legacy-peer-deps
 
-      - name: Verify react-router-dom is installed
+      - name: Verify react-router-dom installation
         working-directory: ./frontend
         run: npm list react-router-dom
 
