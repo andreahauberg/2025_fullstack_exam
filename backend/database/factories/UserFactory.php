@@ -21,16 +21,24 @@ class UserFactory extends Factory
      *
      * @return array<string, mixed>
      */
-    public function definition(): array
-    {
-        return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
-        ];
-    }
+ public function definition(): array
+{
+    $userPk = (string) Str::uuid();
+    $rawUsername = fake()->unique()->userName;
+    $username = substr(preg_replace('/[^A-Za-z0-9._]/', '', $rawUsername), 0, 20) ?: 'user';
+
+    return [
+        'user_pk' => $userPk,
+        'user_full_name' => fake()->name(),
+        'user_username' => $username,
+        'user_email' => fake()->unique()->safeEmail(),
+        'user_password' => Hash::make('password123'),
+        'user_profile_picture' => "https://picsum.photos/seed/{$userPk}/200/200",
+        'created_at' => now(),
+        'updated_at' => now(),
+    ];
+}
+
 
     /**
      * Indicate that the model's email address should be unverified.

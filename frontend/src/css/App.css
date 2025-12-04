@@ -543,6 +543,7 @@ aside {
 
   .profile-tag-avatar {
     margin-right: 12px;
+    margin-left: 0;
   }
 
   .profile-tag-name,
