@@ -399,6 +399,7 @@
 }
 
 
+
 @media (min-width: 769px) {
   .user-header-wrapper {
     border-bottom: 1px solid #e1e8ed;
@@ -817,6 +818,10 @@
   .action-menu-dropdown .danger:hover {
     background: rgba(224, 36, 94, 0.1);
   }
+
+  .user-posts h3{
+  padding-left: 1rem;
+}
 }
 
 
