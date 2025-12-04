@@ -12,5 +12,11 @@ Route::get('/test', function () {
 
 // Catch-all route for React (placér den sidst)
 Route::get('/{any}', function () {
-    return file_get_contents(public_path('react/index.html'));
+    $response = response()->file(public_path('react/index.html'));
+    $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    $response->headers->set('Pragma', 'no-cache');
+    $response->headers->set('Expires', '0');
+
+    return $response;
 })->where('any', '^(?!api).*$');
+
