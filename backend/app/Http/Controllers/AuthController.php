@@ -26,7 +26,7 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $userPk = Str::random(50);
+        $userPk = (string) Str::uuid();
         $user = User::create([
             'user_pk' => $userPk,
             'user_full_name' => $request->user_full_name,
