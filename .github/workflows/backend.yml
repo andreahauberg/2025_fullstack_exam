@@ -10,6 +10,21 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: twitter_fullstack_db
+        options: >-
+          --health-cmd="mysqladmin ping -ppassword"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -26,26 +41,40 @@ jobs:
         with:
           php-version: '8.2'
           tools: composer:v2
+          extensions: pdo_mysql
 
       - name: Install Composer dependencies
         working-directory: ./backend
         run: composer install --prefer-dist --no-progress --no-interaction
 
-      - name: Create .env file
+      - name: Create .env
         working-directory: ./backend
-        run: cp .env.example .env
+        run: |
+          cp .env.example .env
+          echo "DB_CONNECTION=mysql" >> .env
+          echo "DB_HOST=127.0.0.1" >> .env
+          echo "DB_PORT=3306" >> .env
+          echo "DB_DATABASE=twitter_fullstack_db" >> .env
+          echo "DB_USERNAME=root" >> .env
+          echo "DB_PASSWORD=password" >> .env
 
       - name: Generate APP_KEY
         working-directory: ./backend
         run: php artisan key:generate
 
+      - name: Run migrations
+        working-directory: ./backend
+        run: php artisan migrate --force
+
       - name: Run PHPUnit tests
         working-directory: ./backend
         run: ./vendor/bin/phpunit
 
+
   deploy:
     needs: test
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -55,4 +84,5 @@ jobs:
 
       - name: Deploy to Render (via Git push)
         run: |
-          echo "Backend deployes automatisk via Render's Git-integration. Ingen yderligere handling nødvendig."
+          echo "Backend deployes automatisk via Render's Git-integration."
+
