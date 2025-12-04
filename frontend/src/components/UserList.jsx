@@ -38,7 +38,6 @@ const UserList = ({
     setUsers(updatedUsers);
     setIsFollowLoading(true);
 
-    // Kalder callback med det samme (optimistisk opdatering)
     if (typeof onFollowChange === "function") {
       onFollowChange(!isFollowing, {
         ...users[index],
@@ -64,7 +63,7 @@ const UserList = ({
         "Follow toggle failed:",
         error.response?.data || error.message
       );
-      // Rollback
+
       const updatedUsers = [...users];
       updatedUsers[index].is_following = isFollowing;
       setUsers(updatedUsers);

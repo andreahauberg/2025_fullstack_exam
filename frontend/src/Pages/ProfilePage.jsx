@@ -187,9 +187,6 @@ const ProfilePage = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [activeTab, fetchRepostPosts]);
 
-  useEffect(() => {
-    console.log("Following list updated:", following);
-  }, [following]);
 
   const handleDeleteProfile = async () => {
     try {

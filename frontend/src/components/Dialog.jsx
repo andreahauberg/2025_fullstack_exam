@@ -19,12 +19,11 @@ const Dialog = ({ isOpen, onClose, title, children, logo }) => {
         </button>
         <div className="x-dialog__header">
           {logo && (
-            <svg className="x-dialog__logo" viewBox="0 0 300 300">
-              <g fill="none" stroke="#0b0f11" strokeWidth="44">
-                <line x1="40" y1="40" x2="260" y2="260" />
-                <line x1="260" y1="40" x2="40" y2="260" />
-              </g>
-            </svg>
+            <img
+              src="/favicon/weave.png"
+              alt="Weave Logo"
+              class="nav-logo-image"
+            />
           )}
         </div>
         <h2 id="dialogTitle">{title}</h2>

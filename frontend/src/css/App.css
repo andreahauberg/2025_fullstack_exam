@@ -159,8 +159,12 @@ main::-webkit-scrollbar {
   line-height: 1;
 }
 
-.icon{
-  color: ;
+.fa-solid, .fa-regular {
+  color: #000;
+} 
+
+.fa-user-plus{
+  color:#fff;
 }
 
 .profile-tag {
