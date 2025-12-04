@@ -10,6 +10,60 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
+    /**
+ * @OA\Post(
+ *     path="/api/signup",
+ *     summary="Create a new user account",
+ *     tags={"Auth"},
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"user_full_name","user_username","user_email","user_password"},
+ *             @OA\Property(property="user_full_name", type="string", example="John Doe"),
+ *             @OA\Property(property="user_username", type="string", example="johndoe"),
+ *             @OA\Property(property="user_email", type="string", example="john@example.com"),
+ *             @OA\Property(property="user_password", type="string", example="secret123")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=201,
+ *         description="Account created successfully"
+ *     ),
+ *     @OA\Response(
+ *         response=422,
+ *         description="Validation error"
+ *     )
+ * )
+ */
+
+ /**
+ * @OA\Post(
+ *     path="/api/login",
+ *     summary="Login and receive API token",
+ *     tags={"Auth"},
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"user_email","user_password"},
+ *             @OA\Property(property="user_email", type="string", example="john@example.com"),
+ *             @OA\Property(property="user_password", type="string", example="secret123")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Login successful"
+ *     ),
+ *     @OA\Response(
+ *         response=401,
+ *         description="Invalid credentials"
+ *     ),
+ *     @OA\Response(
+ *         response=422,
+ *         description="Validation error"
+ *     )
+ * )
+ */
+
     public function signup(Request $request)
     {
         $validator = Validator::make($request->all(), [

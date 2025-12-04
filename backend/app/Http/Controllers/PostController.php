@@ -10,9 +10,35 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use App\Notifications\NewPostNotification;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Log;
 
 class PostController extends Controller
 {
+/**
+ * @OA\Get(
+ *     path="/api/posts",
+ *     summary="Get paginated list of posts",
+ *     tags={"Posts"},
+ *     security={{"bearerAuth":{}}},
+ *     @OA\Parameter(
+ *         name="page",
+ *         in="query",
+ *         description="Page number for pagination",
+ *         required=false,
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="List of posts retrieved successfully"
+ *     ),
+ *     @OA\Response(
+ *         response=500,
+ *         description="Server error"
+ *     )
+ * )
+ */
+
+
 public function index(Request $request)
 {
     try {
@@ -40,7 +66,7 @@ public function index(Request $request)
 
         return response()->json($posts);
     } catch (\Exception $e) {
-        \Log::error('Error fetching posts: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
+        Log::error('Error fetching posts: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
         return response()->json([
             'error' => 'An error occurred while fetching posts.',
             'message' => $e->getMessage(),

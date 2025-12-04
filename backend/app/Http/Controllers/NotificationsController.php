@@ -6,6 +6,30 @@ use Illuminate\Routing\Controller;
 
 class NotificationsController extends Controller
 {
+/**
+ * @OA\Get(
+ *     path="/api/notifications",
+ *     summary="Get paginated list of notifications",
+ *     tags={"Notifications"},
+ *     security={{"bearerAuth":{}}},
+ *     @OA\Parameter(
+ *         name="page",
+ *         in="query",
+ *         description="Page number for pagination",
+ *         required=false,
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="List of notifications retrieved successfully"
+ *     ),
+ *     @OA\Response(
+ *         response=500,
+ *         description="Server error"
+ *     )
+ * )
+ */
+
     public function index(Request $request)
     {
         $user = $request->user();

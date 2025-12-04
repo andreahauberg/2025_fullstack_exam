@@ -9,7 +9,35 @@ use Illuminate\Support\Facades\DB;
 
 class LikeController extends Controller
 {
-    // Opret et like
+/**
+ * @OA\Post(
+ *     path="/api/likes",
+ *     summary="Like a post",
+ *     tags={"Likes"},
+ *     security={{"bearerAuth":{}}},
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"post_pk"},
+ *             @OA\Property(property="post_pk", type="string", example="POST123")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=201,
+ *         description="Like created successfully"
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Like already exists"
+ *     ),
+ *     @OA\Response(
+ *         response=422,
+ *         description="Validation error"
+ *     )
+ * )
+ */
+
+
     function store(Request $request)
     {
         $request->validate([
@@ -27,7 +55,7 @@ class LikeController extends Controller
         return response()->json($like, 201);
     }
 
-    // Fjern et like
+
     function destroy($post_pk)
     {
         DB::transaction(function () use ($post_pk) {

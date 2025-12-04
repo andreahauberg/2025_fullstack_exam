@@ -11,6 +11,15 @@ Route::get('/test-web', function () {
     return 'Web route OK';
 });
 
+Route::get('/api-docs.json', function () {
+    return response()->file(storage_path('api-docs/api-docs.json'));
+});
+
+Route::get('/swagger', function () {
+    return view('swagger');
+});
+
+
 Route::get('/{any}', function () {
     $indexPath = public_path('index.html');
     if (!file_exists($indexPath)) {

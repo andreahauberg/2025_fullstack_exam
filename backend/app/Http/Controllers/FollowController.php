@@ -1,11 +1,38 @@
 <?php
 namespace App\Http\Controllers;
 use App\Models\Follow;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+
 class FollowController extends Controller
 {
+/**
+ * @OA\Post(
+ *     path="/api/follows",
+ *     summary="Follow a user",
+ *     tags={"Follow"},
+ *     security={{"bearerAuth":{}}},
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"followed_user_fk"},
+ *             @OA\Property(property="followed_user_fk", type="string", example="USER123")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=201,
+ *         description="Followed successfully"
+ *     ),
+ *     @OA\Response(
+ *         response=422,
+ *         description="Validation error"
+ *     )
+ * )
+ */
+
+
    public function store(Request $request)
 {
     $request->validate([
@@ -30,7 +57,7 @@ class FollowController extends Controller
         });
         return response()->json(['message' => 'Followed successfully!'], 201);
     } catch (\Exception $e) {
-        \Log::error('Error following user: ' . $e->getMessage());
+        Log::error('Error following user: ' . $e->getMessage());
         return response()->json([
             'error' => 'An error occurred while following the user.',
             'message' => $e->getMessage(),
@@ -51,7 +78,7 @@ class FollowController extends Controller
 
             return response()->json(['message' => 'Unfollowed successfully!']);
         } catch (\Exception $e) {
-            \Log::error('Error unfollowing user: ' . $e->getMessage());
+            Log::error('Error unfollowing user: ' . $e->getMessage());
             return response()->json([
                 'error' => 'An error occurred while unfollowing the user.',
                 'message' => $e->getMessage(),

@@ -7,9 +7,28 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
+/**
+ * @OA\Get(
+ *     path="/api/users-to-follow",
+ *     summary="Get users suggested to follow",
+ *     tags={"Users"},
+ *     security={{"bearerAuth":{}}},
+ *     @OA\Response(
+ *         response=200,
+ *         description="List of users to follow retrieved successfully"
+ *     ),
+ *     @OA\Response(
+ *         response=500,
+ *         description="Server error"
+ *     )
+ * )
+ */
+
+
     public function usersToFollow(Request $request)
 {
     try {
@@ -27,7 +46,7 @@ class UserController extends Controller
             });
         return response()->json($users);
     } catch (\Exception $e) {
-        \Log::error('Error fetching users to follow: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
+        Log::error('Error fetching users to follow: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
         return response()->json([
             'error' => 'An error occurred while fetching users to follow.',
             'message' => $e->getMessage(),
@@ -102,7 +121,7 @@ public function show($userIdentifier)
 
             return response()->json($user);
         } catch (\Exception $e) {
-            \Log::error('Error updating user: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
+            Log::error('Error updating user: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
             return response()->json([
                 'error' => 'An error occurred while updating user.',
                 'message' => $e->getMessage(),
@@ -128,7 +147,7 @@ public function show($userIdentifier)
 
             return response()->json(['message' => 'User deleted successfully.']);
         } catch (\Exception $e) {
-            \Log::error('Error deleting user: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
+            Log::error('Error deleting user: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
             return response()->json([
                 'error' => 'An error occurred while deleting user.',
                 'message' => $e->getMessage(),
@@ -159,7 +178,7 @@ public function uploadProfilePicture(Request $request, $userPk)
             'user_profile_picture' => $user->user_profile_picture,
         ]);
     } catch (\Exception $e) {
-        \Log::error('Error uploading profile picture: ' . $e->getMessage());
+        Log::error('Error uploading profile picture: ' . $e->getMessage());
         return response()->json([
             'error' => 'An error occurred while uploading profile picture.',
             'message' => $e->getMessage(),
@@ -189,7 +208,7 @@ public function uploadCoverPicture(Request $request, $userPk)
             'user_cover_picture' => $user->user_cover_picture,
         ]);
     } catch (\Exception $e) {
-        \Log::error('Error uploading cover picture: ' . $e->getMessage());
+        Log::error('Error uploading cover picture: ' . $e->getMessage());
         return response()->json([
             'error' => 'An error occurred while uploading cover picture.',
             'message' => $e->getMessage(),

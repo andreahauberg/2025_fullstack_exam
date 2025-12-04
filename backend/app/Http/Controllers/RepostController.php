@@ -9,6 +9,35 @@ use Illuminate\Support\Facades\DB;
 
 class RepostController extends Controller
 {
+/**
+ * @OA\Post(
+ *     path="/api/reposts",
+ *     summary="Repost a post",
+ *     tags={"Reposts"},
+ *     security={{"bearerAuth":{}}},
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"post_pk"},
+ *             @OA\Property(property="post_pk", type="string", example="POST123")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=201,
+ *         description="Post reposted successfully"
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Post already reposted"
+ *     ),
+ *     @OA\Response(
+ *         response=422,
+ *         description="Validation error"
+ *     )
+ * )
+ */
+
+
     public function store(Request $request)
     {
         $request->validate([

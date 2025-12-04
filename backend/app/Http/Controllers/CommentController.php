@@ -9,6 +9,31 @@ use Illuminate\Support\Facades\DB;
 
 class CommentController extends Controller
 {
+    /**
+ * @OA\Post(
+ *     path="/api/comments",
+ *     summary="Create a new comment",
+ *     security={{"bearerAuth":{}}},
+ *     tags={"Comments"},
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"post_pk","comment_message"},
+ *             @OA\Property(property="post_pk", type="string", example="POST123"),
+ *             @OA\Property(property="comment_message", type="string", example="Nice post!")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=201,
+ *         description="Comment created"
+ *     ),
+ *     @OA\Response(
+ *         response=422,
+ *         description="Validation error"
+ *     )
+ * )
+ */
+
 public function store(Request $request)
 {
     $request->validate([

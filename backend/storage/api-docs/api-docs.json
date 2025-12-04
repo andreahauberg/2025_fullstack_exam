@@ -1,0 +1,423 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "Twitter Fullstack Exam API",
+        "description": "REST API used by the frontend. Sanctum bearer tokens required for all protected endpoints.",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login and receive API token",
+                "operationId": "38968aaf0a36f9256d815cbf7d30038b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user_email",
+                                    "user_password"
+                                ],
+                                "properties": {
+                                    "user_email": {
+                                        "type": "string",
+                                        "example": "john@example.com"
+                                    },
+                                    "user_password": {
+                                        "type": "string",
+                                        "example": "secret123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful"
+                    },
+                    "401": {
+                        "description": "Invalid credentials"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/comments": {
+            "post": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Create a new comment",
+                "operationId": "300619a0a4003920aafe960e45688102",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "post_pk",
+                                    "comment_message"
+                                ],
+                                "properties": {
+                                    "post_pk": {
+                                        "type": "string",
+                                        "example": "POST123"
+                                    },
+                                    "comment_message": {
+                                        "type": "string",
+                                        "example": "Nice post!"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Comment created"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/follows": {
+            "post": {
+                "tags": [
+                    "Follow"
+                ],
+                "summary": "Follow a user",
+                "operationId": "a7ac4dd4f950be0c69089ed1fc2263b6",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "followed_user_fk"
+                                ],
+                                "properties": {
+                                    "followed_user_fk": {
+                                        "type": "string",
+                                        "example": "USER123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Followed successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/likes": {
+            "post": {
+                "tags": [
+                    "Likes"
+                ],
+                "summary": "Like a post",
+                "operationId": "511c8161eb44f7b3479a914692d975ee",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "post_pk"
+                                ],
+                                "properties": {
+                                    "post_pk": {
+                                        "type": "string",
+                                        "example": "POST123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Like created successfully"
+                    },
+                    "200": {
+                        "description": "Like already exists"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/notifications": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get paginated list of notifications",
+                "operationId": "003198a89ad82085f9548e51a9c7eefe",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number for pagination",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of notifications retrieved successfully"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/posts": {
+            "get": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Get paginated list of posts",
+                "operationId": "e9eaf7df702a94f4443677bd1a36cfe6",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number for pagination",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of posts retrieved successfully"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/reposts": {
+            "post": {
+                "tags": [
+                    "Reposts"
+                ],
+                "summary": "Repost a post",
+                "operationId": "b859302b54b671d60d662b1333fb213b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "post_pk"
+                                ],
+                                "properties": {
+                                    "post_pk": {
+                                        "type": "string",
+                                        "example": "POST123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Post reposted successfully"
+                    },
+                    "200": {
+                        "description": "Post already reposted"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/search": {
+            "get": {
+                "tags": [
+                    "Search"
+                ],
+                "summary": "Search users and posts",
+                "operationId": "2754ee3c6371023cefd5b35cf65e9e07",
+                "parameters": [
+                    {
+                        "name": "query",
+                        "in": "query",
+                        "description": "Search term",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Search results retrieved successfully"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/trending": {
+            "get": {
+                "tags": [
+                    "Trending"
+                ],
+                "summary": "Get trending topics",
+                "operationId": "2f6a7d7b11d19a4ec0f37fa0ab31a212",
+                "responses": {
+                    "200": {
+                        "description": "Trending topics retrieved successfully"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/users-to-follow": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get users suggested to follow",
+                "operationId": "7d2946584f18e0ff4419c086c8b7656c",
+                "responses": {
+                    "200": {
+                        "description": "List of users to follow retrieved successfully"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Auth",
+            "description": "Auth"
+        },
+        {
+            "name": "Comments",
+            "description": "Comments"
+        },
+        {
+            "name": "Follow",
+            "description": "Follow"
+        },
+        {
+            "name": "Likes",
+            "description": "Likes"
+        },
+        {
+            "name": "Notifications",
+            "description": "Notifications"
+        },
+        {
+            "name": "Posts",
+            "description": "Posts"
+        },
+        {
+            "name": "Reposts",
+            "description": "Reposts"
+        },
+        {
+            "name": "Search",
+            "description": "Search"
+        },
+        {
+            "name": "Trending",
+            "description": "Trending"
+        },
+        {
+            "name": "Users",
+            "description": "Users"
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    }
+}

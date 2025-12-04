@@ -10,6 +10,7 @@ use Sentry\Laravel\Facade as Sentry;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class Handler extends ExceptionHandler
+
 {
     protected $dontReport = [
         //
@@ -61,4 +62,12 @@ public function render($request, Throwable $exception)
     return parent::render($request, $exception);
 }
 
+public function register()
+{
+    $this->reportable(function (Throwable $e) {
+        if (app()->bound('sentry')) {
+            Sentry\captureException($e);
+        }
+    });
+}
 }

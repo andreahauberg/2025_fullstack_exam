@@ -4,9 +4,28 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TrendingController extends Controller
 {
+/**
+ * @OA\Get(
+ *     path="/api/trending",
+ *     summary="Get trending topics",
+ *     tags={"Trending"},
+ *     security={{"bearerAuth":{}}},
+ *     @OA\Response(
+ *         response=200,
+ *         description="Trending topics retrieved successfully"
+ *     ),
+ *     @OA\Response(
+ *         response=500,
+ *         description="Server error"
+ *     )
+ * )
+ */
+
+
     public function index()
     {
         try {
@@ -44,7 +63,7 @@ class TrendingController extends Controller
 
             return response()->json($trending);
         } catch (\Exception $e) {
-            \Log::error('Error fetching trending: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
+            Log::error('Error fetching trending: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
             return response()->json([
                 'error' => 'An error occurred while fetching trending.',
                 'message' => $e->getMessage(),
