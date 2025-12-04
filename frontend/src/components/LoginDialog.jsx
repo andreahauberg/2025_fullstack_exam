@@ -36,8 +36,8 @@ const LoginDialog = ({ isOpen, onClose, onSuccess, onOpenSignup }) => {
     try {
       const response = await api.post("/login", formData);
       setErrors({});
-      localStorage.setItem("token", response.data.token); // Gem token
-      localStorage.setItem("user_pk", response.data.user.user_pk); // Gem bruger PK
+      localStorage.setItem("token", response.data.token); 
+      localStorage.setItem("user_pk", response.data.user.user_pk);
       localStorage.setItem("user_username", response.data.user.user_username);
       setTimeout(() => {
         onSuccess();

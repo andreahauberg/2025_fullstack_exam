@@ -26,6 +26,7 @@ protected $middlewareGroups = [
         \App\Http\Middleware\ApiExceptionMiddleware::class,
         'throttle:api',
         \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        \App\Http\Middleware\PreventCache::class,
     ],
 ];
 
