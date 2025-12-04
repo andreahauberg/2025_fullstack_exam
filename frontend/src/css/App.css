@@ -15,13 +15,14 @@ body {
   max-width: 1280px;
   margin: 0 auto;
   height: 100vh;
+  padding: 3rem 0;
+
 }
 
 /* Main Content Styles */
 main {
   overflow-y: auto;
   height: 100vh;
-  padding: 30px 0;
   border-right: 1px solid #eff3f4;
   scrollbar-width: none;
 }
@@ -37,7 +38,7 @@ main::-webkit-scrollbar {
   z-index: 100;
   background-color: white;
   border-right: 1px solid #eff3f4;
-  height: 100vh;
+  height: 30vh;
   width: 275px;
   display: flex;
   flex-direction: column;
@@ -74,15 +75,10 @@ main::-webkit-scrollbar {
   max-width: 48px;
 }
 
-.nav-menu-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
 
 .nav-menu {
   list-style: none;
-  padding: 0;
+  padding-top: 1rem;
   margin: 0;
   flex: 1;
 }
@@ -163,7 +159,7 @@ main::-webkit-scrollbar {
   color: #000;
 } 
 
-.fa-user-plus{
+.fa-user-plus, .fa-feather{
   color:#fff;
 }
 
@@ -397,7 +393,7 @@ aside::-webkit-scrollbar {
   width: 25px;
 }
 
-.burger-menu {
+.burger-menu, .nav-logo {
   display: block;
   position: fixed;
   top: 10px;
@@ -407,10 +403,12 @@ aside::-webkit-scrollbar {
 
 .nav-menu-container {
   position: fixed;
+  display: flex;
+  flex-direction: column;
   top: 0;
   left: -100%;
   width: 50px;
-  height: 94vh;
+  height: 60vh;
   background-color: white;
   transition: left 0.3s ease;
   z-index: 100;
@@ -418,7 +416,7 @@ aside::-webkit-scrollbar {
 }
 
 .nav-menu-container.active {
-  left: 0;
+  left: -30px;
 }
 
 .nav-menu li button span {
@@ -437,6 +435,7 @@ aside::-webkit-scrollbar {
   padding: 12px;
   border-radius: 50%;
   width: auto;
+  margin-left: 1.5rem;
 }
 
 .post-btn-text {
@@ -463,7 +462,7 @@ aside::-webkit-scrollbar {
 
 .profile-tag-avatar {
   margin-right: 0;
-  margin-left: 1rem;
+  margin-left: 4rem;
 }
 
 .profile-tag-name,
@@ -490,6 +489,7 @@ aside {
 @media (min-width: 1001px) {
   .navbar {
     width: 275px;
+    height: 80vh;
   }
 
   .burger-menu {
@@ -520,6 +520,7 @@ aside {
     padding: 16px 24px;
     border-radius: 9999px;
     width: 100%;
+    margin-left: 0;
   }
 
   .post-btn-text {
