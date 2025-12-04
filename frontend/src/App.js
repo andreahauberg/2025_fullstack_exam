@@ -31,7 +31,6 @@ const App = () => {
 useEffect(() => {
   const handler = (event) => {
     if (event.persisted) {
-      // BFCache blev brugt → tving en reel reload
       window.location.reload();
     }
   };

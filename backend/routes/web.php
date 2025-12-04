@@ -17,6 +17,8 @@ Route::get('/{any}', function () {
     $response->headers->set('Pragma', 'no-cache');
     $response->headers->set('Expires', '0');
 
-    return $response;
-})->where('any', '^(?!api).*$');
+    return response()->file(public_path('index.html'), [
+        'Content-Type' => 'text/html'
+    ]);
+})->where('any', '.*');
 
