@@ -2,6 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 
+Route::get('/', function () {
+    return response()->json(['message' => 'API is running']);
+});
+
+
 Route::get('/test-web', function () {
     return 'Web route OK';
 });
