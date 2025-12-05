@@ -9,35 +9,57 @@ use Illuminate\Support\Facades\DB;
 
 class LikeController extends Controller
 {
-/**
- * @OA\Post(
- *     path="/api/likes",
- *     summary="Like a post",
- *     tags={"Likes"},
- *     security={{"bearerAuth":{}}},
- *     @OA\RequestBody(
- *         required=true,
- *         @OA\JsonContent(
- *             required={"post_pk"},
- *             @OA\Property(property="post_pk", type="string", example="POST123")
- *         )
- *     ),
- *     @OA\Response(
- *         response=201,
- *         description="Like created successfully"
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Like already exists"
- *     ),
- *     @OA\Response(
- *         response=422,
- *         description="Validation error"
- *     )
- * )
- */
 
-
+    /**
+     * @OA\Post(
+     *     path="/api/likes",
+     *     summary="Like a post",
+     *     description="Allows the authenticated user to like a post. Returns the created like object.",
+     *     tags={"Likes"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Post PK of the post to like",
+     *         @OA\JsonContent(
+     *             required={"post_pk"},
+     *             @OA\Property(property="post_pk", type="string", example="post123", description="Primary key of the post to like")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Post liked successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="like_pk", type="string", example="like123"),
+     *             @OA\Property(property="like_post_fk", type="string", example="post123"),
+     *             @OA\Property(property="like_user_fk", type="string", example="user123"),
+     *             @OA\Property(property="created_at", type="string", format="date-time")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Post not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Post not found")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error (e.g., missing post PK)",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error while liking the post",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string"),
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     )
+     * )
+     */
     function store(Request $request)
     {
         $request->validate([
@@ -54,7 +76,44 @@ class LikeController extends Controller
 
         return response()->json($like, 201);
     }
-
+    /**
+     * @OA\Delete(
+     *     path="/api/likes/{post_pk}",
+     *     summary="Remove a like from a post",
+     *     description="Allows the authenticated user to remove their like from a post.",
+     *     tags={"Likes"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="post_pk",
+     *         in="path",
+     *         description="Primary key of the post to unlike",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Like removed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Like removed")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Like not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Like not found")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error while removing the like",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string"),
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     )
+     * )
+     */
 
     function destroy($post_pk)
     {
