@@ -1,0 +1,34 @@
+.image-placeholder__wrapper {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #eef3f6, #e6edf1);
+}
+
+.image-placeholder__placeholder {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: linear-gradient(180deg, #eef3f6, #e6edf1);
+}
+
+.image-placeholder__placeholder.with-src {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.image-placeholder__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 240ms ease-in;
+  opacity: 0;
+  display: none;
+}
+
+.image-placeholder__img.loaded {
+  opacity: 1;
+  display: block;
+}

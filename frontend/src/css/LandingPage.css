@@ -27,13 +27,16 @@
   z-index: 1;
 }
 .logo {
-  width: 60%;
-  height: 60%;
-  max-height: 300px;
+  width: 30%;
+  height: 30%;
+  max-width: 300px;
   z-index: 2;
   position: relative;
   object-fit: contain;
   border-radius:20%;
+  height: auto;
+  margin: auto;
+  display: block;
 }
 
 /* Right Side  */
@@ -113,6 +116,18 @@
   }
   .landing-right h2 {
     font-size: 2rem;
+  }
+  .logo {
+  width: 50%;
+  height: 50%;
+    max-width: 300px;
+  z-index: 2;
+  position: relative;
+  object-fit: contain;
+  border-radius:20%;
+  height: auto;
+  margin: auto;
+  display: block;
   }
 }
 
