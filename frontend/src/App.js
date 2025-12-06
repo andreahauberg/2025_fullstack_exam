@@ -1,4 +1,4 @@
-import {useEffect} from "react";
+import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./Pages/LandingPage";
 import HomePage from "./Pages/HomePage";
@@ -8,7 +8,6 @@ import UserPage from "./Pages/UserPage";
 import NotFoundPage from "./Pages/NotFoundPage";
 import ErrorPage from "./Pages/ErrorPage";
 import ErrorBoundary from "./components/ErrorBoundary";
-
 
 const isAuthenticated = () => Boolean(localStorage.getItem("token"));
 
@@ -27,21 +26,20 @@ const PublicRoute = ({ children }) => {
 };
 
 const App = () => {
+  useEffect(() => {
+    const handler = (event) => {
+      if (event.persisted) {
+        window.location.reload();
+      }
+    };
 
-useEffect(() => {
-  const handler = (event) => {
-    if (event.persisted) {
-      window.location.reload();
-    }
-  };
+    window.addEventListener("pageshow", handler);
 
-  window.addEventListener("pageshow", handler);
+    return () => {
+      window.removeEventListener("pageshow", handler);
+    };
+  }, []);
 
-  return () => {
-    window.removeEventListener("pageshow", handler);
-  };
-}, []);
-  
   return (
     <ErrorBoundary>
       <Routes>

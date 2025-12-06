@@ -6,7 +6,13 @@ import SearchOverlay from "../components/SearchOverlay";
 import ProfileTag from "../components/ProfileTag";
 import { api } from "../api";
 
-const NavMenu = ({ isOpen, setIsOpen, setIsPostDialogOpen, isSearchOpen, setIsSearchOpen }) => {
+const NavMenu = ({
+  isOpen,
+  setIsOpen,
+  setIsPostDialogOpen,
+  isSearchOpen,
+  setIsSearchOpen,
+}) => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user_pk");
@@ -22,7 +28,9 @@ const NavMenu = ({ isOpen, setIsOpen, setIsPostDialogOpen, isSearchOpen, setIsSe
   const token = localStorage.getItem("token");
   const isAuthenticated = Boolean(token);
   const cachedUsername = localStorage.getItem("user_username");
-  const [resolvedUsername, setResolvedUsername] = useState(cachedUsername || "");
+  const [resolvedUsername, setResolvedUsername] = useState(
+    cachedUsername || ""
+  );
   const [userFullName, setUserFullName] = useState("");
   const [userProfilePicture, setUserProfilePicture] = useState("");
 
@@ -50,7 +58,10 @@ const NavMenu = ({ isOpen, setIsOpen, setIsPostDialogOpen, isSearchOpen, setIsSe
           }
         }
       } catch (err) {
-        console.error("Failed to resolve user data:", err.response?.data || err.message);
+        console.error(
+          "Failed to resolve user data:",
+          err.response?.data || err.message
+        );
       }
     };
     syncUserData();
@@ -69,7 +80,10 @@ const NavMenu = ({ isOpen, setIsOpen, setIsPostDialogOpen, isSearchOpen, setIsSe
         {
           icon: "fa-regular fa-user",
           text: "Profile",
-          href: resolvedUsername || userPk ? `/profile/${resolvedUsername || userPk}` : "/home",
+          href:
+            resolvedUsername || userPk
+              ? `/profile/${resolvedUsername || userPk}`
+              : "/home",
         },
       ]
     : [
@@ -89,14 +103,41 @@ const NavMenu = ({ isOpen, setIsOpen, setIsPostDialogOpen, isSearchOpen, setIsSe
                 </li>
               );
             }
-            return <NavItem key={index} icon={item.icon} text={item.text} href={item.href} className={item.className} onClick={item.onClick} />;
+            return (
+              <NavItem
+                key={index}
+                icon={item.icon}
+                text={item.text}
+                href={item.href}
+                className={item.className}
+                onClick={item.onClick}
+              />
+            );
           })}
-          {isAuthenticated ? <NavItem icon="fa-solid fa-right-from-bracket" text="Logout" onClick={handleLogout} /> : null}
+          {isAuthenticated ? (
+            <NavItem
+              icon="fa-solid fa-right-from-bracket"
+              text="Logout"
+              onClick={handleLogout}
+            />
+          ) : null}
         </ul>
-        {isAuthenticated && userPk && <ProfileTag userPk={userPk} userUsername={resolvedUsername} userFullName={userFullName} userProfilePicture={userProfilePicture} />}
-        {isAuthenticated ? <NavPostButton setIsPostDialogOpen={setIsPostDialogOpen} /> : null}
+        {isAuthenticated && userPk && (
+          <ProfileTag
+            userPk={userPk}
+            userUsername={resolvedUsername}
+            userFullName={userFullName}
+            userProfilePicture={userProfilePicture}
+          />
+        )}
+        {isAuthenticated ? (
+          <NavPostButton setIsPostDialogOpen={setIsPostDialogOpen} />
+        ) : null}
       </div>
-      <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      <SearchOverlay
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
     </>
   );
 };

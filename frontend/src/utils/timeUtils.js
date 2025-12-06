@@ -3,7 +3,6 @@ import moment from "moment";
 export const formatRelativeTime = (date) => {
   if (!date) return "";
   const now = moment();
-  // Parse backend timestamp as UTC then convert to local time to avoid timezone offsets
   const postDate = moment.utc(date).local();
   const diffInSeconds = now.diff(postDate, "seconds");
   const diffInMinutes = now.diff(postDate, "minutes");

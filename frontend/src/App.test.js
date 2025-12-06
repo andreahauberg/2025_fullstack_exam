@@ -10,7 +10,6 @@ import UserPage from "./Pages/UserPage";
 import NotFoundPage from "./Pages/NotFoundPage";
 import ErrorPage from "./Pages/ErrorPage";
 
-// Mock window.matchMedia før nogen imports
 window.matchMedia =
   window.matchMedia ||
   function () {

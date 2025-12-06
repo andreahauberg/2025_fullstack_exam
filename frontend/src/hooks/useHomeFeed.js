@@ -67,9 +67,8 @@ export const useHomeFeed = () => {
     [handleUnauthorized]
   );
 
-
   const fetchTrending = useCallback(async () => {
-    setTrendingLoadingState(true); // Sæt loadingState til true ved start
+    setTrendingLoadingState(true);
     try {
       const token = localStorage.getItem("token");
       const response = await api.get("/trending", {
@@ -85,12 +84,12 @@ export const useHomeFeed = () => {
         handleUnauthorized();
       }
     } finally {
-      setTrendingLoadingState(false); // Sæt loadingState til false ved afslutning
+      setTrendingLoadingState(false);
     }
   }, [handleUnauthorized]);
 
   const fetchUsersToFollow = useCallback(async () => {
-    setUsersLoadingState(true); // Sæt loadingState til true ved start
+    setUsersLoadingState(true);
     try {
       const token = localStorage.getItem("token");
       const response = await api.get("/users-to-follow", {
@@ -106,7 +105,7 @@ export const useHomeFeed = () => {
         handleUnauthorized();
       }
     } finally {
-      setUsersLoadingState(false); // Sæt loadingState til false ved afslutning
+      setUsersLoadingState(false);
     }
   }, [handleUnauthorized]);
 

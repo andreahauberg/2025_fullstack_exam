@@ -112,7 +112,6 @@ const UserPosts = ({ userPk, isCurrentUser, newPost, onUpdateRepost }) => {
     if (isCurrentUser)
       setPosts((prev) => prev.filter((post) => post.post_pk !== deletedPostPk));
   };
-  
 
   if (error) return <p className="error-message">{error}</p>;
 

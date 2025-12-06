@@ -2,7 +2,7 @@
   background-color: #f7f9fa;
   border-radius: 16px;
   padding: 16px;
-   margin: 0 1rem;
+  margin: 0 1rem;
 }
 
 .happening-now h2 {
@@ -28,7 +28,6 @@
   font-weight: bold;
   color: #0f1419;
 }
-
 
 .option {
   color: #536471;

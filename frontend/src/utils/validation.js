@@ -1,17 +1,24 @@
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const usernameRegex = /^[a-zA-Z0-9._]+$/;
 
-const normalizeText = (value) => (typeof value === "string" ? value.trim() : "");
+const normalizeText = (value) =>
+  typeof value === "string" ? value.trim() : "";
 const normalizePassword = (value) => (typeof value === "string" ? value : "");
 const normalizeEmail = (value) => normalizeText(value).toLowerCase();
 
-const required = (message) => (value) => (!value ? message : "");
-const minLen = (min, message) => (value = "") =>
-  value.length < min ? message : "";
-const maxLen = (max, message) => (value = "") =>
-  value.length > max ? message : "";
-const pattern = (regex, message) => (value = "") =>
-  value && !regex.test(value) ? message : "";
+const required = (message) => (value) => !value ? message : "";
+const minLen =
+  (min, message) =>
+    (value = "") =>
+      value.length < min ? message : "";
+const maxLen =
+  (max, message) =>
+    (value = "") =>
+      value.length > max ? message : "";
+const pattern =
+  (regex, message) =>
+    (value = "") =>
+      value && !regex.test(value) ? message : "";
 
 const runRules = (value, rules = []) =>
   rules.map((rule) => rule(value)).find(Boolean) || "";
@@ -89,7 +96,9 @@ export const validateFields = (data, fields) => {
   fields.forEach((field) => {
     const config = fieldRules[field];
     if (!config) return;
-    const value = config.normalize ? config.normalize(data[field]) : data[field];
+    const value = config.normalize
+      ? config.normalize(data[field])
+      : data[field];
     const error = runRules(value, config.rules);
     if (error) errors[field] = error;
   });

@@ -1,11 +1,10 @@
-/* User Header */
 .user-header-wrapper {
   border-bottom: 1px solid #e1e8ed;
   border-radius: 16px;
   overflow: visible;
   background: linear-gradient(180deg, #fafdff 0%, #ffffff 60%);
   position: relative;
-  margin-bottom: 20px; 
+  margin-bottom: 20px;
 }
 
 .user-tabs {
@@ -50,7 +49,7 @@
   font-size: 18px;
 }
 
-.user-tab-panels{
+.user-tab-panels {
   padding: 0 0.5rem 3rem;
 }
 
@@ -119,7 +118,7 @@
 
 .user-header {
   display: flex;
-    flex-direction: column;
+  flex-direction: column;
   align-items: center;
   text-align: center;
   gap: 12px;
@@ -141,7 +140,7 @@
 .profile-picture-container {
   position: relative;
   flex-shrink: 0;
-  margin-top: -40px; 
+  margin-top: -40px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -190,7 +189,7 @@
   flex-direction: column;
   gap: 6px;
   min-width: 0;
-  width: 100%; 
+  width: 100%;
 }
 
 .user-info-header {
@@ -203,7 +202,7 @@
   padding-left: 0;
   margin-top: 0;
   flex-wrap: wrap;
-  width: 100%; 
+  width: 100%;
 }
 
 .user-name {
@@ -219,7 +218,7 @@
   color: #536471;
   font-size: 14px;
   word-break: break-word;
-    align-items: center;
+  align-items: center;
   text-align: center;
 }
 
@@ -228,6 +227,7 @@
   font-weight: bold;
   margin: 4px 0;
 }
+
 .user-handle-email .divider {
   display: none;
 }
@@ -239,7 +239,7 @@
 }
 
 .user-actions {
-    width: 100%;
+  width: 100%;
   justify-content: center;
   flex-wrap: wrap;
   margin-top: 12px;
@@ -270,7 +270,7 @@
   background-color: #f7f9fa;
   padding: 15px;
   border-radius: 12px;
-  margin-top:1rem;
+  margin-top: 1rem;
 }
 
 .user-list h3 {
@@ -289,7 +289,7 @@
 .user-list-item {
   padding: 12px 16px;
   border-bottom: 1px solid #e1e8ed;
-  display:flex;
+  display: flex;
   justify-content: space-between;
 }
 
@@ -363,7 +363,7 @@
   position: absolute;
   right: -10px;
   top: 100%;
-  margin-top: 8px; 
+  margin-top: 8px;
   background: #fff;
   border: 1px solid #e1e8ed;
   border-radius: 12px;
@@ -372,8 +372,8 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  z-index: 1000; 
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); 
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .action-menu-dropdown button {
@@ -407,10 +407,10 @@
   .user-header-wrapper {
     border-bottom: 1px solid #e1e8ed;
     border-radius: 16px;
-    overflow: visible; 
+    overflow: visible;
     background: linear-gradient(180deg, #fafdff 0%, #ffffff 60%);
     position: relative;
-    margin-bottom: 20px; 
+    margin-bottom: 20px;
   }
 
   .user-tabs {
@@ -540,7 +540,7 @@
   .profile-picture-container {
     position: relative;
     flex-shrink: 0;
-    margin-top: -50px; 
+    margin-top: -50px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -589,7 +589,7 @@
     flex-direction: column;
     gap: 6px;
     min-width: 0;
-    width: 100%; 
+    width: 100%;
   }
 
   .user-info-header {
@@ -600,7 +600,7 @@
     padding-right: 8px;
     margin-top: 0;
     flex-wrap: wrap;
-    width: 100%; 
+    width: 100%;
   }
 
   .user-name {
@@ -625,6 +625,7 @@
     font-weight: bold;
     margin: 4px 0;
   }
+
   .user-handle-email .divider {
     display: none;
   }
@@ -710,7 +711,7 @@
   .user-list-item {
     padding: 12px 16px;
     border-bottom: 1px solid #e1e8ed;
-    display:flex;
+    display: flex;
     justify-content: space-between;
   }
 
@@ -784,7 +785,7 @@
     position: absolute;
     right: 0;
     top: 100%;
-    margin-top: 8px; 
+    margin-top: 8px;
     background: #fff;
     border: 1px solid #e1e8ed;
     border-radius: 12px;
@@ -793,8 +794,8 @@
     display: flex;
     flex-direction: column;
     gap: 0;
-    z-index: 1000; 
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); 
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 
   .action-menu-dropdown button {
@@ -823,9 +824,7 @@
   }
 
 
-.user-tab-panels{
-  padding: 0 1rem 3rem;
+  .user-tab-panels {
+    padding: 0 1rem 3rem;
+  }
 }
-}
-
-

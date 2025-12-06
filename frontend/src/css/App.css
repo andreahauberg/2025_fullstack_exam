@@ -1,6 +1,7 @@
 /* Global Styles */
 body {
-  font-family: -apple-system, BlinkSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
   margin: 0;
   padding: 0;
   height: 100vh;
@@ -15,7 +16,6 @@ body {
   max-width: 1280px;
   margin: 0 auto;
   height: 100vh;
-
 }
 
 /* Main Content Styles */
@@ -73,7 +73,6 @@ main::-webkit-scrollbar {
 .nav-logo-image {
   max-width: 48px;
 }
-
 
 .nav-menu {
   list-style: none;
@@ -154,12 +153,14 @@ main::-webkit-scrollbar {
   line-height: 1;
 }
 
-.fa-solid, .fa-regular {
+.fa-solid,
+.fa-regular {
   color: #000;
-} 
+}
 
-.fa-user-plus, .fa-feather{
-  color:#fff;
+.fa-user-plus,
+.fa-feather {
+  color: #fff;
 }
 
 .profile-tag {
@@ -229,7 +230,6 @@ main::-webkit-scrollbar {
   margin-left: 1.4rem;
 }
 
-
 .post-btn-text {
   display: none;
 }
@@ -242,7 +242,6 @@ main::-webkit-scrollbar {
 .post-btn:hover {
   background-color: #1a8cd8;
 }
-
 
 .save-btn {
   background-color: #1d9bf0;
@@ -318,7 +317,8 @@ aside::-webkit-scrollbar {
   border-radius: 10px;
   background: #fff;
   color: #0f1419;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background 0.15s ease;
   font-family: inherit;
   box-sizing: border-box;
 }
@@ -390,12 +390,12 @@ aside::-webkit-scrollbar {
   border-radius: 8px;
 }
 
-
 .navbar {
   width: 25px;
 }
 
-.burger-menu, .nav-logo {
+.burger-menu,
+.nav-logo {
   display: block;
   position: fixed;
   top: 10px;
@@ -433,7 +433,6 @@ aside::-webkit-scrollbar {
   margin-right: 0;
 }
 
-
 .nav-logo {
   display: none;
   list-style: none;
@@ -463,7 +462,6 @@ aside::-webkit-scrollbar {
   background-color: white;
 }
 
-/* Mobile-first base (tidligere max-width: 1024px) */
 #container {
   grid-template-columns: auto 1fr;
 }
@@ -499,8 +497,6 @@ aside {
   display: none;
 }
 
-
-/* Desktop – min-width i stedet for max-width */
 @media (min-width: 1001px) {
   .navbar {
     width: 275px;

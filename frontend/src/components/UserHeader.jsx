@@ -5,7 +5,21 @@ import ImagePlaceholder from "./ImagePlaceholder";
 import { parseApiErrorMessage, validateImageFile } from "../utils/validation";
 import FieldError from "./FieldError";
 
-const UserHeader = ({ user, setUser, isEditing, editedUser, handleChange, handleEdit, handleSaveEdit, isCurrentUser, onFollowToggle, isFollowing, onDeleteProfile, formErrors = {}, handleCancelEdit }) => {
+const UserHeader = ({
+  user,
+  setUser,
+  isEditing,
+  editedUser,
+  handleChange,
+  handleEdit,
+  handleSaveEdit,
+  isCurrentUser,
+  onFollowToggle,
+  isFollowing,
+  onDeleteProfile,
+  formErrors = {},
+  handleCancelEdit,
+}) => {
   const [profilePicture, setProfilePicture] = useState(null);
   const [uploadError, setUploadError] = useState("");
   const [coverImage, setCoverImage] = useState(null);
@@ -56,12 +70,16 @@ const UserHeader = ({ user, setUser, isEditing, editedUser, handleChange, handle
       const formData = new FormData();
       formData.append("profile_picture", file);
       const token = localStorage.getItem("token");
-      const response = await api.post(`/users/${user.user_pk}/profile-picture`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.post(
+        `/users/${user.user_pk}/profile-picture`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setUser((prevUser) => ({
         ...prevUser,
         user_profile_picture: response.data.user_profile_picture,
@@ -69,7 +87,12 @@ const UserHeader = ({ user, setUser, isEditing, editedUser, handleChange, handle
       setProfilePicture(null);
       setUploadError("");
     } catch (error) {
-      setUploadError(parseApiErrorMessage(error, "Failed to upload profile picture. Please try again."));
+      setUploadError(
+        parseApiErrorMessage(
+          error,
+          "Failed to upload profile picture. Please try again."
+        )
+      );
     } finally {
       setIsUploadingProfile(false);
     }
@@ -88,12 +111,16 @@ const UserHeader = ({ user, setUser, isEditing, editedUser, handleChange, handle
       const formData = new FormData();
       formData.append("cover_picture", file);
       const token = localStorage.getItem("token");
-      const response = await api.post(`/users/${user.user_pk}/cover-picture`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.post(
+        `/users/${user.user_pk}/cover-picture`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setUser?.((prevUser) => ({
         ...prevUser,
         user_cover_picture: response.data.user_cover_picture,
@@ -101,7 +128,12 @@ const UserHeader = ({ user, setUser, isEditing, editedUser, handleChange, handle
       setCoverImage(null);
       setCoverUploadError("");
     } catch (error) {
-      setCoverUploadError(parseApiErrorMessage(error, "Failed to upload cover picture. Please try again."));
+      setCoverUploadError(
+        parseApiErrorMessage(
+          error,
+          "Failed to upload cover picture. Please try again."
+        )
+      );
     } finally {
       setIsUploadingCover(false);
     }
@@ -124,14 +156,27 @@ const UserHeader = ({ user, setUser, isEditing, editedUser, handleChange, handle
         />
         {isCurrentUser && (
           <div className="cover-controls">
-            <input type="file" ref={coverInputRef} onChange={handleCoverChange} accept="image/*" style={{ display: "none" }} />
+            <input
+              type="file"
+              ref={coverInputRef}
+              onChange={handleCoverChange}
+              accept="image/*"
+              style={{ display: "none" }}
+            />
             <div className="cover-buttons">
-              <button type="button" className="cover-btn" onClick={() => coverInputRef.current?.click()}>
+              <button
+                type="button"
+                className="cover-btn"
+                onClick={() => coverInputRef.current?.click()}>
                 <i className="fa-solid fa-image"></i>
                 <span>Change cover</span>
               </button>
               {coverImage && (
-                <button type="button" className="cover-btn save" onClick={handleUploadCoverPicture} disabled={isUploadingCover}>
+                <button
+                  type="button"
+                  className="cover-btn save"
+                  onClick={handleUploadCoverPicture}
+                  disabled={isUploadingCover}>
                   {isUploadingCover ? "Saving cover..." : "Save cover"}
                 </button>
               )}
@@ -142,11 +187,30 @@ const UserHeader = ({ user, setUser, isEditing, editedUser, handleChange, handle
       </div>
       <div className="user-header">
         <div className="profile-picture-container">
-          <ImagePlaceholder src={profilePicture || getProfilePictureUrl(user.user_profile_picture)} alt="Profile" className="user-avatar" placeholderSrc={getProfilePictureUrl(null)} />
-          {isCurrentUser && <input type="file" ref={fileInputRef} onChange={handleProfilePictureChange} accept="image/*" style={{ display: "none" }} />}
+          <ImagePlaceholder
+            src={
+              profilePicture || getProfilePictureUrl(user.user_profile_picture)
+            }
+            alt="Profile"
+            className="user-avatar"
+            placeholderSrc={getProfilePictureUrl(null)}
+          />
+          {isCurrentUser && (
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleProfilePictureChange}
+              accept="image/*"
+              style={{ display: "none" }}
+            />
+          )}
           {profilePicture && (
             <div className="profile-picture-preview">
-              <button type="button" className="save-profile-btn" onClick={handleUploadProfilePicture} disabled={isUploadingProfile}>
+              <button
+                type="button"
+                className="save-profile-btn"
+                onClick={handleUploadProfilePicture}
+                disabled={isUploadingProfile}>
                 {isUploadingProfile ? "Saving..." : "Save Image"}
               </button>
             </div>
@@ -156,12 +220,41 @@ const UserHeader = ({ user, setUser, isEditing, editedUser, handleChange, handle
         <div className="user-info">
           {isEditing ? (
             <>
-              <input type="text" name="user_full_name" value={editedUser.user_full_name || ""} onChange={handleChange} className="form-control" placeholder="Full Name" />
-              <FieldError error={formErrors.user_full_name} className="field-error" />
-              <input type="text" name="user_username" value={editedUser.user_username || ""} onChange={handleChange} className="form-control" placeholder="Username" />
-              <FieldError error={formErrors.user_username} className="field-error" />
-              <input type="email" name="user_email" value={editedUser.user_email || ""} className="form-control disabled-input" disabled />
-              <FieldError error={formErrors.user_email} className="field-error" />
+              <input
+                type="text"
+                name="user_full_name"
+                value={editedUser.user_full_name || ""}
+                onChange={handleChange}
+                className="form-control"
+                placeholder="Full Name"
+              />
+              <FieldError
+                error={formErrors.user_full_name}
+                className="field-error"
+              />
+              <input
+                type="text"
+                name="user_username"
+                value={editedUser.user_username || ""}
+                onChange={handleChange}
+                className="form-control"
+                placeholder="Username"
+              />
+              <FieldError
+                error={formErrors.user_username}
+                className="field-error"
+              />
+              <input
+                type="email"
+                name="user_email"
+                value={editedUser.user_email || ""}
+                className="form-control disabled-input"
+                disabled
+              />
+              <FieldError
+                error={formErrors.user_email}
+                className="field-error"
+              />
               <div className="user-actions">
                 <button className="save-btn" onClick={handleSaveEdit}>
                   Save
@@ -184,14 +277,21 @@ const UserHeader = ({ user, setUser, isEditing, editedUser, handleChange, handle
                 </div>
                 <div className="user-actions inline-actions">
                   {!isCurrentUser && (
-                    <button className={`follow-btn ${isFollowing ? "unfollow" : ""}`} onClick={onFollowToggle}>
+                    <button
+                      className={`follow-btn ${isFollowing ? "unfollow" : ""}`}
+                      onClick={onFollowToggle}>
                       {isFollowing ? "Unfollow" : "Follow"}
                     </button>
                   )}
                 </div>
                 {isCurrentUser && (
                   <div className="user-actions-menu">
-                    <button type="button" className="action-menu-btn" aria-label="Open profile actions" aria-expanded={isActionsMenuOpen} onClick={() => setIsActionsMenuOpen((prev) => !prev)}>
+                    <button
+                      type="button"
+                      className="action-menu-btn"
+                      aria-label="Open profile actions"
+                      aria-expanded={isActionsMenuOpen}
+                      onClick={() => setIsActionsMenuOpen((prev) => !prev)}>
                       <i className="fa-solid fa-ellipsis-vertical"></i>
                     </button>
                     {isActionsMenuOpen && (
@@ -201,8 +301,7 @@ const UserHeader = ({ user, setUser, isEditing, editedUser, handleChange, handle
                           onClick={() => {
                             closeActionsMenu();
                             handleEdit();
-                          }}
-                        >
+                          }}>
                           Edit profile
                         </button>
                         <button
@@ -210,8 +309,7 @@ const UserHeader = ({ user, setUser, isEditing, editedUser, handleChange, handle
                           onClick={() => {
                             closeActionsMenu();
                             fileInputRef.current.click();
-                          }}
-                        >
+                          }}>
                           Upload profile picture
                         </button>
                         <button
@@ -220,8 +318,7 @@ const UserHeader = ({ user, setUser, isEditing, editedUser, handleChange, handle
                           onClick={() => {
                             closeActionsMenu();
                             onDeleteProfile();
-                          }}
-                        >
+                          }}>
                           Delete
                         </button>
                       </div>

@@ -1,6 +1,6 @@
 import { getProfilePictureUrl } from "../utils/imageUtils";
 import { useNavigate } from "react-router-dom";
-import ImagePlaceholder from "./ImagePlaceholder"
+import ImagePlaceholder from "./ImagePlaceholder";
 
 const ProfileTag = ({
   userPk,

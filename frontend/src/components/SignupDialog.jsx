@@ -92,7 +92,9 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
           onChange={handleChange}
           disabled={isLoading}
           autoFocus
-          className={errors.user_full_name ? "form-control input-error" : "form-control"}
+          className={
+            errors.user_full_name ? "form-control input-error" : "form-control"
+          }
         />
         <span className="field-hint">Max 20 characters</span>
         <FieldError error={errors.user_full_name} />
@@ -104,9 +106,13 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
           value={formData.user_username}
           onChange={handleChange}
           disabled={isLoading}
-          className={errors.user_username ? "form-control input-error" : "form-control"}
+          className={
+            errors.user_username ? "form-control input-error" : "form-control"
+          }
         />
-        <span className="field-hint">3-20 chars · letters, numbers, underscores, dots</span>
+        <span className="field-hint">
+          3-20 chars · letters, numbers, underscores, dots
+        </span>
         <FieldError error={errors.user_username} />
 
         <input
@@ -116,7 +122,9 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
           value={formData.user_email}
           onChange={handleChange}
           disabled={isLoading}
-          className={errors.user_email ? "form-control input-error" : "form-control"}
+          className={
+            errors.user_email ? "form-control input-error" : "form-control"
+          }
         />
         <span className="field-hint">Valid email · Max 100 characters</span>
         <FieldError error={errors.user_email} />
@@ -128,7 +136,9 @@ const SignupDialog = ({ isOpen, onClose, onSuccess, onOpenLogin }) => {
           value={formData.user_password}
           onChange={handleChange}
           disabled={isLoading}
-          className={errors.user_password ? "form-control input-error" : "form-control"}
+          className={
+            errors.user_password ? "form-control input-error" : "form-control"
+          }
         />
         <span className="field-hint">Min. 8 characters</span>
         <FieldError error={errors.user_password} />

@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { getPostImageUrl } from "../utils/imageUtils";
 import { buildProfilePath } from "../utils/urlHelpers";
 
-
 const SearchOverlay = ({ isOpen, onClose, initialQuery = "" }) => {
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState({ users: [], posts: [] });
@@ -60,24 +59,22 @@ const SearchOverlay = ({ isOpen, onClose, initialQuery = "" }) => {
     return text.length > max ? text.substring(0, max) + "..." : text;
   };
 
+  const goToUser = (user) => {
+    const path = buildProfilePath(user);
+    if (path === "#") return;
+    navigate(path);
+    onClose();
+  };
 
-const goToUser = (user) => {
-  const path = buildProfilePath(user);
-  if (path === "#") return;
-  navigate(path);
-  onClose();
-};
-
-const goToPostUser = (post) => {
-  const path = buildProfilePath({
-    user_username: post?.user_username,
-    user_pk: post?.user_pk,
-  });
-  if (path === "#") return;
-  navigate(path);
-  onClose();
-};
-
+  const goToPostUser = (post) => {
+    const path = buildProfilePath({
+      user_username: post?.user_username,
+      user_pk: post?.user_pk,
+    });
+    if (path === "#") return;
+    navigate(path);
+    onClose();
+  };
 
   if (!isOpen) return null;
 

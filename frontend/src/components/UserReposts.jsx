@@ -43,7 +43,10 @@ const UserReposts = ({ username, onUpdateRepost }) => {
       setHasMoreReposts(more);
       if (more) repostPageRef.current += 1;
     } catch (err) {
-      console.error("Error fetching reposts:", err.response?.data || err.message);
+      console.error(
+        "Error fetching reposts:",
+        err.response?.data || err.message
+      );
       setRepostPosts([]);
       setHasMoreReposts(false);
       setError("Failed to load reposts.");
@@ -84,12 +87,12 @@ const UserReposts = ({ username, onUpdateRepost }) => {
   }, [fetchRepostPosts]);
 
   const handleRepostUpdate = (updatedPost) => {
-  setRepostPosts((prev) => {
-    const filtered = prev.filter((p) => p.post_pk !== updatedPost.post_pk);
-    return updatedPost.is_reposted_by_user
-      ? [updatedPost, ...filtered]
-      : filtered;
-  });
+    setRepostPosts((prev) => {
+      const filtered = prev.filter((p) => p.post_pk !== updatedPost.post_pk);
+      return updatedPost.is_reposted_by_user
+        ? [updatedPost, ...filtered]
+        : filtered;
+    });
 
     if (onUpdateRepost) {
       onUpdateRepost(updatedPost);

@@ -68,7 +68,15 @@ export const useFollowActions = ({
       );
       setError?.("Failed to update follow status.");
     }
-  }, [isFollowing, navigate, setError, setFollowers, setIsFollowing, user]);
+  }, [
+    isFollowing,
+    navigate,
+    setError,
+    setFollowers,
+    setIsFollowing,
+    user,
+    setUser,
+  ]);
 
   const handleSidebarFollowChange = useCallback(
     (isNowFollowing, targetUser) => {

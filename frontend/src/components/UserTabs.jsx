@@ -24,28 +24,25 @@ const UserTabs = ({
 
   return (
     <div className="user-tabs" role="tablist" aria-label="Profile content">
-
       <button
         className={`user-tab ${activeTab === "posts" ? "active" : ""}`}
         onClick={() => setActiveTab("posts")}>
         {isSmall ? (
-          <i className="fa-solid fa-pen"></i> 
+          <i className="fa-solid fa-pen"></i>
         ) : (
           `Posts (${postsCount})`
-          )}
+        )}
       </button>
-
 
       <button
         className={`user-tab ${activeTab === "reposts" ? "active" : ""}`}
         onClick={() => setActiveTab("reposts")}>
         {isSmall ? (
-          <i className="fa-solid fa-retweet"></i> 
+          <i className="fa-solid fa-retweet"></i>
         ) : (
-           `Reposts (${repostCount})`
-           )}
+          `Reposts (${repostCount})`
+        )}
       </button>
-
 
       <button
         className={`user-tab ${activeTab === "followers" ? "active" : ""}`}
@@ -56,7 +53,6 @@ const UserTabs = ({
           `Followers (${followersCount})`
         )}
       </button>
-
 
       <button
         className={`user-tab ${activeTab === "following" ? "active" : ""}`}

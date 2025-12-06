@@ -42,12 +42,12 @@ const PostHeader = ({ user, created_at, edited }) => {
     setIsFollowLoading(true);
     try {
       if (isFollowing) {
-        setIsFollowing(false); // optimistic
+        setIsFollowing(false);
         await api.delete(`/follows/${userPk}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } else {
-        setIsFollowing(true); // optimistic
+        setIsFollowing(true);
         await api.post(
           "/follows",
           { followed_user_fk: userPk },
@@ -55,7 +55,7 @@ const PostHeader = ({ user, created_at, edited }) => {
         );
       }
     } catch (err) {
-      setIsFollowing(prev); // rollback
+      setIsFollowing(prev);
       console.error("Follow toggle failed:", err.response?.data || err.message);
     } finally {
       setIsFollowLoading(false);

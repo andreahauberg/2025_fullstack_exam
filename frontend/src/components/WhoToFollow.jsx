@@ -118,7 +118,8 @@ const WhoToFollow = ({
             </Link>
             <button
               className={`follow-btn ${user.is_following ? "unfollow" : ""}`}
-              onClick={() => handleFollow(user.user_pk, index)}>
+              onClick={() => handleFollow(user.user_pk, index)}
+              aria-label="Follow">
               <i
                 className={
                   user.is_following

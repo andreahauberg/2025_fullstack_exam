@@ -64,9 +64,13 @@ const ErrorPage = () => {
         <main className="notfound-main">
           <h1>{title}</h1>
           <p>{message}</p>
-          {statusCode ? <p className="error-code">Status code: {statusCode}</p> : null}
+          {statusCode ? (
+            <p className="error-code">Status code: {statusCode}</p>
+          ) : null}
           <div className="notfound-actions">
-            <Link to={action === "Go to sign in" ? "/" : primaryLink} className="btn-link">
+            <Link
+              to={action === "Go to sign in" ? "/" : primaryLink}
+              className="btn-link">
               {action}
             </Link>
             <Link to={primaryLink} className="btn-link">

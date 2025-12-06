@@ -35,7 +35,6 @@ const HomePage = () => {
     postsLoadingState || usersLoadingState || trendingLoadingState;
 
   useEffect(() => {
-    console.log("isAnyLoading:", isAnyLoading); // Debugging
     const mainEl = document.querySelector("main");
     if (!mainEl) return;
     let ticking = false;
@@ -90,7 +89,7 @@ const HomePage = () => {
         <aside>
           <Trending
             trending={trending}
-            isLoading={trendingLoadingState} // Ret til trendingLoadingState
+            isLoading={trendingLoadingState}
             error={trendingError}
           />
           {trendingError && <p className="error">{trendingError}</p>}

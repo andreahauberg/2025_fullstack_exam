@@ -50,10 +50,9 @@ const PostDialog = ({ isOpen, onClose, onSuccess }) => {
     e.preventDefault();
     setMessage("");
 
-    const clientErrors = validateFields(
-      { post_content: postContent },
-      ["post_content"]
-    );
+    const clientErrors = validateFields({ post_content: postContent }, [
+      "post_content",
+    ]);
     const imageError = validateImageFile(postImage);
     if (imageError) clientErrors.post_image = imageError;
     if (Object.keys(clientErrors).length > 0) {

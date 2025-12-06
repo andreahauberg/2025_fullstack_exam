@@ -29,7 +29,7 @@ api.interceptors.request.use(
   }
 );
 
-const MAX_RETRIES = 2; 
+const MAX_RETRIES = 2;
 const RETRY_STATUS = [429, 500, 502, 503, 504];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -55,7 +55,9 @@ const shouldRetryRequest = (error) => {
 
 const redirectToErrorPage = (status, message) => {
   const code = status || 503;
-  const encodedMessage = message ? `&message=${encodeURIComponent(message)}` : "";
+  const encodedMessage = message
+    ? `&message=${encodeURIComponent(message)}`
+    : "";
 
   if (window.location.pathname.startsWith("/error")) return;
 

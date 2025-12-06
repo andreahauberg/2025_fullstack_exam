@@ -2,21 +2,21 @@ import { useState, useEffect } from "react";
 import "../css/Trending.css";
 import LoadingOverlay from "./LoadingOverlay";
 
+const countries = [
+  "Denmark",
+  "Germany",
+  "Italy",
+  "Greece",
+  "France",
+  "Spain",
+  "Sweden",
+  "Norway",
+  "Portugal",
+  "USA",
+];
 const Trending = ({ trending, isLoading, error }) => {
   const [visibleItems, setVisibleItems] = useState(3);
   const [trendingWithCountries, setTrendingWithCountries] = useState([]);
-  const countries = [
-    "Denmark",
-    "Germany",
-    "Italy",
-    "Greece",
-    "France",
-    "Spain",
-    "Sweden",
-    "Norway",
-    "Portugal",
-    "USA",
-  ];
 
   useEffect(() => {
     if (trending && trending.length > 0) {

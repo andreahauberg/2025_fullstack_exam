@@ -1,4 +1,3 @@
-// NotificationCount.jsx
 import React, { useEffect, useState } from "react";
 import { api } from "../api";
 import { useNavigate } from "react-router-dom";
@@ -19,7 +18,10 @@ const NotificationCount = () => {
         const data = resp.data || {};
         setUnreadCount(data.meta?.unread_count ?? 0);
       } catch (err) {
-        console.error("Failed to fetch notifications meta", err.response || err.message);
+        console.error(
+          "Failed to fetch notifications meta",
+          err.response || err.message
+        );
       } finally {
         setLoading(false);
       }
@@ -37,7 +39,11 @@ const NotificationCount = () => {
   const displayCount = unreadCount > 9 ? "9+" : unreadCount;
 
   return (
-    <button className="nav-notifications-button" onClick={goToNotifications} aria-label="Notifications" title="Notifications">
+    <button
+      className="nav-notifications-button"
+      onClick={goToNotifications}
+      aria-label="Notifications"
+      title="Notifications">
       <i className="fa-regular fa-bell" aria-hidden="true"></i>
       <span>Notifications</span>
       {unreadCount > 0 && (

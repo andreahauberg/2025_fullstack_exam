@@ -20,7 +20,10 @@ const NavBar = ({ setIsPostDialogOpen, isLoading }) => {
       ) : (
         <div className="navbar-container">
           <NavLogo />
-          <button className="burger-menu" onClick={toggleMenu}>
+          <button
+            className="burger-menu"
+            onClick={toggleMenu}
+            aria-label="Navigation menu">
             <i className="fa-solid fa-bars" />
           </button>
           <NavMenu

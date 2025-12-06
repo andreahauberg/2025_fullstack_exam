@@ -13,10 +13,9 @@ const CommentForm = ({ postPk, setComments }) => {
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
 
-    const validationErrors = validateFields(
-      { comment_message: comment },
-      ["comment_message"]
-    );
+    const validationErrors = validateFields({ comment_message: comment }, [
+      "comment_message",
+    ]);
     if (validationErrors.comment_message) {
       setErrorMessage(validationErrors.comment_message);
       return;
@@ -42,14 +41,20 @@ const CommentForm = ({ postPk, setComments }) => {
       setComment("");
     } catch (error) {
       setErrorMessage(
-        parseApiErrorMessage(error, "Failed to submit comment. Please try again.")
+        parseApiErrorMessage(
+          error,
+          "Failed to submit comment. Please try again."
+        )
       );
     }
     setIsSubmitting(false);
   };
 
   return (
-    <form onSubmit={handleCommentSubmit} className="post__comment-form" noValidate>
+    <form
+      onSubmit={handleCommentSubmit}
+      className="post__comment-form"
+      noValidate>
       <input
         type="text"
         placeholder="Add a comment"

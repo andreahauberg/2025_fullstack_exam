@@ -133,98 +133,98 @@ const NotificationsPage = () => {
   };
 
   return (
-  <div data-testid="notifications-page">
-    <div id="container">
-      <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
+    <div data-testid="notifications-page">
+      <div id="container">
+        <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
 
-      <main>
-        <div className="notifications-header">
-          <h1 className="notifications-header__title">Notifications</h1>
+        <main>
+          <div className="notifications-header">
+            <h1 className="notifications-header__title">Notifications</h1>
 
-          <button
-            onClick={markAll}
-            disabled={unreadCount === 0}
-            className="notifications-header__mark-all">
-            Mark all as read
-          </button>
-        </div>
+            <button
+              onClick={markAll}
+              disabled={unreadCount === 0}
+              className="notifications-header__mark-all">
+              Mark all as read
+            </button>
+          </div>
 
-        {loading && <LoadingOverlay message="Loading notifications..." />}
+          {loading && <LoadingOverlay message="Loading notifications..." />}
 
-        {!loading && notifications.length === 0 && (
-          <p className="empty-message">No notifications</p>
-        )}
+          {!loading && notifications.length === 0 && (
+            <p className="empty-message">No notifications</p>
+          )}
 
-        {!loading && notifications.length > 0 && (
-          <div className="notifications-list">
-            {notifications.map((n) => (
-              <div
-                key={n.id}
-                className={`notification-card ${
-                  !n.read_at ? "notification-card--unread" : ""
-                }`}>
+          {!loading && notifications.length > 0 && (
+            <div className="notifications-list">
+              {notifications.map((n) => (
                 <div
-                  className="notification-card__clickzone"
-                  onClick={() => goToProfileWithPost(n)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && goToProfileWithPost(n)
-                  }>
-                  <img
-                    src={getProfilePictureUrl(n.data?.author_profile_picture)}
-                    alt={n.data?.author_username || "avatar"}
-                    className="notification-card__avatar"
-                  />
+                  key={n.id}
+                  className={`notification-card ${
+                    !n.read_at ? "notification-card--unread" : ""
+                  }`}>
+                  <div
+                    className="notification-card__clickzone"
+                    onClick={() => goToProfileWithPost(n)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && goToProfileWithPost(n)
+                    }>
+                    <img
+                      src={getProfilePictureUrl(n.data?.author_profile_picture)}
+                      alt={n.data?.author_username || "avatar"}
+                      className="notification-card__avatar"
+                    />
 
-                  <div className="notification-card__content">
-                    <div className="notification-card__text">
-                      {n.data?.excerpt || "New activity"}
-                    </div>
+                    <div className="notification-card__content">
+                      <div className="notification-card__text">
+                        {n.data?.excerpt || "New activity"}
+                      </div>
 
-                    <div className="notification-card__meta">
-                      @{n.data?.author_username || ""} •{" "}
-                      {formatRelativeTime(
-                        n.data?.post_created_at || n.created_at
-                      )}
+                      <div className="notification-card__meta">
+                        @{n.data?.author_username || ""} •{" "}
+                        {formatRelativeTime(
+                          n.data?.post_created_at || n.created_at
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="notification-card__actions">
-                  {!n.read_at && (
+                  <div className="notification-card__actions">
+                    {!n.read_at && (
+                      <button
+                        onClick={() => markAsRead(n.id)}
+                        className="notification-card__btn">
+                        Mark
+                      </button>
+                    )}
+
                     <button
-                      onClick={() => markAsRead(n.id)}
-                      className="notification-card__btn">
-                      Mark
+                      onClick={() => deleteNotification(n.id)}
+                      className="notification-card__btn notification-card__btn--delete"
+                      title="Delete notification">
+                      Delete
                     </button>
-                  )}
-
-                  <button
-                    onClick={() => deleteNotification(n.id)}
-                    className="notification-card__btn notification-card__btn--delete"
-                    title="Delete notification">
-                    Delete
-                  </button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </main>
+              ))}
+            </div>
+          )}
+        </main>
 
-      <PostDialog
-        isOpen={isPostDialogOpen}
-        onClose={() => setIsPostDialogOpen(false)}
-        onSuccess={() => {}}
-      />
+        <PostDialog
+          isOpen={isPostDialogOpen}
+          onClose={() => setIsPostDialogOpen(false)}
+          onSuccess={() => {}}
+        />
 
-      <aside>
-        <Trending trending={trending} />
-        <WhoToFollow users={usersToFollow} />
-      </aside>
+        <aside>
+          <Trending trending={trending} />
+          <WhoToFollow users={usersToFollow} />
+        </aside>
+      </div>
     </div>
-  </div>
   );
 };
 

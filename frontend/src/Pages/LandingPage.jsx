@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import SignupDialog from "../components/SignupDialog"
+import SignupDialog from "../components/SignupDialog";
 import LoginDialog from "../components/LoginDialog";
 import { DEFAULT_TITLE, useDocumentTitle } from "../utils/useDocumentTitle";
-import ImagePlaceholder from "../components/ImagePlaceholder"; 
+import ImagePlaceholder from "../components/ImagePlaceholder";
 import "../css/LandingPage.css";
 
 function LandingPage() {
@@ -19,12 +19,12 @@ function LandingPage() {
   const handleLoginSuccess = () => {
     navigate("/home");
   };
-   const handleOpenLogin = () => {
-     setIsLoginOpen(true);
-   };
-   const handleOpenSignup = () => {
-     setIsSignupOpen(true);
-   }
+  const handleOpenLogin = () => {
+    setIsLoginOpen(true);
+  };
+  const handleOpenSignup = () => {
+    setIsSignupOpen(true);
+  };
 
   return (
     <div data-testid="landing-page">

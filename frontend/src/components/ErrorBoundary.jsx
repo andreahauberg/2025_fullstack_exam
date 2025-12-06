@@ -28,7 +28,9 @@ class ErrorBoundary extends React.Component {
           <main className="notfound-main">
             <h1>Something went wrong</h1>
             <p>We hit an unexpected error in the page. Try reloading.</p>
-            {this.state.message ? <p className="error-code">{this.state.message}</p> : null}
+            {this.state.message ? (
+              <p className="error-code">{this.state.message}</p>
+            ) : null}
             <div className="notfound-actions">
               <button className="btn-link" onClick={this.handleReload}>
                 Reload

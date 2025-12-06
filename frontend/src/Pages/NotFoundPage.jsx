@@ -15,8 +15,8 @@ const NotFoundPage = () => {
         <main className="notfound-main">
           <h1>404 - Page not found</h1>
           <p>
-            Ooops! The page you’re looking for doesn’t exist. Use the menu or the
-            link below to navigate back to the site.
+            Ooops! The page you’re looking for doesn’t exist. Use the menu or
+            the link below to navigate back to the site.
           </p>
           <div className="notfound-actions">
             <Link to="/home" className="btn-link">

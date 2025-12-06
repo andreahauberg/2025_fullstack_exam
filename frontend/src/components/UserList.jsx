@@ -103,13 +103,15 @@ const UserList = ({
                   className={`follow-btn ${
                     user.is_following ? "unfollow" : ""
                   }`}
-                  onClick={() => handleFollow(user.user_pk, index)}>
+                  onClick={() => handleFollow(user.user_pk, index)}
+                  aria-label="Follow">
                   <i
                     className={
                       user.is_following
                         ? "fa-solid fa-user-check"
                         : "fa-solid fa-user-plus"
-                    }></i>
+                    }
+                    aria-label="Unfollow"></i>
                 </button>
               )}
             </li>

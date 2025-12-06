@@ -129,10 +129,12 @@ const CommentList = ({
                 <>
                   <button
                     className="save-comment-btn"
+                    aria-label="Save comment"
                     onClick={() => handleSaveEditComment(comment.comment_pk)}>
                     <i className="fa-solid fa-check"></i>
                   </button>
                   <button
+                    aria-label="Cancel comment"
                     className="cancel-comment-btn"
                     onClick={() => setEditingCommentId(null)}>
                     <i className="fa-solid fa-xmark"></i>
@@ -142,11 +144,13 @@ const CommentList = ({
                 <>
                   <button
                     className="edit-comment-btn"
+                    aria-label="Edit comment"
                     onClick={() => handleEditComment(comment)}>
                     <i className="fa-solid fa-pen-to-square"></i>
                   </button>
                   <button
                     className="delete-comment-btn"
+                    aria-label="Delete comment"
                     onClick={() => handleDeleteComment(comment.comment_pk)}>
                     <i className="fa-solid fa-trash-can"></i>
                   </button>

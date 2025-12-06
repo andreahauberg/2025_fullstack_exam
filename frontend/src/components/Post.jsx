@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
-import moment from "moment";
 import PostHeader from "./PostHeader";
 import PostContent from "./PostContent";
 import PostActions from "./PostActions";
@@ -9,7 +8,13 @@ import CommentForm from "./CommentForm";
 import ConfirmationDialog from "./ConfirmationDialog";
 import "../css/Post-Comment.css";
 
-const Post = ({ post, onUpdatePost, onDeletePost, hideHeader, onUpdateRepost }) => {
+const Post = ({
+  post,
+  onUpdatePost,
+  onDeletePost,
+  hideHeader,
+  onUpdateRepost,
+}) => {
   const [liked, setLiked] = useState(post.is_liked_by_user);
   const [likeCount, setLikeCount] = useState(post.likes_count || 0);
   const [reposted, setReposted] = useState(post.is_reposted_by_user || false);
@@ -67,7 +72,6 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader, onUpdateRepost }) 
       const token = localStorage.getItem("token");
 
       if (reposted) {
-        // UN-REPOST
         await api.delete(`/reposts/${post.post_pk}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -91,7 +95,6 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader, onUpdateRepost }) 
           })
         );
       } else {
-        // REPOST
         await api.post(
           "/reposts",
           { post_pk: post.post_pk },
@@ -117,7 +120,6 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader, onUpdateRepost }) 
           })
         );
       }
-
     } catch (error) {
       console.error("Error handling repost:", error);
     }
@@ -170,19 +172,6 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader, onUpdateRepost }) 
     }
   };
 
-  const formatTime = (date) => {
-    const now = moment();
-    const postDate = moment(date);
-    const diffInMinutes = now.diff(postDate, "minutes");
-    const diffInHours = now.diff(postDate, "hours");
-    const diffInDays = now.diff(postDate, "days");
-
-    if (diffInMinutes < 60) return `${diffInMinutes}m`;
-    if (diffInHours < 24) return `${diffInHours}h`;
-    if (diffInDays < 7) return `${diffInDays}d`;
-    return postDate.format("D MMM");
-  };
-
   return (
     <div className="post" id={`post-${post.post_pk}`}>
       {!hideHeader && (
@@ -221,8 +210,7 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader, onUpdateRepost }) 
           </button>
           <button
             className="cancel-edit-btn"
-            onClick={() => setIsEditing(false)}
-          >
+            onClick={() => setIsEditing(false)}>
             Cancel
           </button>
         </div>
@@ -233,7 +221,9 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader, onUpdateRepost }) 
             likeCount={likeCount}
             reposted={reposted}
             repostCount={repostCount}
-            commentCount={comments.length > 0 ? comments.length : post.comments_count}
+            commentCount={
+              comments.length > 0 ? comments.length : post.comments_count
+            }
             showComments={showComments}
             setShowComments={setShowComments}
             handleLike={handleLike}
@@ -242,10 +232,16 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader, onUpdateRepost }) 
 
           {currentUserPk === post.post_user_fk && (
             <div className="post-edit-delete-actions">
-              <button className="edit-post-btn" onClick={handleEdit}>
+              <button
+                className="edit-post-btn"
+                onClick={handleEdit}
+                aria-label="Edit post">
                 <i className="fa-solid fa-pen-to-square"></i>
               </button>
-              <button className="delete-post-btn" onClick={handleDelete}>
+              <button
+                className="delete-post-btn"
+                onClick={handleDelete}
+                aria-label="Delete post">
                 <i className="fa-solid fa-trash-can"></i>
               </button>
             </div>
@@ -261,7 +257,11 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader, onUpdateRepost }) 
             onUpdateComment={(updatedComment) => {
               const updatedComments = comments.map((comment) =>
                 comment.comment_pk === updatedComment.comment_pk
-                  ? { ...comment, ...updatedComment, user: updatedComment.user ?? comment.user }
+                  ? {
+                      ...comment,
+                      ...updatedComment,
+                      user: updatedComment.user ?? comment.user,
+                    }
                   : comment
               );
               setComments(updatedComments);
