@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { api } from "../api";
 import Post from "../components/Post";
 
@@ -7,7 +7,6 @@ const UserPosts = ({ userPk, isCurrentUser, newPost }) => {
   const [loadingState, setLoadingState] = useState(false);
   const [hasMoreState, setHasMoreState] = useState(true);
   const [error, setError] = useState(null);
-
   const pageRef = useRef(1);
   const loadingRef = useRef(false);
   const hasMoreRef = useRef(true);
@@ -15,39 +14,41 @@ const UserPosts = ({ userPk, isCurrentUser, newPost }) => {
   useEffect(() => {
     loadingRef.current = loadingState;
   }, [loadingState]);
+
   useEffect(() => {
     hasMoreRef.current = hasMoreState;
   }, [hasMoreState]);
 
-  const fetchPosts = async (requestedPage = pageRef.current) => {
-    if (loadingRef.current || !hasMoreRef.current) return;
-
-    setLoadingState(true);
-
-    try {
-      const response = await api.get(
-        `/users/${userPk}/posts?page=${requestedPage}`
-      );
-      const newPosts = response.data.data ?? [];
-
-      setPosts((prev) => {
-        const filtered = newPosts.filter(
-          (post) => !prev.some((p) => p.post_pk === post.post_pk)
+  const fetchPosts = useCallback(
+    async (requestedPage = pageRef.current) => {
+      if (loadingRef.current || !hasMoreRef.current) return;
+      setLoadingState(true);
+      try {
+        const response = await api.get(
+          `/users/${userPk}/posts?page=${requestedPage}`
         );
-        return [...prev, ...filtered];
-      });
-
-      const more = response.data.current_page < response.data.last_page;
-      setHasMoreState(more);
-
-      if (more) pageRef.current += 1;
-    } catch (err) {
-      console.error("Error fetching posts:", err.response?.data ?? err.message);
-      setError("Failed to load posts.");
-    } finally {
-      setLoadingState(false);
-    }
-  };
+        const newPosts = response.data.data ?? [];
+        setPosts((prev) => {
+          const filtered = newPosts.filter(
+            (post) => !prev.some((p) => p.post_pk === post.post_pk)
+          );
+          return [...prev, ...filtered];
+        });
+        const more = response.data.current_page < response.data.last_page;
+        setHasMoreState(more);
+        if (more) pageRef.current += 1;
+      } catch (err) {
+        console.error(
+          "Error fetching posts:",
+          err.response?.data ?? err.message
+        );
+        setError("Failed to load posts.");
+      } finally {
+        setLoadingState(false);
+      }
+    },
+    [userPk] // Afhængigheder for useCallback
+  );
 
   useEffect(() => {
     setPosts([]);
@@ -55,7 +56,7 @@ const UserPosts = ({ userPk, isCurrentUser, newPost }) => {
     setLoadingState(false);
     pageRef.current = 1;
     fetchPosts(1);
-  }, [userPk]);
+  }, [userPk, fetchPosts]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -65,7 +66,6 @@ const UserPosts = ({ userPk, isCurrentUser, newPost }) => {
         document.documentElement.scrollHeight || document.body.scrollHeight;
       const clientHeight =
         document.documentElement.clientHeight || window.innerHeight;
-
       if (
         scrollTop + clientHeight >= scrollHeight - 300 &&
         !loadingRef.current &&
@@ -74,7 +74,6 @@ const UserPosts = ({ userPk, isCurrentUser, newPost }) => {
         fetchPosts();
       }
     };
-
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [fetchPosts]);
@@ -108,21 +107,18 @@ const UserPosts = ({ userPk, isCurrentUser, newPost }) => {
   return (
     <div className="user-posts">
       <h3>Posts</h3>
-      {posts.length > 0 ? (
-        <>
-          {posts.map((post) => (
+      {loadingState && <p className="loading-message">Loading posts...</p>}
+      {posts.length > 0
+        ? posts.map((post) => (
             <Post
               key={post.post_pk}
               post={post}
               onUpdatePost={handleUpdatePost}
               onDeletePost={isCurrentUser ? handleDeletePost : null}
-              hideHeader={true}
+              hideHeader={false}
             />
-          ))}
-        </>
-      ) : (
-        <p className="empty-message">No posts yet.</p>
-      )}
+          ))
+        : !loadingState && <p className="empty-message">No posts yet.</p>}
     </div>
   );
 };

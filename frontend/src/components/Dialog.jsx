@@ -1,4 +1,5 @@
-import "../css/Dialog.css"; // Vi opretter CSS-filen senere
+import "../css/Dialog.css";
+
 
 const Dialog = ({ isOpen, onClose, title, children, logo }) => {
   if (!isOpen) return null;

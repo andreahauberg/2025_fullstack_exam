@@ -1,5 +1,6 @@
 import { getProfilePictureUrl } from "../utils/imageUtils";
 import { useNavigate } from "react-router-dom";
+import ImagePlaceholder from "./ImagePlaceholder"
 
 const ProfileTag = ({
   userPk,
@@ -15,15 +16,12 @@ const ProfileTag = ({
   };
 
   return (
-    <div
-      id="profile_tag"
-      className="profile-tag"
-      onClick={goToProfile}
-    >
-      <img
+    <div id="profile_tag" className="profile-tag" onClick={goToProfile}>
+      <ImagePlaceholder
         src={profilePictureUrl}
         alt="Profile"
         className="profile-tag-avatar"
+        placeholderSrc={getProfilePictureUrl(null)}
       />
       <div className="profile-tag-info">
         <div className="profile-tag-name">{userFullName}</div>

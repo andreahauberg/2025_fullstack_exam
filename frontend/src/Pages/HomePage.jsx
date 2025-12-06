@@ -17,18 +17,25 @@ const HomePage = () => {
     feedError,
     trendingError,
     usersError,
-    loadingState,
+    loadingState: postsLoadingState,
+    trendingLoadingState,
+    usersLoadingState,
     hasMoreState,
     loadNextPage,
     handlePostCreated,
     handleUpdatePost,
     handleDeletePost,
   } = useHomeFeed();
+
   const username = localStorage.getItem("user_username");
   const homeTitle = username ? `Home / Welcome ${username}` : "Home / Welcome";
   useDocumentTitle(homeTitle);
 
+  const isAnyLoading =
+    postsLoadingState || usersLoadingState || trendingLoadingState;
+
   useEffect(() => {
+    console.log("isAnyLoading:", isAnyLoading); // Debugging
     const mainEl = document.querySelector("main");
     if (!mainEl) return;
     let ticking = false;
@@ -41,7 +48,7 @@ const HomePage = () => {
         const clientHeight = mainEl.clientHeight;
         if (
           scrollTop + clientHeight >= scrollHeight - 300 &&
-          !loadingState &&
+          !postsLoadingState &&
           hasMoreState
         ) {
           loadNextPage();
@@ -51,15 +58,17 @@ const HomePage = () => {
     };
     mainEl.addEventListener("scroll", handleScroll, { passive: true });
     return () => mainEl.removeEventListener("scroll", handleScroll);
-  }, [hasMoreState, loadNextPage, loadingState]);
+  }, [hasMoreState, loadNextPage, postsLoadingState]);
 
   return (
     <div data-testid="home-page">
       <div id="container">
-        <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
-
+        <NavBar
+          setIsPostDialogOpen={setIsPostDialogOpen}
+          isLoading={isAnyLoading}
+        />
         <main>
-          {loadingState && posts.length === 0 && (
+          {postsLoadingState && posts.length === 0 && (
             <LoadingOverlay message="Loading feed..." />
           )}
           {feedError && <p className="error">{feedError}</p>}
@@ -71,16 +80,27 @@ const HomePage = () => {
               onDeletePost={handleDeletePost}
             />
           ))}
+          {postsLoadingState && posts.length > 0 && (
+            <div className="loading-more-container">
+              <LoadingOverlay message="Loading more posts..." />
+            </div>
+          )}
           {!hasMoreState && <p>No more posts to load.</p>}
         </main>
-
         <aside>
-          <Trending trending={trending} />
+          <Trending
+            trending={trending}
+            isLoading={trendingLoadingState} // Ret til trendingLoadingState
+            error={trendingError}
+          />
           {trendingError && <p className="error">{trendingError}</p>}
-          <WhoToFollow users={usersToFollow} />
+          <WhoToFollow
+            users={usersToFollow}
+            isLoading={usersLoadingState}
+            error={usersError}
+          />
           {usersError && <p className="error">{usersError}</p>}
         </aside>
-
         <PostDialog
           isOpen={isPostDialogOpen}
           onClose={() => setIsPostDialogOpen(false)}

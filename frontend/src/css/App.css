@@ -23,6 +23,7 @@ main {
   overflow-y: auto;
   height: 100vh;
   border-right: 1px solid #eff3f4;
+  border-left: 1px solid #eff3f4;
   scrollbar-width: none;
 }
 
@@ -36,7 +37,6 @@ main::-webkit-scrollbar {
   top: 0;
   z-index: 100;
   background-color: white;
-  border-right: 1px solid #eff3f4;
   height: 30vh;
   width: 275px;
   display: flex;
@@ -220,26 +220,29 @@ main::-webkit-scrollbar {
   background-color: #1d9bf0;
   color: white;
   border: none;
-  border-radius: 9999px;
-  padding: 16px 24px;
+  border-radius: 50%;
+  width: auto;
+  padding: 10px;
   font-size: 15px;
   font-weight: bold;
   cursor: pointer;
-  width: 100%;
-  margin: 8px 0;
+  margin-left: 1.4rem;
+}
+
+
+.post-btn-text {
+  display: none;
+}
+
+.post-btn i {
+  margin: 0;
+  font-size: 20px;
 }
 
 .post-btn:hover {
   background-color: #1a8cd8;
 }
 
-.post-btn i {
-  margin-left: 8px;
-}
-
-.post-btn-text {
-  display: inline;
-}
 
 .save-btn {
   background-color: #1d9bf0;
@@ -387,7 +390,7 @@ aside::-webkit-scrollbar {
   border-radius: 8px;
 }
 
-/* Mobile-first base (tidligere max-width: 1000px) */
+
 .navbar {
   width: 25px;
 }
@@ -430,21 +433,6 @@ aside::-webkit-scrollbar {
   margin-right: 0;
 }
 
-.post-btn {
-  padding: 12px;
-  border-radius: 50%;
-  width: auto;
-  margin-left: 1.5rem;
-}
-
-.post-btn-text {
-  display: none;
-}
-
-.post-btn i {
-  margin: 0;
-  font-size: 20px;
-}
 
 .nav-logo {
   display: none;
@@ -483,6 +471,34 @@ aside::-webkit-scrollbar {
 aside {
   display: none;
 }
+
+.navbar-loading-indicator {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.navbar-loading-indicator .loading-overlay {
+  position: static;
+  transform: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  min-height: unset;
+}
+
+.navbar-loading-indicator .loading-overlay .spinner {
+  width: 20px !important;
+  height: 20px !important;
+  border-width: 2px;
+}
+
+.navbar-loading-indicator .loading-overlay .loading-text {
+  display: none;
+}
+
 
 /* Desktop – min-width i stedet for max-width */
 @media (min-width: 1001px) {

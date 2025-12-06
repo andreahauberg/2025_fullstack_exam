@@ -50,6 +50,10 @@
   font-size: 18px;
 }
 
+.user-tab-panels{
+  padding: 0 0.5rem 3rem;
+}
+
 .user-cover {
   position: relative;
   height: 180px;
@@ -263,11 +267,10 @@
 
 
 .user-list {
-  margin-bottom: 20px;
   background-color: #f7f9fa;
   padding: 15px;
-    border-radius: 12px;
-  margin-bottom: 20px;
+  border-radius: 12px;
+  margin-top:1rem;
 }
 
 .user-list h3 {
@@ -819,8 +822,9 @@
     background: rgba(224, 36, 94, 0.1);
   }
 
-  .user-posts h3{
-  padding-left: 1rem;
+
+.user-tab-panels{
+  padding: 0 1rem 3rem;
 }
 }
 

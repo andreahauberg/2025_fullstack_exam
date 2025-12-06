@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import "../css/Trending.css";
+import LoadingOverlay from "./LoadingOverlay";
 
-const Trending = ({ trending }) => {
+const Trending = ({ trending, isLoading, error }) => {
   const [visibleItems, setVisibleItems] = useState(3);
   const [trendingWithCountries, setTrendingWithCountries] = useState([]);
   const countries = [
@@ -18,25 +19,39 @@ const Trending = ({ trending }) => {
   ];
 
   useEffect(() => {
-    const updateCountries = () => {
-      const updatedTrending = trending.map((item) => ({
-        ...item,
-        country: countries[Math.floor(Math.random() * countries.length)],
-      }));
-      setTrendingWithCountries(updatedTrending);
-    };
-
-    updateCountries();
-
-    const interval = setInterval(updateCountries, 15 * 60 * 1000);
-
-    // Ryd interval ved unmount
-    return () => clearInterval(interval);
+    if (trending && trending.length > 0) {
+      const updateCountries = () => {
+        const updatedTrending = trending.map((item) => ({
+          ...item,
+          country: countries[Math.floor(Math.random() * countries.length)],
+        }));
+        setTrendingWithCountries(updatedTrending);
+      };
+      updateCountries();
+      const interval = setInterval(updateCountries, 15 * 60 * 1000);
+      return () => clearInterval(interval);
+    }
   }, [trending]);
 
   const loadMoreItems = () => {
     setVisibleItems(visibleItems + 3);
   };
+
+  if (isLoading) {
+    return (
+      <div className="trending-loading">
+        <LoadingOverlay message="Loading trends..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p className="error">{error}</p>;
+  }
+
+  if (!trendingWithCountries || trendingWithCountries.length === 0) {
+    return <p>No trends available.</p>;
+  }
 
   return (
     <div className="happening-now">

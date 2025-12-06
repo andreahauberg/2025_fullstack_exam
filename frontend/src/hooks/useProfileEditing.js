@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../api";
-import { extractFieldErrors, parseApiErrorMessage, validateFields } from "../utils/validation";
+import {
+  extractFieldErrors,
+  parseApiErrorMessage,
+  validateFields,
+} from "../utils/validation";
 
-export const useProfileEditing = (user, setUser, setError) => {
+export const useProfileEditing = (user, setUser, setError, onSuccess) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState(user ?? {});
   const [formErrors, setFormErrors] = useState({});
@@ -28,12 +32,15 @@ export const useProfileEditing = (user, setUser, setError) => {
   }, []);
 
   const handleSaveEdit = useCallback(async () => {
-    const clientErrors = validateFields(editedUser, ["user_full_name", "user_username", "user_email"]);
+    const clientErrors = validateFields(editedUser, [
+      "user_full_name",
+      "user_username",
+      "user_email",
+    ]);
     if (Object.keys(clientErrors).length > 0) {
       setFormErrors(clientErrors);
       return;
     }
-
     try {
       const token = localStorage.getItem("token");
       const response = await api.put(`/users/${user?.user_pk}`, editedUser, {
@@ -42,6 +49,7 @@ export const useProfileEditing = (user, setUser, setError) => {
       setUser(response.data);
       setIsEditing(false);
       setFormErrors({});
+      onSuccess?.();
     } catch (error) {
       const backendErrors = extractFieldErrors(error);
       if (Object.keys(backendErrors).length > 0) {
@@ -50,7 +58,7 @@ export const useProfileEditing = (user, setUser, setError) => {
         setError?.(parseApiErrorMessage(error, "Failed to update user data."));
       }
     }
-  }, [editedUser, setError, setFormErrors, setUser, user]);
+  }, [editedUser, setError, setFormErrors, setUser, user, onSuccess]);
 
   return {
     isEditing,
