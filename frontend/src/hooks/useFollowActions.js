@@ -20,18 +20,6 @@ export const useFollowActions = ({
     const currentUsername = localStorage.getItem("user_username");
     const wasFollowing = isFollowing;
     setIsFollowing(!wasFollowing);
-    setFollowers((prev) =>
-      wasFollowing
-        ? (prev || []).filter((f) => String(f.user_pk) !== String(currentUserPk))
-        : [
-            ...(prev || []),
-            {
-              user_pk: currentUserPk,
-              user_username: currentUsername,
-              user_full_name: currentUsername,
-            },
-          ]
-    );
 
     try {
       const token = localStorage.getItem("token");
@@ -44,28 +32,40 @@ export const useFollowActions = ({
         await api.delete(`/follows/${user?.user_pk}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        setFollowers((prev) =>
+          (prev || []).filter(
+            (f) => String(f.user_pk) !== String(currentUserPk)
+          )
+        );
+        setUser((prev) => ({
+          ...prev,
+          followers_count: Math.max(0, Number(prev?.followers_count || 0) - 1),
+        }));
       } else {
         await api.post(
           "/follows",
           { followed_user_fk: user?.user_pk },
           { headers: { Authorization: `Bearer ${token}` } }
         );
+        setFollowers((prev) => [
+          ...(prev || []),
+          {
+            user_pk: currentUserPk,
+            user_username: currentUsername,
+            user_full_name: currentUsername,
+          },
+        ]);
+        setUser((prev) => ({
+          ...prev,
+          followers_count: Number(prev?.followers_count || 0) + 1,
+        }));
       }
     } catch (err) {
       setIsFollowing(wasFollowing);
-      setFollowers((prev) =>
-        wasFollowing
-          ? [
-              ...(prev || []),
-              {
-                user_pk: currentUserPk,
-                user_username: currentUsername,
-                user_full_name: currentUsername,
-              },
-            ]
-          : (prev || []).filter((f) => String(f.user_pk) !== String(currentUserPk))
+      console.error(
+        "Error updating follow status:",
+        err.response?.data || err.message
       );
-      console.error("Error updating follow status:", err.response?.data || err.message);
       setError?.("Failed to update follow status.");
     }
   }, [isFollowing, navigate, setError, setFollowers, setIsFollowing, user]);
@@ -74,9 +74,13 @@ export const useFollowActions = ({
     (isNowFollowing, targetUser) => {
       if (!targetUser?.user_pk) return;
 
+      const currentUserPk = localStorage.getItem("user_pk");
+
       setFollowing((prev) => {
         if (isNowFollowing) {
-          const exists = prev.some((u) => String(u.user_pk) === String(targetUser.user_pk));
+          const exists = prev.some(
+            (u) => String(u.user_pk) === String(targetUser.user_pk)
+          );
           if (exists) return prev;
           return [
             ...(prev || []),
@@ -87,17 +91,30 @@ export const useFollowActions = ({
             },
           ];
         }
-        return prev?.filter((u) => String(u.user_pk) !== String(targetUser.user_pk)) || [];
+        return (
+          prev?.filter(
+            (u) => String(u.user_pk) !== String(targetUser.user_pk)
+          ) || []
+        );
       });
 
-      setUser((prev) => ({
-        ...prev,
-        following_count: isNowFollowing
-          ? Number(prev?.following_count || 0) + 1
-          : Math.max(0, Number(prev?.following_count || 0) - 1),
-      }));
+      if (String(currentUserPk) === String(user?.user_pk)) {
+        setUser((prev) => ({
+          ...prev,
+          following_count: isNowFollowing
+            ? Number(prev?.following_count || 0) + 1
+            : Math.max(0, Number(prev?.following_count || 0) - 1),
+        }));
+      } else {
+        setUser((prev) => ({
+          ...prev,
+          followers_count: isNowFollowing
+            ? Number(prev?.followers_count || 0) + 1
+            : Math.max(0, Number(prev?.followers_count || 0) - 1),
+        }));
+      }
     },
-    [setFollowing, setUser]
+    [setFollowing, setUser, user]
   );
 
   return { handleFollowToggle, handleSidebarFollowChange };

@@ -63,7 +63,6 @@ const UserList = ({
         "Follow toggle failed:",
         error.response?.data || error.message
       );
-
       const updatedUsers = [...users];
       updatedUsers[index].is_following = isFollowing;
       setUsers(updatedUsers);

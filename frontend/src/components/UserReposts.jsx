@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { api } from "../api";
 import Post from "../components/Post";
 
-const UserReposts = ({ username, onUpdateRepostPost }) => {
+const UserReposts = ({ username, onUpdateRepost }) => {
   const [repostPosts, setRepostPosts] = useState([]);
   const [isRepostsLoading, setIsRepostsLoading] = useState(false);
   const [hasMoreReposts, setHasMoreReposts] = useState(true);
@@ -21,26 +21,29 @@ const UserReposts = ({ username, onUpdateRepostPost }) => {
 
   const fetchRepostPosts = useCallback(async () => {
     if (repostLoadingRef.current || !repostHasMoreRef.current) return;
+
     setIsRepostsLoading(true);
     try {
+      const token = localStorage.getItem("token");
       const response = await api.get(
-        `/users/${username}/reposts?page=${repostPageRef.current}`
+        `/users/${username}/reposts?page=${repostPageRef.current}`,
+        token ? { headers: { Authorization: `Bearer ${token}` } } : {}
       );
+
       const data = response.data.data ?? response.data ?? [];
+
       setRepostPosts((prev) => {
         const filtered = data.filter(
           (p) => !prev.some((prevPost) => prevPost.post_pk === p.post_pk)
         );
         return [...prev, ...filtered];
       });
+
       const more = response.data.current_page < response.data.last_page;
       setHasMoreReposts(more);
       if (more) repostPageRef.current += 1;
     } catch (err) {
-      console.error(
-        "Error fetching reposts:",
-        err.response?.data || err.message
-      );
+      console.error("Error fetching reposts:", err.response?.data || err.message);
       setRepostPosts([]);
       setHasMoreReposts(false);
       setError("Failed to load reposts.");
@@ -66,6 +69,7 @@ const UserReposts = ({ username, onUpdateRepostPost }) => {
         document.documentElement.scrollHeight || document.body.scrollHeight;
       const clientHeight =
         document.documentElement.clientHeight || window.innerHeight;
+
       if (
         scrollTop + clientHeight >= scrollHeight - 300 &&
         !repostLoadingRef.current &&
@@ -74,27 +78,23 @@ const UserReposts = ({ username, onUpdateRepostPost }) => {
         fetchRepostPosts();
       }
     };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [fetchRepostPosts]);
 
-  useEffect(() => {
-    const handleRepostsUpdate = (event) => {
-      const updatedPost = event.detail?.post;
-      if (!updatedPost?.post_pk) return;
-      setRepostPosts((prev) => {
-        const filtered = (prev || []).filter(
-          (p) => p.post_pk !== updatedPost.post_pk
-        );
-        return updatedPost.is_reposted_by_user
-          ? [updatedPost, ...filtered]
-          : filtered;
-      });
-    };
-    window.addEventListener("reposts-updated", handleRepostsUpdate);
-    return () =>
-      window.removeEventListener("reposts-updated", handleRepostsUpdate);
-  }, []);
+  const handleRepostUpdate = (updatedPost) => {
+  setRepostPosts((prev) => {
+    const filtered = prev.filter((p) => p.post_pk !== updatedPost.post_pk);
+    return updatedPost.is_reposted_by_user
+      ? [updatedPost, ...filtered]
+      : filtered;
+  });
+
+    if (onUpdateRepost) {
+      onUpdateRepost(updatedPost);
+    }
+  };
 
   if (error) return <p className="error-message">{error}</p>;
 
@@ -104,12 +104,13 @@ const UserReposts = ({ username, onUpdateRepostPost }) => {
       {isRepostsLoading && (
         <p className="loading-message">Loading reposts...</p>
       )}
+
       {repostPosts.length > 0
         ? repostPosts.map((post) => (
             <Post
               key={post.post_pk}
               post={post}
-              onUpdatePost={onUpdateRepostPost}
+              onUpdatePost={handleRepostUpdate}
               onDeletePost={null}
               hideHeader={false}
             />

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { api } from "../api";
 import Post from "../components/Post";
 
-const UserPosts = ({ userPk, isCurrentUser, newPost }) => {
+const UserPosts = ({ userPk, isCurrentUser, newPost, onUpdateRepost }) => {
   const [posts, setPosts] = useState([]);
   const [loadingState, setLoadingState] = useState(false);
   const [hasMoreState, setHasMoreState] = useState(true);
@@ -47,7 +47,7 @@ const UserPosts = ({ userPk, isCurrentUser, newPost }) => {
         setLoadingState(false);
       }
     },
-    [userPk] // Afhængigheder for useCallback
+    [userPk]
   );
 
   useEffect(() => {
@@ -97,10 +97,22 @@ const UserPosts = ({ userPk, isCurrentUser, newPost }) => {
     );
   };
 
+  const handleRepostUpdate = (updatedPost) => {
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.post_pk === updatedPost.post_pk
+          ? { ...post, reposts_count: updatedPost.reposts_count }
+          : post
+      )
+    );
+    if (onUpdateRepost) onUpdateRepost(updatedPost);
+  };
+
   const handleDeletePost = (deletedPostPk) => {
     if (isCurrentUser)
       setPosts((prev) => prev.filter((post) => post.post_pk !== deletedPostPk));
   };
+  
 
   if (error) return <p className="error-message">{error}</p>;
 
@@ -114,11 +126,12 @@ const UserPosts = ({ userPk, isCurrentUser, newPost }) => {
               key={post.post_pk}
               post={post}
               onUpdatePost={handleUpdatePost}
+              onUpdateRepost={handleRepostUpdate}
               onDeletePost={isCurrentUser ? handleDeletePost : null}
               hideHeader={false}
             />
           ))
-        : !loadingState && <p className="empty-message">No posts yet.</p>}
+        : !loadingState && <p className="empty-message"> No posts yet.</p>}
     </div>
   );
 };

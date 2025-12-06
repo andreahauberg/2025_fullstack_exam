@@ -124,7 +124,7 @@ const ProfilePage = () => {
 
   if (error) return <p className="error">{error}</p>;
 
-  const handleUpdateRepostPost = (updatedPost) => {
+  const handleUpdateRepost = (updatedPost) => {
     setUser((prev) => ({
       ...prev,
       reposts_count: updatedPost.is_reposted_by_user
@@ -186,12 +186,13 @@ const ProfilePage = () => {
                     userPk={user?.user_pk}
                     isCurrentUser={isCurrentUser}
                     newPost={latestPost}
+                    onUpdateRepost={handleUpdateRepost}
                   />
                 )}
                 {activeTab === "reposts" && (
                   <UserReposts
                     username={username}
-                    onUpdateRepostPost={handleUpdateRepostPost}
+                    onUpdateRepost={handleUpdateRepost}
                   />
                 )}
                 {activeTab === "followers" && (
@@ -200,7 +201,6 @@ const ProfilePage = () => {
                     users={followers}
                     emptyMessage="No followers yet."
                     onFollowChange={handleSidebarFollowChange}
-                    setUser={setUser}
                   />
                 )}
                 {activeTab === "following" && (
@@ -209,7 +209,6 @@ const ProfilePage = () => {
                     users={following}
                     emptyMessage="Not following anyone yet."
                     onFollowChange={handleSidebarFollowChange}
-                    setUser={setUser}
                   />
                 )}
               </div>
@@ -218,7 +217,11 @@ const ProfilePage = () => {
         </main>
         <aside className="user-aside">
           <Trending trending={trending} isLoading={trendingLoading} />
-          <WhoToFollow users={usersToFollow} isLoading={usersToFollowLoading} />
+          <WhoToFollow
+            users={usersToFollow}
+            isLoading={usersToFollowLoading}
+            onFollowChange={handleSidebarFollowChange}
+          />
         </aside>
         <PostDialog
           isOpen={isPostDialogOpen}

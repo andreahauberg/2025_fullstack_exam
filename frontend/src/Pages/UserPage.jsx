@@ -36,7 +36,7 @@ const UserPage = () => {
     trendingLoading,
   } = useProfileData(username, { requireAuth: false });
 
-  const { handleFollowToggle } = useFollowActions({
+  const { handleFollowToggle, handleSidebarFollowChange } = useFollowActions({
     user,
     setUser,
     followers,
@@ -85,8 +85,13 @@ const UserPage = () => {
 
   if (error) return <p className="error">{error}</p>;
 
-  const handleUpdateRepostPost = (updatedPost) => {
-    // Din eksisterende logik
+  const handleUpdateRepost = (updatedPost) => {
+    setUser((prev) => ({
+      ...prev,
+      reposts_count: updatedPost.is_reposted_by_user
+        ? Number(prev.reposts_count || 0) + 1
+        : Math.max(0, Number(prev.reposts_count || 0) - 1),
+    }));
   };
 
   const isAnyLoading = trendingLoading || usersToFollowLoading;
@@ -128,7 +133,7 @@ const UserPage = () => {
                 {activeTab === "reposts" && (
                   <UserReposts
                     username={username}
-                    onUpdateRepostPost={handleUpdateRepostPost}
+                    onUpdateRepost={handleUpdateRepost}
                   />
                 )}
                 {activeTab === "followers" && (
@@ -136,6 +141,7 @@ const UserPage = () => {
                     title="Followers"
                     users={followers}
                     emptyMessage="No followers yet."
+                    onFollowChange={handleSidebarFollowChange}
                   />
                 )}
                 {activeTab === "following" && (
@@ -143,6 +149,7 @@ const UserPage = () => {
                     title="Following"
                     users={following}
                     emptyMessage="Not following anyone yet."
+                    onFollowChange={handleSidebarFollowChange}
                   />
                 )}
               </div>
@@ -151,7 +158,11 @@ const UserPage = () => {
         </main>
         <aside className="user-aside">
           <Trending trending={trending} isLoading={trendingLoading} />
-          <WhoToFollow users={usersToFollow} isLoading={usersToFollowLoading} />
+          <WhoToFollow
+            users={usersToFollow}
+            isLoading={usersToFollowLoading}
+            onFollowChange={handleSidebarFollowChange}
+          />
         </aside>
         <PostDialog
           isOpen={isPostDialogOpen}

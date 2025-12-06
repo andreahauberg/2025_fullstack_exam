@@ -9,7 +9,7 @@ import CommentForm from "./CommentForm";
 import ConfirmationDialog from "./ConfirmationDialog";
 import "../css/Post-Comment.css";
 
-const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
+const Post = ({ post, onUpdatePost, onDeletePost, hideHeader, onUpdateRepost }) => {
   const [liked, setLiked] = useState(post.is_liked_by_user);
   const [likeCount, setLikeCount] = useState(post.likes_count || 0);
   const [reposted, setReposted] = useState(post.is_reposted_by_user || false);
@@ -32,9 +32,7 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
       const token = localStorage.getItem("token");
       if (liked) {
         await api.delete(`/likes/${post.post_pk}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
         const nextCount = Math.max(0, (likeCount || 0) - 1);
         setLiked(false);
@@ -48,11 +46,7 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
         await api.post(
           "/likes",
           { post_pk: post.post_pk },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         const nextCount = (likeCount || 0) + 1;
         setLiked(true);
@@ -71,45 +65,59 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
   const handleRepost = async () => {
     try {
       const token = localStorage.getItem("token");
+
       if (reposted) {
+        // UN-REPOST
         await api.delete(`/reposts/${post.post_pk}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         const nextCount = Math.max(0, (repostCount || 0) - 1);
         setReposted(false);
         setRepostCount(nextCount);
+
         const nextPost = {
           ...post,
           is_reposted_by_user: false,
           reposts_count: nextCount,
         };
+
         onUpdatePost(nextPost);
+        if (onUpdateRepost) onUpdateRepost(nextPost);
+
         window.dispatchEvent(
           new CustomEvent("reposts-updated", {
             detail: { post: nextPost, isReposted: false },
           })
         );
       } else {
+        // REPOST
         await api.post(
           "/reposts",
           { post_pk: post.post_pk },
           { headers: { Authorization: `Bearer ${token}` } }
         );
+
         const nextCount = (repostCount || 0) + 1;
         setReposted(true);
         setRepostCount(nextCount);
+
         const nextPost = {
           ...post,
           is_reposted_by_user: true,
           reposts_count: nextCount,
         };
+
         onUpdatePost(nextPost);
+        if (onUpdateRepost) onUpdateRepost(nextPost);
+
         window.dispatchEvent(
           new CustomEvent("reposts-updated", {
             detail: { post: nextPost, isReposted: true },
           })
         );
       }
+
     } catch (error) {
       console.error("Error handling repost:", error);
     }
@@ -125,9 +133,7 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
     });
   };
 
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
+  const handleEdit = () => setIsEditing(true);
 
   const handleSaveEdit = async () => {
     try {
@@ -135,16 +141,12 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
       const response = await api.put(
         `/posts/${post.post_pk}`,
         { post_content: editedContent },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       onUpdatePost({
         ...post,
         ...response.data,
-        user: response.data.user ?? post.user, // keep existing user if API omits it
+        user: response.data.user ?? post.user,
       });
       setIsEditing(false);
     } catch (error) {
@@ -152,17 +154,13 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
     }
   };
 
-  const handleDelete = async () => {
-    setIsDeleteDialogOpen(true);
-  };
+  const handleDelete = () => setIsDeleteDialogOpen(true);
 
   const confirmDelete = async () => {
     try {
       const token = localStorage.getItem("token");
       await api.delete(`/posts/${post.post_pk}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       onDeletePost(post.post_pk);
     } catch (error) {
@@ -179,19 +177,13 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
     const diffInHours = now.diff(postDate, "hours");
     const diffInDays = now.diff(postDate, "days");
 
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes}m`;
-    } else if (diffInHours < 24) {
-      return `${diffInHours}h`;
-    } else if (diffInDays < 7) {
-      return `${diffInDays}d`;
-    } else {
-      return postDate.format("D MMM");
-    }
+    if (diffInMinutes < 60) return `${diffInMinutes}m`;
+    if (diffInHours < 24) return `${diffInHours}h`;
+    if (diffInDays < 7) return `${diffInDays}d`;
+    return postDate.format("D MMM");
   };
 
   return (
-    //added id for scrolling to specific posts
     <div className="post" id={`post-${post.post_pk}`}>
       {!hideHeader && (
         <PostHeader
@@ -204,6 +196,7 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
           }
         />
       )}
+
       <PostContent
         content={
           isEditing ? (
@@ -220,6 +213,7 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
         editedAt={post.updated_at}
         createdAt={post.created_at}
       />
+
       {isEditing ? (
         <div className="edit-post-actions">
           <button className="save-edit-btn" onClick={handleSaveEdit}>
@@ -227,7 +221,8 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
           </button>
           <button
             className="cancel-edit-btn"
-            onClick={() => setIsEditing(false)}>
+            onClick={() => setIsEditing(false)}
+          >
             Cancel
           </button>
         </div>
@@ -238,14 +233,13 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
             likeCount={likeCount}
             reposted={reposted}
             repostCount={repostCount}
-            commentCount={
-              comments.length > 0 ? comments.length : post.comments_count
-            }
+            commentCount={comments.length > 0 ? comments.length : post.comments_count}
             showComments={showComments}
             setShowComments={setShowComments}
             handleLike={handleLike}
             handleRepost={handleRepost}
           />
+
           {currentUserPk === post.post_user_fk && (
             <div className="post-edit-delete-actions">
               <button className="edit-post-btn" onClick={handleEdit}>
@@ -258,22 +252,18 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
           )}
         </div>
       )}
+
       {showComments && (
         <>
           <CommentList
             comments={comments}
             postUserPk={post.post_user_fk}
             onUpdateComment={(updatedComment) => {
-              const updatedComments = comments.map((comment) => {
-                if (comment.comment_pk !== updatedComment.comment_pk) {
-                  return comment;
-                }
-                return {
-                  ...comment,
-                  ...updatedComment,
-                  user: updatedComment.user ?? comment.user, // preserve existing user info if API omits it
-                };
-              });
+              const updatedComments = comments.map((comment) =>
+                comment.comment_pk === updatedComment.comment_pk
+                  ? { ...comment, ...updatedComment, user: updatedComment.user ?? comment.user }
+                  : comment
+              );
               setComments(updatedComments);
             }}
             onDeleteComment={(deletedCommentPk) => {
@@ -292,6 +282,7 @@ const Post = ({ post, onUpdatePost, onDeletePost, hideHeader }) => {
           <CommentForm postPk={post.post_pk} setComments={handleCommentAdded} />
         </>
       )}
+
       <ConfirmationDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
