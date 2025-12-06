@@ -19,13 +19,11 @@ class Like extends Model
         'like_user_fk',
     ];
 
-    // Relation til Post
     public function post()
     {
         return $this->belongsTo(Post::class, 'like_post_fk', 'post_pk');
     }
 
-    // Relation til User
     public function user()
     {
         return $this->belongsTo(User::class, 'like_user_fk', 'user_pk');

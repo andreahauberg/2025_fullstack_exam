@@ -54,7 +54,7 @@ const UserPage = () => {
   const repostLoadingRef = useRef(false);
   const repostHasMoreRef = useRef(true);
   const hasLoadedRepostsRef = useRef(false);
-  const [activeTab, setActiveTab] = useState("posts"); // posts | reposts | followers | following
+  const [activeTab, setActiveTab] = useState("posts");
   const profileTitle = user?.user_username ? `${user.user_full_name || user.user_username} (@${user.user_username}) / Weave` : "Profile";
   useDocumentTitle(profileTitle);
 
