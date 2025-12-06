@@ -11,16 +11,18 @@ import NotFoundPage from "./Pages/NotFoundPage";
 import ErrorPage from "./Pages/ErrorPage";
 
 // Mock window.matchMedia før nogen imports
-window.matchMedia = window.matchMedia || function() {
-  return {
-    matches: false,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
+window.matchMedia =
+  window.matchMedia ||
+  function () {
+    return {
+      matches: false,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    };
   };
-};
 
 // ---- MOCK AXIOS ----
 jest.mock("axios", () => {
@@ -106,11 +108,12 @@ beforeEach(() => {
 });
 
 // Helper function to render with router
-const renderWithRouter = (ui, { route = "/", initialEntries = [route] } = {}) => {
+const renderWithRouter = (
+  ui,
+  { route = "/", initialEntries = [route] } = {}
+) => {
   return render(
-    <MemoryRouter initialEntries={initialEntries}>
-      {ui}
-    </MemoryRouter>
+    <MemoryRouter initialEntries={initialEntries}>{ui}</MemoryRouter>
   );
 };
 
@@ -165,15 +168,21 @@ describe("App routing", () => {
     });
     test("renders ProfilePage when authenticated", async () => {
       renderWithRouter(<App />, { route: "/profile/testuser" });
-      await waitFor(() => {
-        expect(screen.getByTestId("profile-page")).toBeInTheDocument();
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          expect(screen.getByTestId("profile-page")).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
     test("renders UserPage when authenticated", async () => {
       renderWithRouter(<App />, { route: "/user/testuser" });
-      await waitFor(() => {
-        expect(screen.getByTestId("user-page")).toBeInTheDocument();
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          expect(screen.getByTestId("user-page")).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
     test("redirects to landing page when not authenticated", async () => {
       Storage.prototype.getItem = jest.fn((key) => {
@@ -232,9 +241,12 @@ describe("App routing", () => {
           </Routes>
         </MemoryRouter>
       );
-      await waitFor(() => {
-        expect(screen.getByTestId("profile-page")).toBeInTheDocument();
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          expect(screen.getByTestId("profile-page")).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
     test("NotificationsPage renders correctly", async () => {
       Storage.prototype.getItem = jest.fn((key) => {
@@ -266,9 +278,12 @@ describe("App routing", () => {
           </Routes>
         </MemoryRouter>
       );
-      await waitFor(() => {
-        expect(screen.getByTestId("user-page")).toBeInTheDocument();
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          expect(screen.getByTestId("user-page")).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
     test("NotFoundPage renders correctly", () => {
       render(
