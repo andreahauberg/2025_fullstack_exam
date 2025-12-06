@@ -45,7 +45,10 @@ class ApiTest extends TestCase
     }
 
     /** @test */
-    public function user_can_login_and_receive_token()
+    public functio
+    
+    
+    n user_can_login_and_receive_token()
     {
         $user = User::factory()->create([
             'user_password' => bcrypt('password123')
