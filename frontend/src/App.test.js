@@ -179,7 +179,7 @@ describe("App routing", () => {
       renderWithRouter(<App />, { route: "/user/testuser" });
       await waitFor(
         () => {
-          expect(screen.getByTestId("user-page")).toBeInTheDocument();
+          expect(screen.getByTestId("user-pa.     ge")).toBeInTheDocument();
         },
         { timeout: 3000 }
       );
