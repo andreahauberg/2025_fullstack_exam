@@ -8,21 +8,23 @@ const NotFoundPage = () => {
   useDocumentTitle("Page not found / Weave");
 
   return (
-    <div id="container">
-      <NavBar setIsPostDialogOpen={() => {}} />
+    <div data-testid="not-found-page">
+      <div id="container">
+        <NavBar setIsPostDialogOpen={() => {}} />
 
-      <main className="notfound-main">
-        <h1>404 - Page not found</h1>
-        <p>
-          Ooops! The page you’re looking for doesn’t exist. Use the menu or the
-          link below to navigate back to the site.
-        </p>
-        <div className="notfound-actions">
-          <Link to="/home" className="btn-link">
-            Go to Home Page
-          </Link>
-        </div>
-      </main>
+        <main className="notfound-main">
+          <h1>404 - Page not found</h1>
+          <p>
+            Ooops! The page you’re looking for doesn’t exist. Use the menu or the
+            link below to navigate back to the site.
+          </p>
+          <div className="notfound-actions">
+            <Link to="/home" className="btn-link">
+              Go to Home Page
+            </Link>
+          </div>
+        </main>
+      </div>
     </div>
   );
 };

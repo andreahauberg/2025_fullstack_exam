@@ -71,7 +71,9 @@ const UserPage = () => {
     setIsRepostsLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await api.get(`/users/${username}/reposts?page=${repostPageRef.current}`, token ? { headers: { Authorization: `Bearer ${token}` } } : {});
+      const response = await api.get(
+        `/users/${username}/reposts?page=${repostPageRef.current}`
+      );
       const data = response.data.data ?? response.data ?? [];
       setRepostPosts((prev) => {
         const filtered = data.filter((p) => !prev.some((prevPost) => prevPost.post_pk === p.post_pk));
@@ -116,7 +118,6 @@ const UserPage = () => {
   }, [user, location.hash]);
 
   useEffect(() => {
-    // Reset repost paging on user change
     setRepostPosts([]);
     setHasMoreReposts(true);
     repostPageRef.current = 1;
@@ -170,37 +171,39 @@ const UserPage = () => {
   };
 
   return (
-    <div id="container">
-      <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
-      <main className="user-main">
-        <UserHeader
-          user={user}
-          setUser={setUser}
-          isCurrentUser={false}
-          onFollowToggle={handleFollowToggle}
-          isFollowing={isFollowing}
-          onDeleteProfile={() => setIsDeleteDialogOpen(true)}
-        />
-        <UserTabs activeTab={activeTab} setActiveTab={setActiveTab} followersCount={followers.length} followingCount={following.length} postsCount={user.posts_count || 0} repostCount={user.reposts_count || 0} />
+    <div data-testid="user-page">
+      <div id="container">
+        <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
+        <main className="user-main">
+          <UserHeader
+            user={user}
+            setUser={setUser}
+            isCurrentUser={false}
+            onFollowToggle={handleFollowToggle}
+            isFollowing={isFollowing}
+            onDeleteProfile={() => setIsDeleteDialogOpen(true)}
+          />
+          <UserTabs activeTab={activeTab} setActiveTab={setActiveTab} followersCount={followers.length} followingCount={following.length} postsCount={user.posts_count || 0} repostCount={user.reposts_count || 0} />
 
-        <div className="user-tab-panels">
-          {activeTab === "posts" && <UserPosts userPk={user?.user_pk} isCurrentUser={false} />}
-          {activeTab === "reposts" && (
-            <>
-              {isRepostsLoading && <p className="loading-message">Loading reposts...</p>}
-              {!isRepostsLoading && repostPosts && repostPosts.length > 0 ? repostPosts.map((post) => <Post key={post.post_pk} post={post} onUpdatePost={handleUpdateRepostPost} onDeletePost={null} hideHeader={false} />) : !isRepostsLoading && <p className="empty-message">No reposts yet.</p>}
-            </>
-          )}
-          {activeTab === "followers" && <UserList title="Followers" users={followers} emptyMessage="No followers yet." />}
-          {activeTab === "following" && <UserList title="Following" users={following} emptyMessage="Not following anyone yet." />}
-        </div>
-      </main>
-      <aside className="user-aside">
-        <Trending trending={trending} />
-        <WhoToFollow users={usersToFollow} />
-      </aside>
-      <PostDialog isOpen={isPostDialogOpen} onClose={() => setIsPostDialogOpen(false)} onSuccess={(newPost) => {}} />
-      <ConfirmationDialog isOpen={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)} title="Delete Profile" message="Are you sure you want to delete your profile? This action cannot be undone." />
+          <div className="user-tab-panels">
+            {activeTab === "posts" && <UserPosts userPk={user?.user_pk} isCurrentUser={false} />}
+            {activeTab === "reposts" && (
+              <>
+                {isRepostsLoading && <p className="loading-message">Loading reposts...</p>}
+                {!isRepostsLoading && repostPosts && repostPosts.length > 0 ? repostPosts.map((post) => <Post key={post.post_pk} post={post} onUpdatePost={handleUpdateRepostPost} onDeletePost={null} hideHeader={false} />) : !isRepostsLoading && <p className="empty-message">No reposts yet.</p>}
+              </>
+            )}
+            {activeTab === "followers" && <UserList title="Followers" users={followers} emptyMessage="No followers yet." />}
+            {activeTab === "following" && <UserList title="Following" users={following} emptyMessage="Not following anyone yet." />}
+          </div>
+        </main>
+        <aside className="user-aside">
+          <Trending trending={trending} />
+          <WhoToFollow users={usersToFollow} />
+        </aside>
+        <PostDialog isOpen={isPostDialogOpen} onClose={() => setIsPostDialogOpen(false)} onSuccess={(newPost) => {}} />
+        <ConfirmationDialog isOpen={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)} title="Delete Profile" message="Are you sure you want to delete your profile? This action cannot be undone." />
+      </div>
     </div>
   );
 };

@@ -54,37 +54,39 @@ const HomePage = () => {
   }, [hasMoreState, loadNextPage, loadingState]);
 
   return (
-    <div id="container">
-      <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
+    <div data-testid="home-page">
+      <div id="container">
+        <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
 
-      <main>
-        {loadingState && posts.length === 0 && (
-          <LoadingOverlay message="Loading feed..." />
-        )}
-        {feedError && <p className="error">{feedError}</p>}
-        {posts.map((post) => (
-          <Post
-            key={post.post_pk}
-            post={post}
-            onUpdatePost={handleUpdatePost}
-            onDeletePost={handleDeletePost}
-          />
-        ))}
-        {!hasMoreState && <p>No more posts to load.</p>}
-      </main>
+        <main>
+          {loadingState && posts.length === 0 && (
+            <LoadingOverlay message="Loading feed..." />
+          )}
+          {feedError && <p className="error">{feedError}</p>}
+          {posts.map((post) => (
+            <Post
+              key={post.post_pk}
+              post={post}
+              onUpdatePost={handleUpdatePost}
+              onDeletePost={handleDeletePost}
+            />
+          ))}
+          {!hasMoreState && <p>No more posts to load.</p>}
+        </main>
 
-      <aside>
-        <Trending trending={trending} />
-        {trendingError && <p className="error">{trendingError}</p>}
-        <WhoToFollow users={usersToFollow} />
-        {usersError && <p className="error">{usersError}</p>}
-      </aside>
+        <aside>
+          <Trending trending={trending} />
+          {trendingError && <p className="error">{trendingError}</p>}
+          <WhoToFollow users={usersToFollow} />
+          {usersError && <p className="error">{usersError}</p>}
+        </aside>
 
-      <PostDialog
-        isOpen={isPostDialogOpen}
-        onClose={() => setIsPostDialogOpen(false)}
-        onSuccess={handlePostCreated}
-      />
+        <PostDialog
+          isOpen={isPostDialogOpen}
+          onClose={() => setIsPostDialogOpen(false)}
+          onSuccess={handlePostCreated}
+        />
+      </div>
     </div>
   );
 };

@@ -9,7 +9,7 @@ const NavLogo = () => {
         <img
           src="/favicon/weave.png"
           alt="Weave Logo"
-          class="nav-logo-image"
+          className="nav-logo-image"
         />
       </button>
     </li>

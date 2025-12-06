@@ -22,7 +22,7 @@ const Dialog = ({ isOpen, onClose, title, children, logo }) => {
             <img
               src="/favicon/weave.png"
               alt="Weave Logo"
-              class="nav-logo-image"
+              className="nav-logo-image"
             />
           )}
         </div>

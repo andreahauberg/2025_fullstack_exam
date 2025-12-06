@@ -58,21 +58,23 @@ const ErrorPage = () => {
   const primaryLink = isAuthed ? "/home" : "/";
 
   return (
-    <div id="container">
-      {isAuthed && <NavBar setIsPostDialogOpen={() => {}} />}
-      <main className="notfound-main">
-        <h1>{title}</h1>
-        <p>{message}</p>
-        {statusCode ? <p className="error-code">Status code: {statusCode}</p> : null}
-        <div className="notfound-actions">
-          <Link to={action === "Go to sign in" ? "/" : primaryLink} className="btn-link">
-            {action}
-          </Link>
-          <Link to={primaryLink} className="btn-link">
-            Back to feed
-          </Link>
-        </div>
-      </main>
+    <div data-testid="error-page">
+      <div id="container">
+        {isAuthed && <NavBar setIsPostDialogOpen={() => {}} />}
+        <main className="notfound-main">
+          <h1>{title}</h1>
+          <p>{message}</p>
+          {statusCode ? <p className="error-code">Status code: {statusCode}</p> : null}
+          <div className="notfound-actions">
+            <Link to={action === "Go to sign in" ? "/" : primaryLink} className="btn-link">
+              {action}
+            </Link>
+            <Link to={primaryLink} className="btn-link">
+              Back to feed
+            </Link>
+          </div>
+        </main>
+      </div>
     </div>
   );
 };

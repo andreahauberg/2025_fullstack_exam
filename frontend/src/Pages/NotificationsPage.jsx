@@ -133,6 +133,7 @@ const NotificationsPage = () => {
   };
 
   return (
+  <div data-testid="notifications-page">
     <div id="container">
       <NavBar setIsPostDialogOpen={setIsPostDialogOpen} />
 
@@ -223,6 +224,7 @@ const NotificationsPage = () => {
         <WhoToFollow users={usersToFollow} />
       </aside>
     </div>
+  </div>
   );
 };
 
