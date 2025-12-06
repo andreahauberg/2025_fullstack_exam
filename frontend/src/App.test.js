@@ -23,7 +23,7 @@ window.matchMedia =
     };
   };
 
-// ---- MOCK AXIOS ----
+// ----- MOCK AXIOS ----
 jest.mock("axios", () => {
   const mockAxios = {
     get: jest.fn(),

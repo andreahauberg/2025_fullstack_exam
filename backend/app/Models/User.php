@@ -32,10 +32,10 @@ class User extends Authenticatable
     ];
 
 
-  public function posts()
-{
-    return $this->hasMany(Post::class, 'post_user_fk', 'user_pk');
-}
+    public function posts()
+    {
+        return $this->hasMany(Post::class, 'post_user_fk', 'user_pk');
+    }
 
 
     public function likes()
@@ -53,14 +53,12 @@ class User extends Authenticatable
     public function following()
     {
         return $this->belongsToMany(User::class, 'follows', 'follower_user_fk', 'followed_user_fk');
-
     }
 
 
     public function followers()
     {
         return $this->belongsToMany(User::class, 'follows', 'followed_user_fk', 'follower_user_fk');
-
     }
 
     public function getAuthIdentifierName()
@@ -79,8 +77,7 @@ class User extends Authenticatable
     }
 
     public function isFollowing(User $user)
-{
-    return $this->following()->where('followed_user_fk', $user->user_pk)->exists();
-}
-
+    {
+        return $this->following()->where('followed_user_fk', $user->user_pk)->exists();
+    }
 }
