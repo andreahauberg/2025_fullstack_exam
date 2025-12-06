@@ -56,26 +56,26 @@ class CommentController extends Controller
      *     )
      * )
      */
-public function store(Request $request)
-{
-    $request->validate([
-        'post_pk' => 'required|string|exists:posts,post_pk',
-        'comment_message' => 'required|string|max:280',
-    ]);
-
-    $comment = DB::transaction(function () use ($request) {
-        return Comment::create([
-            'comment_pk' => Str::random(50),
-            'comment_message' => $request->comment_message,
-            'comment_post_fk' => $request->post_pk,
-            'comment_user_fk' => auth()->user()->user_pk,
+    public function store(Request $request)
+    {
+        $request->validate([
+            'post_pk' => 'required|string|exists:posts,post_pk',
+            'comment_message' => 'required|string|max:280',
         ]);
-    });
 
-    $comment->load('user');
+        $comment = DB::transaction(function () use ($request) {
+            return Comment::create([
+                'comment_pk' => Str::random(50),
+                'comment_message' => $request->comment_message,
+                'comment_post_fk' => $request->post_pk,
+                'comment_user_fk' => auth()->user()->user_pk,
+            ]);
+        });
 
-    return response()->json($comment, 201);
-}
+        $comment->load('user');
+
+        return response()->json($comment, 201);
+    }
     /**
      * @OA\Put(
      *     path="/api/comments/{comment_pk}",
@@ -129,25 +129,25 @@ public function store(Request $request)
      * )
      */
 
-public function update(Request $request, $comment_pk)
-{
-    $request->validate([
-        'comment_message' => 'required|string|max:280',
-    ]);
+    public function update(Request $request, $comment_pk)
+    {
+        $request->validate([
+            'comment_message' => 'required|string|max:280',
+        ]);
 
-    $comment = DB::transaction(function () use ($request, $comment_pk) {
-        $comment = Comment::lockForUpdate()->findOrFail($comment_pk);
-        $comment->comment_message = $request->comment_message;
-        $comment->updated_at = NULL;
-        $comment->save();
-        return $comment;
-    });
+        $comment = DB::transaction(function () use ($request, $comment_pk) {
+            $comment = Comment::lockForUpdate()->findOrFail($comment_pk);
+            $comment->comment_message = $request->comment_message;
+            $comment->updated_at = NULL;
+            $comment->save();
+            return $comment;
+        });
 
-    $comment->load('user');
+        $comment->load('user');
 
-    return response()->json($comment);
-}
-       /**
+        return response()->json($comment);
+    }
+    /**
      * @OA\Delete(
      *     path="/api/comments/{comment_pk}",
      *     summary="Delete a comment",
@@ -185,15 +185,13 @@ public function update(Request $request, $comment_pk)
      *     )
      * )
      */
-public function destroy($comment_pk)
-{
-    DB::transaction(function () use ($comment_pk) {
-        $comment = Comment::lockForUpdate()->findOrFail($comment_pk);
-        $comment->delete();
-    });
+    public function destroy($comment_pk)
+    {
+        DB::transaction(function () use ($comment_pk) {
+            $comment = Comment::lockForUpdate()->findOrFail($comment_pk);
+            $comment->delete();
+        });
 
-    return response()->json(['message' => 'Comment deleted successfully.']);
-}
-
-
+        return response()->json(['message' => 'Comment deleted successfully.']);
+    }
 }

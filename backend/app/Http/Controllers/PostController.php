@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Post;
@@ -61,9 +62,9 @@ class PostController extends Controller
                 if ($post->relationLoaded('user') && $post->user) {
                     $post->user->is_following = $currentUserPk
                         ? DB::table('follows')
-                            ->where('followed_user_fk', $post->post_user_fk)
-                            ->where('follower_user_fk', $currentUserPk)
-                            ->exists()
+                        ->where('followed_user_fk', $post->post_user_fk)
+                        ->where('follower_user_fk', $currentUserPk)
+                        ->exists()
                         : false;
                 }
                 return $post;
@@ -324,9 +325,9 @@ class PostController extends Controller
             if ($post->relationLoaded('user') && $post->user) {
                 $post->user->is_following = $currentUserPk
                     ? DB::table('follows')
-                        ->where('followed_user_fk', $post->post_user_fk)
-                        ->where('follower_user_fk', $currentUserPk)
-                        ->exists()
+                    ->where('followed_user_fk', $post->post_user_fk)
+                    ->where('follower_user_fk', $currentUserPk)
+                    ->exists()
                     : false;
             }
             return $post;
@@ -402,9 +403,9 @@ class PostController extends Controller
             if ($post->relationLoaded('user') && $post->user) {
                 $post->user->is_following = $currentUserPk
                     ? DB::table('follows')
-                        ->where('followed_user_fk', $post->post_user_fk)
-                        ->where('follower_user_fk', $currentUserPk)
-                        ->exists()
+                    ->where('followed_user_fk', $post->post_user_fk)
+                    ->where('follower_user_fk', $currentUserPk)
+                    ->exists()
                     : false;
             }
             return $post;

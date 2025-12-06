@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
-        /**
+    /**
      * @OA\Get(
      *     path="/api/users-to-follow",
      *     summary="Get a list of users to follow",
@@ -38,29 +38,29 @@ class UserController extends Controller
      */
 
     public function usersToFollow(Request $request)
-{
-    try {
-        $currentUserPk = $request->user()->user_pk;
-        $users = User::where('user_pk', '!=', $currentUserPk) 
-            ->whereDoesntHave('followers', function ($query) use ($currentUserPk) {
-                $query->where('follower_user_fk', $currentUserPk);
-            })
-            ->inRandomOrder()
-            ->limit(6)
-            ->get()
-            ->map(function ($user) use ($currentUserPk) {
-                $user->is_following = false;
-                return $user;
-            });
-        return response()->json($users);
-    } catch (\Exception $e) {
-        Log::error('Error fetching users to follow: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
-        return response()->json([
-            'error' => 'An error occurred while fetching users to follow.',
-            'message' => $e->getMessage(),
-        ], 500);
+    {
+        try {
+            $currentUserPk = $request->user()->user_pk;
+            $users = User::where('user_pk', '!=', $currentUserPk)
+                ->whereDoesntHave('followers', function ($query) use ($currentUserPk) {
+                    $query->where('follower_user_fk', $currentUserPk);
+                })
+                ->inRandomOrder()
+                ->limit(6)
+                ->get()
+                ->map(function ($user) use ($currentUserPk) {
+                    $user->is_following = false;
+                    return $user;
+                });
+            return response()->json($users);
+        } catch (\Exception $e) {
+            Log::error('Error fetching users to follow: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
+            return response()->json([
+                'error' => 'An error occurred while fetching users to follow.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
-}
     /**
      * @OA\Get(
      *     path="/api/users/{userIdentifier}",
@@ -103,50 +103,50 @@ class UserController extends Controller
      * )
      */
 
-public function show($userIdentifier)
-{
-    try {
-        $currentUser = Auth::user();
-        $user = User::with(['posts.user', 'followers', 'following'])
-            ->withCount(['posts', 'followers', 'following'])
-            ->where('user_pk', $userIdentifier)
-            ->orWhere('user_username', $userIdentifier)
-            ->firstOrFail();
+    public function show($userIdentifier)
+    {
+        try {
+            $currentUser = Auth::user();
+            $user = User::with(['posts.user', 'followers', 'following'])
+                ->withCount(['posts', 'followers', 'following'])
+                ->where('user_pk', $userIdentifier)
+                ->orWhere('user_username', $userIdentifier)
+                ->firstOrFail();
 
-        // Hent reposts_count fra user_engagements view
-        $engagement = DB::table('user_engagements')
-            ->where('user_pk', $user->user_pk)
-            ->first();
+            // Hent reposts_count fra user_engagements view
+            $engagement = DB::table('user_engagements')
+                ->where('user_pk', $user->user_pk)
+                ->first();
 
-        // Tilføj reposts_count til user-objektet
-        $user->reposts_count = $engagement->reposts_count ?? 0;
+            // Tilføj reposts_count til user-objektet
+            $user->reposts_count = $engagement->reposts_count ?? 0;
 
-        // Tilføj is_following til followers
-        $followers = $user->followers->map(function ($follower) use ($currentUser) {
-            $follower->is_following = $currentUser ? $currentUser->isFollowing($follower) : false;
-            return $follower;
-        });
+            // Tilføj is_following til followers
+            $followers = $user->followers->map(function ($follower) use ($currentUser) {
+                $follower->is_following = $currentUser ? $currentUser->isFollowing($follower) : false;
+                return $follower;
+            });
 
-        // Tilføj is_following til following
-        $following = $user->following->map(function ($followedUser) use ($currentUser) {
-            $followedUser->is_following = $currentUser ? $currentUser->isFollowing($followedUser) : false;
-            return $followedUser;
-        });
+            // Tilføj is_following til following
+            $following = $user->following->map(function ($followedUser) use ($currentUser) {
+                $followedUser->is_following = $currentUser ? $currentUser->isFollowing($followedUser) : false;
+                return $followedUser;
+            });
 
-        return response()->json([
-            'user' => $user,
-            'posts' => $user->posts,
-            'followers' => $followers,
-            'following' => $following,
-        ]);
-    } catch (\Exception $e) {
-        \Log::error('Error fetching user data: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
-        return response()->json([
-            'error' => 'An error occurred while fetching user data.',
-            'message' => $e->getMessage(),
-        ], 500);
+            return response()->json([
+                'user' => $user,
+                'posts' => $user->posts,
+                'followers' => $followers,
+                'following' => $following,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching user data: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
+            return response()->json([
+                'error' => 'An error occurred while fetching user data.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
-}
 
     /**
      * @OA\Put(
@@ -229,7 +229,7 @@ public function show($userIdentifier)
         }
     }
 
-        /**
+    /**
      * @OA\Delete(
      *     path="/api/users/{userPk}",
      *     summary="Delete a user",
@@ -351,36 +351,36 @@ public function show($userIdentifier)
      *     )
      * )
      */
-    
-public function uploadProfilePicture(Request $request, $userPk)
-{
-    $request->validate([
-        'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-    ]);
 
-    try {
-        $user = User::findOrFail($userPk);
-
-        if ($request->hasFile('profile_picture')) {
-            $file = $request->file('profile_picture');
-            $filename = 'profile_pictures/' . $userPk . '.' . $file->getClientOriginalExtension();
-            Storage::disk('public')->put($filename, file_get_contents($file));
-            $user->user_profile_picture = $filename;
-            $user->save();
-        }
-
-        return response()->json([
-            'message' => 'Profile picture uploaded successfully.',
-            'user_profile_picture' => $user->user_profile_picture,
+    public function uploadProfilePicture(Request $request, $userPk)
+    {
+        $request->validate([
+            'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
-    } catch (\Exception $e) {
-        Log::error('Error uploading profile picture: ' . $e->getMessage());
-        return response()->json([
-            'error' => 'An error occurred while uploading profile picture.',
-            'message' => $e->getMessage(),
-        ], 500);
+
+        try {
+            $user = User::findOrFail($userPk);
+
+            if ($request->hasFile('profile_picture')) {
+                $file = $request->file('profile_picture');
+                $filename = 'profile_pictures/' . $userPk . '.' . $file->getClientOriginalExtension();
+                Storage::disk('public')->put($filename, file_get_contents($file));
+                $user->user_profile_picture = $filename;
+                $user->save();
+            }
+
+            return response()->json([
+                'message' => 'Profile picture uploaded successfully.',
+                'user_profile_picture' => $user->user_profile_picture,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error uploading profile picture: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'An error occurred while uploading profile picture.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
-}
     /**
      * @OA\Post(
      *     path="/api/users/{userPk}/cover-picture",
@@ -439,35 +439,33 @@ public function uploadProfilePicture(Request $request, $userPk)
      *     )
      * )
      */
-public function uploadCoverPicture(Request $request, $userPk)
-{
-    $request->validate([
-        'cover_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:4096',
-    ]);
-
-    try {
-        $user = User::findOrFail($userPk);
-
-        if ($request->hasFile('cover_picture')) {
-            $file = $request->file('cover_picture');
-            $filename = 'cover_pictures/' . $userPk . '.' . $file->getClientOriginalExtension();
-            Storage::disk('public')->put($filename, file_get_contents($file));
-            $user->user_cover_picture = $filename;
-            $user->save();
-        }
-
-        return response()->json([
-            'message' => 'Cover picture uploaded successfully.',
-            'user_cover_picture' => $user->user_cover_picture,
+    public function uploadCoverPicture(Request $request, $userPk)
+    {
+        $request->validate([
+            'cover_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:4096',
         ]);
-    } catch (\Exception $e) {
-        Log::error('Error uploading cover picture: ' . $e->getMessage());
-        return response()->json([
-            'error' => 'An error occurred while uploading cover picture.',
-            'message' => $e->getMessage(),
-        ], 500);
+
+        try {
+            $user = User::findOrFail($userPk);
+
+            if ($request->hasFile('cover_picture')) {
+                $file = $request->file('cover_picture');
+                $filename = 'cover_pictures/' . $userPk . '.' . $file->getClientOriginalExtension();
+                Storage::disk('public')->put($filename, file_get_contents($file));
+                $user->user_cover_picture = $filename;
+                $user->save();
+            }
+
+            return response()->json([
+                'message' => 'Cover picture uploaded successfully.',
+                'user_cover_picture' => $user->user_cover_picture,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error uploading cover picture: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'An error occurred while uploading cover picture.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
-}
-
-
 }

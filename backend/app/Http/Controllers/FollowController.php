@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Models\Follow;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -63,38 +65,38 @@ class FollowController extends Controller
      * )
      */
 
-   public function store(Request $request)
-{
-    $request->validate([
-        'followed_user_fk' => [
-            'required',
-            'string',
-            'exists:users,user_pk',
-            function ($attribute, $value, $fail) use ($request) {
-                if ($value === $request->user()->user_pk) {
-                    $fail('You cannot follow yourself.');
-                }
-            },
-        ],
-    ]);
+    public function store(Request $request)
+    {
+        $request->validate([
+            'followed_user_fk' => [
+                'required',
+                'string',
+                'exists:users,user_pk',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($value === $request->user()->user_pk) {
+                        $fail('You cannot follow yourself.');
+                    }
+                },
+            ],
+        ]);
 
-    try {
-        DB::transaction(function () use ($request) {
-            Follow::create([
-                'follower_user_fk' => $request->user()->user_pk,
-                'followed_user_fk' => $request->followed_user_fk,
-            ]);
-        });
-        return response()->json(['message' => 'Followed successfully!'], 201);
-    } catch (\Exception $e) {
-        Log::error('Error following user: ' . $e->getMessage());
-        return response()->json([
-            'error' => 'An error occurred while following the user.',
-            'message' => $e->getMessage(),
-        ], 500);
+        try {
+            DB::transaction(function () use ($request) {
+                Follow::create([
+                    'follower_user_fk' => $request->user()->user_pk,
+                    'followed_user_fk' => $request->followed_user_fk,
+                ]);
+            });
+            return response()->json(['message' => 'Followed successfully!'], 201);
+        } catch (\Exception $e) {
+            Log::error('Error following user: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'An error occurred while following the user.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
-}
- /**
+    /**
      * @OA\Delete(
      *     path="/api/follows/{followedUserPk}",
      *     summary="Unfollow a user",

@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-        /**
+    /**
      * @OA\Post(
      *     path="/api/signup",
      *     summary="Register a new user",
@@ -141,38 +141,36 @@ class AuthController extends Controller
      * )
      */
 
-public function login(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'user_email' => 'required|email',
-        'user_password' => 'required|string',
-    ]);
+    public function login(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_email' => 'required|email',
+            'user_password' => 'required|string',
+        ]);
 
-    if ($validator->fails()) {
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = User::where('user_email', $request->user_email)->first();
+
+        if (!$user || !Hash::check($request->user_password, $user->user_password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid credentials',
+            ], 401);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
-            'success' => false,
-            'errors' => $validator->errors(),
-        ], 422);
+            'success' => true,
+            'message' => 'Logged in successfully!',
+            'token' => $token,
+            'user' => $user,
+        ]);
     }
-
-    $user = User::where('user_email', $request->user_email)->first();
-
-    if (!$user || !Hash::check($request->user_password, $user->user_password)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Invalid credentials',
-        ], 401);
-    }
-
-    $token = $user->createToken('auth_token')->plainTextToken;
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Logged in successfully!',
-        'token' => $token,
-        'user' => $user,
-    ]);
-}
-
-
 }

@@ -31,32 +31,32 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    // Relation til posts
+
   public function posts()
 {
     return $this->hasMany(Post::class, 'post_user_fk', 'user_pk');
 }
 
-    // Relation til likes
+
     public function likes()
     {
         return $this->hasMany(Like::class, 'like_user_fk', 'user_pk');
     }
 
-    // Relation til comments
+
     public function comments()
     {
         return $this->hasMany(Comment::class, 'comment_user_fk', 'user_pk');
     }
 
-    // Brugere som denne bruger følger
+
     public function following()
     {
         return $this->belongsToMany(User::class, 'follows', 'follower_user_fk', 'followed_user_fk');
 
     }
 
-    // Brugere som følger denne bruger
+
     public function followers()
     {
         return $this->belongsToMany(User::class, 'follows', 'followed_user_fk', 'follower_user_fk');

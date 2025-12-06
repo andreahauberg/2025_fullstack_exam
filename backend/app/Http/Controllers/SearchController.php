@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -72,12 +73,12 @@ class SearchController extends Controller
             $users = User::where('user_username', 'like', "%$query%")
                 ->orWhere('user_full_name', 'like', "%$query%")
                 ->limit(25)
-                ->get(['user_pk','user_username','user_full_name','user_profile_picture']);
+                ->get(['user_pk', 'user_username', 'user_full_name', 'user_profile_picture']);
             $posts = Post::with('user')
                 ->where('post_content', 'like', "%$query%")
                 ->limit(25)
                 ->get()
-                ->map(function($post) {
+                ->map(function ($post) {
                     return [
                         'post_pk' => $post->post_pk,
                         'post_message' => $post->post_content,
@@ -93,7 +94,7 @@ class SearchController extends Controller
                 'posts' => $posts,
             ]);
         } catch (\Exception $e) {
-            Log::error('Search error: '.$e->getMessage().' Trace: '.$e->getTraceAsString());
+            Log::error('Search error: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
             return response()->json([
                 'error' => 'An error occurred while searching.',
                 'message' => $e->getMessage(),
