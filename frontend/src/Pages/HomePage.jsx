@@ -27,12 +27,13 @@ const HomePage = () => {
     handleDeletePost,
   } = useHomeFeed();
 
+  const initialLoading = posts.length === 0 && postsLoadingState;
+
+
   const username = localStorage.getItem("user_username");
   const homeTitle = username ? `Home / Welcome ${username}` : "Home / Welcome";
   useDocumentTitle(homeTitle);
 
-  const isAnyLoading =
-    postsLoadingState || usersLoadingState || trendingLoadingState;
 
   useEffect(() => {
     const mainEl = document.querySelector("main");
@@ -64,7 +65,7 @@ const HomePage = () => {
       <div id="container">
         <NavBar
           setIsPostDialogOpen={setIsPostDialogOpen}
-          isLoading={isAnyLoading}
+          isLoading={initialLoading}
         />
         <main>
           {postsLoadingState && posts.length === 0 && (
