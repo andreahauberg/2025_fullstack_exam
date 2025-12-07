@@ -110,18 +110,21 @@ describe("App routing", () => {
         return null;
       });
     });
+
     test("renders LandingPage by default", async () => {
       renderWithRouter(<App />, { route: "/" });
       await waitFor(() => {
         expect(screen.getByTestId("landing-page")).toBeInTheDocument();
       });
     });
+
     test("renders NotFoundPage for unknown routes", async () => {
       renderWithRouter(<App />, { route: "/unknown-route" });
       await waitFor(() => {
         expect(screen.getByTestId("not-found-page")).toBeInTheDocument();
       });
     });
+
     test("renders ErrorPage", async () => {
       renderWithRouter(<App />, { route: "/error" });
       await waitFor(() => {
@@ -139,20 +142,23 @@ describe("App routing", () => {
         return null;
       });
     });
+
     test("renders HomePage when authenticated", async () => {
       renderWithQueryClient(<App />, { route: "/home" });
       await waitFor(() => {
         expect(screen.getByTestId("home-page")).toBeInTheDocument();
       });
     });
+
     test("renders NotificationsPage when authenticated", async () => {
-      renderWithRouter(<App />, { route: "/notifications" });
+      renderWithQueryClient(<App />, { route: "/notifications" });
       await waitFor(() => {
         expect(screen.getByTestId("notifications-page")).toBeInTheDocument();
       });
     });
+
     test("renders ProfilePage when authenticated", async () => {
-      renderWithRouter(<App />, { route: "/profile/testuser" });
+      renderWithQueryClient(<App />, { route: "/profile/testuser" });
       await waitFor(
         () => {
           expect(screen.getByTestId("profile-page")).toBeInTheDocument();
@@ -160,8 +166,9 @@ describe("App routing", () => {
         { timeout: 3000 }
       );
     });
+
     test("renders UserPage when authenticated", async () => {
-      renderWithRouter(<App />, { route: "/user/testuser" });
+      renderWithQueryClient(<App />, { route: "/user/testuser" });
       await waitFor(
         () => {
           expect(screen.getByTestId("user-page")).toBeInTheDocument();
@@ -169,16 +176,18 @@ describe("App routing", () => {
         { timeout: 3000 }
       );
     });
+
     test("redirects to landing page when not authenticated", async () => {
       Storage.prototype.getItem = jest.fn((key) => {
         if (key === "token") return null;
         return null;
       });
-      renderWithRouter(<App />, { route: "/home" });
+      renderWithQueryClient(<App />, { route: "/home" });
       await waitFor(() => {
         expect(screen.getByTestId("landing-page")).toBeInTheDocument();
       });
     });
+
     test("redirects to home page when authenticated and trying to access landing page", async () => {
       renderWithQueryClient(<App />, { route: "/" });
       await waitFor(() => {
@@ -217,13 +226,7 @@ describe("App routing", () => {
         if (key === "user_username") return "testuser";
         return null;
       });
-      render(
-        <MemoryRouter initialEntries={["/profile/testuser"]}>
-          <Routes>
-            <Route path="/profile/:username" element={<ProfilePage />} />
-          </Routes>
-        </MemoryRouter>
-      );
+      renderWithQueryClient(<ProfilePage />, { route: "/profile/testuser" });
       await waitFor(
         () => {
           expect(screen.getByTestId("profile-page")).toBeInTheDocument();
@@ -239,11 +242,7 @@ describe("App routing", () => {
         if (key === "user_username") return "testuser";
         return null;
       });
-      render(
-        <MemoryRouter>
-          <NotificationsPage />
-        </MemoryRouter>
-      );
+      renderWithQueryClient(<NotificationsPage />);
       await waitFor(() => {
         expect(screen.getByTestId("notifications-page")).toBeInTheDocument();
       });
@@ -256,13 +255,7 @@ describe("App routing", () => {
         if (key === "user_username") return "testuser";
         return null;
       });
-      render(
-        <MemoryRouter initialEntries={["/user/testuser"]}>
-          <Routes>
-            <Route path="/user/:username" element={<UserPage />} />
-          </Routes>
-        </MemoryRouter>
-      );
+      renderWithQueryClient(<UserPage />, { route: "/user/testuser" });
       await waitFor(
         () => {
           expect(screen.getByTestId("user-page")).toBeInTheDocument();
