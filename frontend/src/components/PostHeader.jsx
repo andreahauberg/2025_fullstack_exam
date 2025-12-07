@@ -5,7 +5,12 @@ import { getProfilePictureUrl } from "../utils/imageUtils";
 import { buildProfilePath } from "../utils/urlHelpers";
 import { api } from "../api";
 
-const PostHeader = ({ user, created_at, edited }) => {
+const PostHeader = ({
+  user,
+  created_at,
+  edited,
+  hideFollowBtn = false,
+}) => {
   const formatTime = (date) => {
     const now = moment();
     const postDate = moment(date);
@@ -28,6 +33,7 @@ const PostHeader = ({ user, created_at, edited }) => {
   const currentUserPk = localStorage.getItem("user_pk");
   const isCurrentUser =
     userPk && currentUserPk && String(userPk) === String(currentUserPk);
+
   const [isFollowing, setIsFollowing] = useState(!!user?.is_following);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
 
@@ -70,7 +76,6 @@ const PostHeader = ({ user, created_at, edited }) => {
           alt="Profile"
           className="post__avatar"
         />
-
         <div>
           <div className="post__user-name">
             {user?.user_full_name || "Unknown User"}
@@ -81,14 +86,16 @@ const PostHeader = ({ user, created_at, edited }) => {
           </div>
         </div>
       </Link>
-      {!isCurrentUser && userPk && (
-        <button
-          className={`follow-chip ${isFollowing ? "following" : "follow"}`}
-          onClick={handleFollow}
-          disabled={isFollowLoading}>
-          {isFollowing ? "Following" : "Follow"}
-        </button>
-      )}
+      {!isCurrentUser &&
+        userPk &&
+        !hideFollowBtn && (
+          <button
+            className={`follow-chip ${isFollowing ? "following" : "follow"}`}
+            onClick={handleFollow}
+            disabled={isFollowLoading}>
+            {isFollowing ? "Following" : "Follow"}
+          </button>
+        )}
     </div>
   );
 };

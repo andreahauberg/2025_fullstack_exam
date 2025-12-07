@@ -1,3 +1,7 @@
+// ===========================
+// UserPage.jsx
+// ===========================
+
 import React, { useEffect, useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import NavBar from "../components/NavBar";
@@ -15,26 +19,55 @@ import "../css/UserPage.css";
 import { useDocumentTitle } from "../utils/useDocumentTitle";
 import { useFollowActions } from "../hooks/useFollowActions";
 import { useProfileData } from "../hooks/useProfileData";
+import { useAsideData } from "../hooks/useAsideData";
+import { api } from "../api";
 
 const UserPage = () => {
   const { username } = useParams();
+
   const {
     user,
+    posts,
     setUser,
     followers,
     setFollowers,
     following,
     setFollowing,
-    usersToFollow,
-    trending,
     isFollowing,
     setIsFollowing,
     isLoading,
+    loadingState: postsLoadingState,
     error,
     setError,
-    usersToFollowLoading,
-    trendingLoading,
   } = useProfileData(username, { requireAuth: false });
+
+  const {
+    trending,
+    trendingLoadingState,
+    trendingError,
+  } = useAsideData();
+
+  const [usersToFollow, setUsersToFollow] = useState([]);
+  const [usersLoadingState, setUsersLoadingState] = useState(false);
+
+  const fetchUsersToFollow = async () => {
+    setUsersLoadingState(true);
+    try {
+      const token = localStorage.getItem("token");
+      const resp = await api.get("/users-to-follow", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUsersToFollow(resp.data || []);
+    } catch {
+      setUsersToFollow([]);
+    } finally {
+      setUsersLoadingState(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsersToFollow();
+  }, []);
 
   const { handleFollowToggle, handleSidebarFollowChange } = useFollowActions({
     user,
@@ -53,9 +86,7 @@ const UserPage = () => {
   const [activeTab, setActiveTab] = useState("posts");
 
   const profileTitle = user?.user_username
-    ? `${user.user_full_name || user.user_username} (@${
-        user.user_username
-      }) / Weave`
+    ? `${user.user_full_name || user.user_username} (@${user.user_username}) / Weave`
     : "Profile";
   useDocumentTitle(profileTitle);
 
@@ -70,7 +101,7 @@ const UserPage = () => {
       if (el) {
         try {
           el.scrollIntoView({ behavior: "smooth", block: "center" });
-        } catch (e) {
+        } catch {
           el.scrollIntoView();
         }
         return;
@@ -94,14 +125,14 @@ const UserPage = () => {
     }));
   };
 
-  const isAnyLoading = trendingLoading || usersToFollowLoading;
+  const navBarLoading = postsLoadingState && posts.length === 0;
 
   return (
     <div data-testid="user-page">
       <div id="container">
         <NavBar
           setIsPostDialogOpen={setIsPostDialogOpen}
-          isLoading={isAnyLoading}
+          isLoading={navBarLoading}
         />
         <main className="user-main">
           {isLoading ? (
@@ -118,6 +149,7 @@ const UserPage = () => {
                 isFollowing={isFollowing}
                 onDeleteProfile={() => setIsDeleteDialogOpen(true)}
               />
+
               <UserTabs
                 activeTab={activeTab}
                 setActiveTab={setActiveTab}
@@ -126,6 +158,7 @@ const UserPage = () => {
                 postsCount={user.posts_count || 0}
                 repostCount={user.reposts_count || 0}
               />
+
               <div className="user-tab-panels">
                 {activeTab === "posts" && (
                   <UserPosts userPk={user?.user_pk} isCurrentUser={false} />
@@ -156,24 +189,27 @@ const UserPage = () => {
             </>
           )}
         </main>
+
         <aside className="user-aside">
-          <Trending trending={trending} isLoading={trendingLoading} />
+          <Trending trending={trending} isLoading={trendingLoadingState} />
           <WhoToFollow
             users={usersToFollow}
-            isLoading={usersToFollowLoading}
+            isLoading={usersLoadingState}
             onFollowChange={handleSidebarFollowChange}
           />
         </aside>
+
         <PostDialog
           isOpen={isPostDialogOpen}
           onClose={() => setIsPostDialogOpen(false)}
-          onSuccess={(newPost) => {}}
+          onSuccess={() => {}}
         />
+
         <ConfirmationDialog
           isOpen={isDeleteDialogOpen}
           onClose={() => setIsDeleteDialogOpen(false)}
           title="Delete Profile"
-          message="Are you sure you want to delete your profile? This action cannot be undone."
+          message="Are you sure you want to delete this profile? This action cannot be undone."
         />
       </div>
     </div>

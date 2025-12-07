@@ -1,16 +1,21 @@
-import { useCallback } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  useInfiniteQuery,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api";
 import { parseApiErrorMessage } from "../utils/validation";
+import { useAsideData } from "./useAsideData"; // Beholdes for Trending
 
 export const useHomeFeed = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // ---- Trending (bruger useAsideData) ----
+  const { trending, trendingError, trendingLoadingState } = useAsideData();
+
+  // ---- WhoToFollow (gammel logik) ----
+  const [usersToFollow, setUsersToFollow] = useState([]);
+  const [usersError, setUsersError] = useState("");
+  const [usersLoadingState, setUsersLoadingState] = useState(false);
 
   const handleUnauthorized = useCallback(() => {
     localStorage.removeItem("token");
@@ -24,14 +29,33 @@ export const useHomeFeed = () => {
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
-  // ---------------- POSTS ----------------
+  // ---- Hent WhoToFollow (gammel logik) ----
+  const fetchUsersToFollow = useCallback(async () => {
+    setUsersLoadingState(true);
+    try {
+      const response = await api.get("/users-to-follow", {
+        headers: authHeaders(),
+      });
+      setUsersToFollow(response.data);
+      setUsersError("");
+    } catch (err) {
+      setUsersError(
+        parseApiErrorMessage(err, "Unable to load recommendations right now.")
+      );
+      if (err.response?.status === 401) handleUnauthorized();
+    } finally {
+      setUsersLoadingState(false);
+    }
+  }, [handleUnauthorized]);
+
+  // ---- Posts (ny logik) ----
   const {
     data: postsPages,
     error: postsError,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    isFetching, // <--- her
+    isFetching,
     status: postsStatus,
   } = useInfiniteQuery({
     queryKey: ["posts"],
@@ -56,53 +80,7 @@ export const useHomeFeed = () => {
 
   const posts = postsPages?.pages.flatMap((page) => page.data || []) ?? [];
 
-  // ---------------- TRENDING ----------------
-  const {
-    data: trendingData,
-    error: trendingError,
-    isFetching: trendingLoading,
-  } = useQuery({
-    queryKey: ["trending"],
-    queryFn: async () => {
-      try {
-        const response = await api.get("/trending", { headers: authHeaders() });
-        return response.data;
-      } catch (err) {
-        if (err.response?.status === 401) handleUnauthorized();
-        throw err;
-      }
-    },
-    staleTime: 1000 * 60 * 5,
-    retry: 2,
-  });
-
-  const trending = trendingData ?? [];
-
-  // ---------------- USERS TO FOLLOW ----------------
-  const {
-    data: usersFollowData,
-    error: usersError,
-    isFetching: usersLoading,
-  } = useQuery({
-    queryKey: ["usersToFollow"],
-    queryFn: async () => {
-      try {
-        const response = await api.get("/users-to-follow", {
-          headers: authHeaders(),
-        });
-        return response.data;
-      } catch (err) {
-        if (err.response?.status === 401) handleUnauthorized();
-        throw err;
-      }
-    },
-    staleTime: 1000 * 60 * 10,
-    retry: 2,
-  });
-
-  const usersToFollow = usersFollowData ?? [];
-
-  // ---------------- OPTIMISTIC UPDATES ----------------
+  // ---- Optimistic Updates ----
   const handlePostCreated = useCallback(
     (newPost) => {
       queryClient.setQueryData(["posts"], (old) => {
@@ -150,23 +128,28 @@ export const useHomeFeed = () => {
     [queryClient]
   );
 
-  // ---------------- RETURN ----------------
+  // ---- Initialiser WhoToFollow ----
+  useEffect(() => {
+    fetchUsersToFollow();
+  }, [fetchUsersToFollow]);
+
+  // ---- Return ----
   return {
+    // feed
     posts,
     feedError: postsError ? parseApiErrorMessage(postsError) : "",
-    loadingState: isFetching && !isFetchingNextPage, // <-- første load spinner
+    loadingState: isFetching && !isFetchingNextPage,
     loadNextPage: fetchNextPage,
     hasMoreState: hasNextPage,
     isFetchingNextPage,
-
+    // aside
     trending,
-    trendingError: trendingError ? parseApiErrorMessage(trendingError) : "",
-    trendingLoadingState: trendingLoading,
-
+    trendingError,
+    trendingLoadingState,
     usersToFollow,
-    usersError: usersError ? parseApiErrorMessage(usersError) : "",
-    usersLoadingState: usersLoading,
-
+    usersError,
+    usersLoadingState,
+    // optimistic updates
     handlePostCreated,
     handleUpdatePost,
     handleDeletePost,

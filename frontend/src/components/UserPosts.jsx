@@ -128,6 +128,7 @@ const UserPosts = ({ userPk, isCurrentUser, newPost, onUpdateRepost }) => {
               onUpdateRepost={handleRepostUpdate}
               onDeletePost={isCurrentUser ? handleDeletePost : null}
               hideHeader={false}
+              hideFollowBtn={true}
             />
           ))
         : !loadingState && <p className="empty-message"> No posts yet.</p>}

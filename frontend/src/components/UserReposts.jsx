@@ -116,6 +116,7 @@ const UserReposts = ({ username, onUpdateRepost }) => {
               onUpdatePost={handleRepostUpdate}
               onDeletePost={null}
               hideHeader={false}
+              hideFollowBtn={true}
             />
           ))
         : !isRepostsLoading && <p className="empty-message">No reposts yet.</p>}

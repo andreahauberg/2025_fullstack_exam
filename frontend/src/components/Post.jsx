@@ -14,6 +14,7 @@ const Post = ({
   onDeletePost,
   hideHeader,
   onUpdateRepost,
+  hideFollowBtn = false,
 }) => {
   const [liked, setLiked] = useState(post.is_liked_by_user);
   const [likeCount, setLikeCount] = useState(post.likes_count || 0);
@@ -178,6 +179,7 @@ const Post = ({
         <PostHeader
           user={post.user}
           created_at={post.created_at}
+          hideFollowBtn={hideFollowBtn}
           edited={
             post.updated_at &&
             post.created_at &&

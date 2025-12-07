@@ -17,6 +17,7 @@ import { useDocumentTitle } from "../utils/useDocumentTitle";
 import { useFollowActions } from "../hooks/useFollowActions";
 import { useProfileData } from "../hooks/useProfileData";
 import { useProfileEditing } from "../hooks/useProfileEditing";
+import { useAsideData } from "../hooks/useAsideData"; // Beholdes for Trending
 
 const ProfilePage = () => {
   const { username } = useParams();
@@ -25,23 +26,27 @@ const ProfilePage = () => {
     navigate("/home");
   }, [navigate]);
 
+  // ---- Primær profil data ----
   const {
+    posts,
     user,
     setUser,
     followers,
     setFollowers,
     following,
     setFollowing,
-    usersToFollow,
-    trending,
     isFollowing,
     setIsFollowing,
     isLoading,
-    usersToFollowLoading,
-    trendingLoading,
+    loadingState: postsLoadingState,
     error,
     setError,
+    usersToFollow, // Tilføjet fra den gamle struktur
+    usersToFollowLoading, // Tilføjet fra den gamle struktur
   } = useProfileData(username);
+
+  // ---- Aside data (kun til Trending) ----
+  const { trending, trendingError, trendingLoadingState } = useAsideData();
 
   const {
     isEditing,
@@ -93,7 +98,7 @@ const ProfilePage = () => {
       if (el) {
         try {
           el.scrollIntoView({ behavior: "smooth", block: "center" });
-        } catch (e) {
+        } catch {
           el.scrollIntoView();
         }
         return;
@@ -116,8 +121,7 @@ const ProfilePage = () => {
       localStorage.removeItem("user_pk");
       localStorage.removeItem("user_username");
       navigate("/");
-    } catch (error) {
-      console.error("Error deleting profile:", error);
+    } catch {
       setError("Failed to delete profile.");
     }
   };
@@ -141,14 +145,14 @@ const ProfilePage = () => {
     );
   };
 
-  const isAnyLoading = trendingLoading || usersToFollowLoading;
+  const navBarLoading = postsLoadingState && posts.length === 0;
 
   return (
     <div data-testid="profile-page">
       <div id="container">
         <NavBar
           setIsPostDialogOpen={setIsPostDialogOpen}
-          isLoading={isAnyLoading}
+          isLoading={navBarLoading}
         />
         <main className="user-main">
           {isLoading ? (
@@ -216,7 +220,11 @@ const ProfilePage = () => {
           )}
         </main>
         <aside className="user-aside">
-          <Trending trending={trending} isLoading={trendingLoading} />
+          <Trending
+            trending={trending}
+            isLoading={trendingLoadingState}
+            error={trendingError}
+          />
           <WhoToFollow
             users={usersToFollow}
             isLoading={usersToFollowLoading}
