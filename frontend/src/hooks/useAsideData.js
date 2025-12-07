@@ -19,7 +19,6 @@ export const useAsideData = () => {
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
-  // ---------------- TRENDING ----------------
   const {
     data: trendingData,
     error: trendingError,
@@ -41,7 +40,6 @@ export const useAsideData = () => {
 
   const trending = trendingData ?? [];
 
-  // ---------------- USERS TO FOLLOW ----------------
   const {
     data: usersFollowData,
     error: usersError,

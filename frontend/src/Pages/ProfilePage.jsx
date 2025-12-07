@@ -17,7 +17,7 @@ import { useDocumentTitle } from "../utils/useDocumentTitle";
 import { useFollowActions } from "../hooks/useFollowActions";
 import { useProfileData } from "../hooks/useProfileData";
 import { useProfileEditing } from "../hooks/useProfileEditing";
-import { useAsideData } from "../hooks/useAsideData"; // Beholdes for Trending
+import { useAsideData } from "../hooks/useAsideData";
 
 const ProfilePage = () => {
   const { username } = useParams();
@@ -26,7 +26,6 @@ const ProfilePage = () => {
     navigate("/home");
   }, [navigate]);
 
-  // ---- Primær profil data ----
   const {
     posts,
     user,
@@ -41,11 +40,10 @@ const ProfilePage = () => {
     loadingState: postsLoadingState,
     error,
     setError,
-    usersToFollow, // Tilføjet fra den gamle struktur
-    usersToFollowLoading, // Tilføjet fra den gamle struktur
+    usersToFollow,
+    usersToFollowLoading,
   } = useProfileData(username);
 
-  // ---- Aside data (kun til Trending) ----
   const { trending, trendingError, trendingLoadingState } = useAsideData();
 
   const {

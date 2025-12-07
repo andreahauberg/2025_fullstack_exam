@@ -11,7 +11,6 @@ import { useHomeFeed } from "../hooks/useHomeFeed";
 const HomePage = () => {
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
 
-  // ---- Posts, Trending og WhoToFollow ----
   const {
     posts,
     feedError,
@@ -22,7 +21,7 @@ const HomePage = () => {
     handleUpdatePost,
     handleDeletePost,
     isFetchingNextPage,
-    // aside (Trending fra useAsideData, WhoToFollow fra useHomeFeed)
+
     trending,
     trendingError,
     trendingLoadingState,
@@ -35,7 +34,6 @@ const HomePage = () => {
   const username = localStorage.getItem("user_username");
   useDocumentTitle(username ? `Home / Welcome ${username}` : "Home / Welcome");
 
-  // ---- Infinite Scroll ----
   useEffect(() => {
     const mainEl = document.querySelector("main");
     if (!mainEl) return;

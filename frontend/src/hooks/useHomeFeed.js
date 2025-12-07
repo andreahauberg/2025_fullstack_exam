@@ -3,16 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api";
 import { parseApiErrorMessage } from "../utils/validation";
-import { useAsideData } from "./useAsideData"; // Beholdes for Trending
+import { useAsideData } from "./useAsideData";
 
 export const useHomeFeed = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // ---- Trending (bruger useAsideData) ----
+
   const { trending, trendingError, trendingLoadingState } = useAsideData();
 
-  // ---- WhoToFollow (gammel logik) ----
+
   const [usersToFollow, setUsersToFollow] = useState([]);
   const [usersError, setUsersError] = useState("");
   const [usersLoadingState, setUsersLoadingState] = useState(false);
@@ -29,7 +29,7 @@ export const useHomeFeed = () => {
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
-  // ---- Hent WhoToFollow (gammel logik) ----
+
   const fetchUsersToFollow = useCallback(async () => {
     setUsersLoadingState(true);
     try {
@@ -48,7 +48,7 @@ export const useHomeFeed = () => {
     }
   }, [handleUnauthorized]);
 
-  // ---- Posts (ny logik) ----
+
   const {
     data: postsPages,
     error: postsError,
@@ -80,7 +80,7 @@ export const useHomeFeed = () => {
 
   const posts = postsPages?.pages.flatMap((page) => page.data || []) ?? [];
 
-  // ---- Optimistic Updates ----
+
   const handlePostCreated = useCallback(
     (newPost) => {
       queryClient.setQueryData(["posts"], (old) => {
@@ -128,28 +128,28 @@ export const useHomeFeed = () => {
     [queryClient]
   );
 
-  // ---- Initialiser WhoToFollow ----
+
   useEffect(() => {
     fetchUsersToFollow();
   }, [fetchUsersToFollow]);
 
-  // ---- Return ----
+
   return {
-    // feed
+
     posts,
     feedError: postsError ? parseApiErrorMessage(postsError) : "",
     loadingState: isFetching && !isFetchingNextPage,
     loadNextPage: fetchNextPage,
     hasMoreState: hasNextPage,
     isFetchingNextPage,
-    // aside
+
     trending,
     trendingError,
     trendingLoadingState,
     usersToFollow,
     usersError,
     usersLoadingState,
-    // optimistic updates
+
     handlePostCreated,
     handleUpdatePost,
     handleDeletePost,
