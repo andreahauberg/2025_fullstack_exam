@@ -9,6 +9,7 @@ import NotificationsPage from "./Pages/NotificationsPage";
 import UserPage from "./Pages/UserPage";
 import NotFoundPage from "./Pages/NotFoundPage";
 import ErrorPage from "./Pages/ErrorPage";
+import { renderWithQueryClient } from "./test-utils";
 
 window.matchMedia =
   window.matchMedia ||
@@ -45,7 +46,6 @@ beforeEach(() => {
   localStorage.setItem("token", "test-token");
   const axios = require("axios");
   axios.get.mockImplementation((url) => {
-    // ---- USER PROFILE ----
     if (url.includes("/users/testuser")) {
       return Promise.resolve({
         data: {
@@ -65,7 +65,6 @@ beforeEach(() => {
         },
       });
     }
-    // ---- REPOSTS ----
     if (url.includes("/users/testuser/reposts")) {
       return Promise.resolve({
         data: [],
@@ -73,15 +72,8 @@ beforeEach(() => {
         last_page: 1,
       });
     }
-    // ---- TRENDING ----
-    if (url.includes("/trending")) {
-      return Promise.resolve({ data: [] });
-    }
-    // ---- USERS TO FOLLOW ----
-    if (url.includes("/users-to-follow")) {
-      return Promise.resolve({ data: [] });
-    }
-    // ---- CURRENT USER ----
+    if (url.includes("/trending")) return Promise.resolve({ data: [] });
+    if (url.includes("/users-to-follow")) return Promise.resolve({ data: [] });
     if (url === "/api/user") {
       return Promise.resolve({
         data: {
@@ -92,15 +84,9 @@ beforeEach(() => {
         },
       });
     }
-    // ---- OTHER APIS ----
-    if (url.includes("/api/posts")) {
-      return Promise.resolve({ data: [] });
-    }
+    if (url.includes("/api/posts")) return Promise.resolve({ data: [] });
     if (url.includes("/api/notifications")) {
-      return Promise.resolve({
-        data: [],
-        meta: { unread_count: 0 },
-      });
+      return Promise.resolve({ data: [], meta: { unread_count: 0 } });
     }
     return Promise.resolve({ data: {} });
   });
@@ -154,7 +140,7 @@ describe("App routing", () => {
       });
     });
     test("renders HomePage when authenticated", async () => {
-      renderWithRouter(<App />, { route: "/home" });
+      renderWithQueryClient(<App />, { route: "/home" });
       await waitFor(() => {
         expect(screen.getByTestId("home-page")).toBeInTheDocument();
       });
@@ -194,7 +180,7 @@ describe("App routing", () => {
       });
     });
     test("redirects to home page when authenticated and trying to access landing page", async () => {
-      renderWithRouter(<App />, { route: "/" });
+      renderWithQueryClient(<App />, { route: "/" });
       await waitFor(() => {
         expect(screen.getByTestId("home-page")).toBeInTheDocument();
       });
@@ -210,6 +196,7 @@ describe("App routing", () => {
       );
       expect(screen.getByTestId("landing-page")).toBeInTheDocument();
     });
+
     test("HomePage renders correctly", async () => {
       Storage.prototype.getItem = jest.fn((key) => {
         if (key === "token") return "fake-token";
@@ -217,15 +204,12 @@ describe("App routing", () => {
         if (key === "user_username") return "testuser";
         return null;
       });
-      render(
-        <MemoryRouter>
-          <HomePage />
-        </MemoryRouter>
-      );
+      renderWithQueryClient(<HomePage />);
       await waitFor(() => {
         expect(screen.getByTestId("home-page")).toBeInTheDocument();
       });
     });
+
     test("ProfilePage renders correctly", async () => {
       Storage.prototype.getItem = jest.fn((key) => {
         if (key === "token") return "fake-token";
@@ -247,6 +231,7 @@ describe("App routing", () => {
         { timeout: 3000 }
       );
     });
+
     test("NotificationsPage renders correctly", async () => {
       Storage.prototype.getItem = jest.fn((key) => {
         if (key === "token") return "fake-token";
@@ -263,6 +248,7 @@ describe("App routing", () => {
         expect(screen.getByTestId("notifications-page")).toBeInTheDocument();
       });
     });
+
     test("UserPage renders correctly", async () => {
       Storage.prototype.getItem = jest.fn((key) => {
         if (key === "token") return "fake-token";
@@ -284,6 +270,7 @@ describe("App routing", () => {
         { timeout: 3000 }
       );
     });
+
     test("NotFoundPage renders correctly", () => {
       render(
         <MemoryRouter>
@@ -292,6 +279,7 @@ describe("App routing", () => {
       );
       expect(screen.getByTestId("not-found-page")).toBeInTheDocument();
     });
+
     test("ErrorPage renders correctly", () => {
       render(
         <MemoryRouter initialEntries={["/error?code=404"]}>
