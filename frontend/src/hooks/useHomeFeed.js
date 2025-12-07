@@ -1,23 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { api } from "../api";
 import { parseApiErrorMessage } from "../utils/validation";
 
 export const useHomeFeed = () => {
-  const [posts, setPosts] = useState([]);
-  const [trending, setTrending] = useState([]);
-  const [usersToFollow, setUsersToFollow] = useState([]);
-  const [feedError, setFeedError] = useState("");
-  const [trendingError, setTrendingError] = useState("");
-  const [usersError, setUsersError] = useState("");
-  const [page, setPage] = useState(1);
-  const [loadingState, setLoadingState] = useState(false);
-  const [usersLoadingState, setUsersLoadingState] = useState(false);
-  const [trendingLoadingState, setTrendingLoadingState] = useState(false);
-  const [hasMoreState, setHasMoreState] = useState(true);
-  const loadingRef = useRef(false);
-  const hasMoreRef = useRef(true);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const handleUnauthorized = useCallback(() => {
     localStorage.removeItem("token");
@@ -26,147 +19,154 @@ export const useHomeFeed = () => {
     navigate("/");
   }, [navigate]);
 
-  useEffect(() => {
-    loadingRef.current = loadingState;
-  }, [loadingState]);
+  const authHeaders = () => {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
 
-  useEffect(() => {
-    hasMoreRef.current = hasMoreState;
-  }, [hasMoreState]);
-
-  const fetchPosts = useCallback(
-    async (requestedPage) => {
-      if (loadingRef.current || !hasMoreRef.current) return;
-      setLoadingState(true);
+  // ---------------- POSTS ----------------
+  const {
+    data: postsPages,
+    error: postsError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isFetching, // <--- her
+    status: postsStatus,
+  } = useInfiniteQuery({
+    queryKey: ["posts"],
+    queryFn: async ({ pageParam = 1 }) => {
       try {
-        const token = localStorage.getItem("token");
-        const response = await api.get(`/posts?page=${requestedPage}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        const response = await api.get(`/posts?page=${pageParam}`, {
+          headers: authHeaders(),
         });
-        const newPosts = response.data.data ?? [];
-        setFeedError("");
-        setPosts((prev) => {
-          const filtered = newPosts.filter(
-            (p) => !prev.some((prevP) => prevP.post_pk === p.post_pk)
-          );
-          return [...prev, ...filtered];
-        });
-        const more = response.data.current_page < response.data.last_page;
-        setHasMoreState(more);
+        return response.data;
       } catch (err) {
-        setFeedError(
-          parseApiErrorMessage(err, "Failed to load feed. Please try again.")
-        );
-        if (err.response?.status === 401) {
-          handleUnauthorized();
-        }
-      } finally {
-        setLoadingState(false);
+        if (err.response?.status === 401) handleUnauthorized();
+        throw err;
       }
     },
-    [handleUnauthorized]
+    getNextPageParam: (lastPage) =>
+      lastPage.current_page < lastPage.last_page
+        ? lastPage.current_page + 1
+        : undefined,
+    staleTime: 1000 * 60 * 1,
+    retry: 2,
+  });
+
+  const posts = postsPages?.pages.flatMap((page) => page.data || []) ?? [];
+
+  // ---------------- TRENDING ----------------
+  const {
+    data: trendingData,
+    error: trendingError,
+    isFetching: trendingLoading,
+  } = useQuery({
+    queryKey: ["trending"],
+    queryFn: async () => {
+      try {
+        const response = await api.get("/trending", { headers: authHeaders() });
+        return response.data;
+      } catch (err) {
+        if (err.response?.status === 401) handleUnauthorized();
+        throw err;
+      }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 2,
+  });
+
+  const trending = trendingData ?? [];
+
+  // ---------------- USERS TO FOLLOW ----------------
+  const {
+    data: usersFollowData,
+    error: usersError,
+    isFetching: usersLoading,
+  } = useQuery({
+    queryKey: ["usersToFollow"],
+    queryFn: async () => {
+      try {
+        const response = await api.get("/users-to-follow", {
+          headers: authHeaders(),
+        });
+        return response.data;
+      } catch (err) {
+        if (err.response?.status === 401) handleUnauthorized();
+        throw err;
+      }
+    },
+    staleTime: 1000 * 60 * 10,
+    retry: 2,
+  });
+
+  const usersToFollow = usersFollowData ?? [];
+
+  // ---------------- OPTIMISTIC UPDATES ----------------
+  const handlePostCreated = useCallback(
+    (newPost) => {
+      queryClient.setQueryData(["posts"], (old) => {
+        if (!old) return old;
+        const newPages = [...old.pages];
+        newPages[0] = {
+          ...newPages[0],
+          data: [newPost, ...(newPages[0].data || [])],
+        };
+        return { ...old, pages: newPages };
+      });
+    },
+    [queryClient]
   );
 
-  const fetchTrending = useCallback(async () => {
-    setTrendingLoadingState(true);
-    try {
-      const token = localStorage.getItem("token");
-      const response = await api.get("/trending", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+  const handleUpdatePost = useCallback(
+    (updatedPost) => {
+      queryClient.setQueryData(["posts"], (old) => {
+        if (!old) return old;
+        const newPages = old.pages.map((page) => ({
+          ...page,
+          data: page.data.map((p) =>
+            p.post_pk === updatedPost.post_pk
+              ? { ...p, ...updatedPost, user: updatedPost.user ?? p.user }
+              : p
+          ),
+        }));
+        return { ...old, pages: newPages };
       });
-      setTrending(response.data);
-      setTrendingError("");
-    } catch (err) {
-      setTrendingError(
-        parseApiErrorMessage(err, "Unable to load trending topics right now.")
-      );
-      if (err.response?.status === 401) {
-        handleUnauthorized();
-      }
-    } finally {
-      setTrendingLoadingState(false);
-    }
-  }, [handleUnauthorized]);
+    },
+    [queryClient]
+  );
 
-  const fetchUsersToFollow = useCallback(async () => {
-    setUsersLoadingState(true);
-    try {
-      const token = localStorage.getItem("token");
-      const response = await api.get("/users-to-follow", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+  const handleDeletePost = useCallback(
+    (postPk) => {
+      queryClient.setQueryData(["posts"], (old) => {
+        if (!old) return old;
+        const newPages = old.pages.map((page) => ({
+          ...page,
+          data: page.data.filter((p) => p.post_pk !== postPk),
+        }));
+        return { ...old, pages: newPages };
       });
-      setUsersToFollow(response.data);
-      setUsersError("");
-    } catch (err) {
-      setUsersError(
-        parseApiErrorMessage(err, "Unable to load recommendations right now.")
-      );
-      if (err.response?.status === 401) {
-        handleUnauthorized();
-      }
-    } finally {
-      setUsersLoadingState(false);
-    }
-  }, [handleUnauthorized]);
+    },
+    [queryClient]
+  );
 
-  const initializeFeed = useCallback(() => {
-    setPosts([]);
-    setHasMoreState(true);
-    setPage(1);
-    fetchPosts(1);
-  }, [fetchPosts]);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      handleUnauthorized();
-      return;
-    }
-    fetchTrending();
-    fetchUsersToFollow();
-    initializeFeed();
-  }, [fetchTrending, fetchUsersToFollow, handleUnauthorized, initializeFeed]);
-
-  useEffect(() => {
-    if (page === 1) return;
-    fetchPosts(page);
-  }, [page, fetchPosts]);
-
-  const loadNextPage = useCallback(() => {
-    if (loadingRef.current || !hasMoreRef.current) return;
-    setPage((prev) => prev + 1);
-  }, []);
-
-  const handlePostCreated = useCallback((newPost) => {
-    setPosts((prev) => [newPost, ...prev]);
-  }, []);
-
-  const handleUpdatePost = useCallback((updatedPost) => {
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.post_pk === updatedPost.post_pk
-          ? { ...p, ...updatedPost, user: updatedPost.user ?? p.user }
-          : p
-      )
-    );
-  }, []);
-
-  const handleDeletePost = useCallback((postPk) => {
-    setPosts((prev) => prev.filter((p) => p.post_pk !== postPk));
-  }, []);
-
+  // ---------------- RETURN ----------------
   return {
     posts,
+    feedError: postsError ? parseApiErrorMessage(postsError) : "",
+    loadingState: isFetching && !isFetchingNextPage, // <-- første load spinner
+    loadNextPage: fetchNextPage,
+    hasMoreState: hasNextPage,
+    isFetchingNextPage,
+
     trending,
+    trendingError: trendingError ? parseApiErrorMessage(trendingError) : "",
+    trendingLoadingState: trendingLoading,
+
     usersToFollow,
-    feedError,
-    trendingError,
-    usersError,
-    loadingState,
-    usersLoadingState,
-    trendingLoadingState,
-    hasMoreState,
-    loadNextPage,
+    usersError: usersError ? parseApiErrorMessage(usersError) : "",
+    usersLoadingState: usersLoading,
+
     handlePostCreated,
     handleUpdatePost,
     handleDeletePost,

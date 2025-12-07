@@ -22,6 +22,9 @@ class UsersTableSeeder extends Seeder
         // Aktiver fremmednøglekontrol igen
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
+        // Use the password from .env
+        $defaultPassword = env('SEED_USER_PASSWORD');
+
         // Generer et større datasæt
         for ($i = 0; $i < 150; $i++) {
             $userPk = Str::uuid();
@@ -34,7 +37,7 @@ class UsersTableSeeder extends Seeder
                 'user_pk' => $userPk,
                 'user_username' => $username,
                 'user_email' => $faker->unique()->safeEmail,
-                'user_password' => bcrypt('password'),
+                'user_password' => bcrypt($defaultPassword),
                 'user_full_name' => $faker->name,
                 'created_at' => now(),
                 'user_profile_picture' => $profilePictureUrl,

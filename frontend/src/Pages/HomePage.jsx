@@ -10,6 +10,7 @@ import { useHomeFeed } from "../hooks/useHomeFeed";
 
 const HomePage = () => {
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
+
   const {
     posts,
     trending,
@@ -25,20 +26,19 @@ const HomePage = () => {
     handlePostCreated,
     handleUpdatePost,
     handleDeletePost,
+    isFetchingNextPage,
   } = useHomeFeed();
 
-  const initialLoading = posts.length === 0 && postsLoadingState;
-
-
+  const navBarLoading = postsLoadingState && posts.length === 0;
   const username = localStorage.getItem("user_username");
-  const homeTitle = username ? `Home / Welcome ${username}` : "Home / Welcome";
-  useDocumentTitle(homeTitle);
+  useDocumentTitle(username ? `Home / Welcome ${username}` : "Home / Welcome");
 
-
+  // ---------------- Infinite Scroll ----------------
   useEffect(() => {
     const mainEl = document.querySelector("main");
     if (!mainEl) return;
     let ticking = false;
+
     const handleScroll = () => {
       if (ticking) return;
       ticking = true;
@@ -46,32 +46,40 @@ const HomePage = () => {
         const scrollTop = mainEl.scrollTop;
         const scrollHeight = mainEl.scrollHeight;
         const clientHeight = mainEl.clientHeight;
-        if (
-          scrollTop + clientHeight >= scrollHeight - 300 &&
-          !postsLoadingState &&
-          hasMoreState
-        ) {
-          loadNextPage();
+
+        if (scrollTop + clientHeight >= scrollHeight - 300) {
+          if (!postsLoadingState && !isFetchingNextPage && hasMoreState) {
+            loadNextPage();
+          }
         }
+
         ticking = false;
       });
     };
+
     mainEl.addEventListener("scroll", handleScroll, { passive: true });
     return () => mainEl.removeEventListener("scroll", handleScroll);
-  }, [hasMoreState, loadNextPage, postsLoadingState]);
+  }, [postsLoadingState, isFetchingNextPage, hasMoreState, loadNextPage]);
 
   return (
     <div data-testid="home-page">
       <div id="container">
+        {/* NavBar spinner */}
         <NavBar
           setIsPostDialogOpen={setIsPostDialogOpen}
-          isLoading={initialLoading}
+          isLoading={navBarLoading}
         />
+
         <main>
+          {/* Første load spinner */}
           {postsLoadingState && posts.length === 0 && (
             <LoadingOverlay message="Loading feed..." />
           )}
+
+          {/* Fejl */}
           {feedError && <p className="error">{feedError}</p>}
+
+          {/* Posts */}
           {posts.map((post) => (
             <Post
               key={post.post_pk}
@@ -80,27 +88,33 @@ const HomePage = () => {
               onDeletePost={handleDeletePost}
             />
           ))}
-          {postsLoadingState && posts.length > 0 && (
+
+          {/* Load more spinner */}
+          {isFetchingNextPage && (
             <div className="loading-more-container">
               <LoadingOverlay message="Loading more posts..." />
             </div>
           )}
-          {!hasMoreState && <p>No more posts to load.</p>}
+
+          {/* Ingen flere posts */}
+          {posts.length > 0 && !isFetchingNextPage && !hasMoreState && (
+            <p>No more posts to load.</p>
+          )}
         </main>
+
         <aside>
           <Trending
             trending={trending}
             isLoading={trendingLoadingState}
             error={trendingError}
           />
-          {trendingError && <p className="error">{trendingError}</p>}
           <WhoToFollow
             users={usersToFollow}
             isLoading={usersLoadingState}
             error={usersError}
           />
-          {usersError && <p className="error">{usersError}</p>}
         </aside>
+
         <PostDialog
           isOpen={isPostDialogOpen}
           onClose={() => setIsPostDialogOpen(false)}
