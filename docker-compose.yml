@@ -4,7 +4,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       args:
-        INSTALL_DEV: "true"  # Installer dev-afhængigheder lokalt
+        INSTALL_DEV: "true" 
     container_name: twitter_fullstack_web
     depends_on:
       - mariadb
