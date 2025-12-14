@@ -209,7 +209,7 @@ const ProfilePage = () => {
                   <UserList
                     title="Following"
                     users={following}
-                    emptyMessage="Not following anyone yet."
+                    emptyMessage="Not following anyone yet.."
                     onFollowChange={handleSidebarFollowChange}
                   />
                 )}
